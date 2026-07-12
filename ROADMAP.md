@@ -18,25 +18,25 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 
 ### Phase 2: Web Admin Dashboard (Secure & Validated)
 *Fokus: Membangun ruang kerja internal dengan proteksi keamanan tinggi.*
-- [ ] Setup Halaman Login Admin (`/admin/login`)
-- [ ] Pembuatan **Next.js Middleware** untuk mengunci rute `/admin` (Redirect jika tidak ada token Supabase Auth)
-- [ ] Pembuatan Layout Admin (Sidebar, Navigation)
-- [ ] Pembuatan Endpoint API `/api/cloudinary/sign` (SUPER RESTRICTED: Wajib cek sesi server-side)
-- [ ] Pembuatan Endpoint API `/api/post/delete` (Termasuk fitur Cloudinary *Hard Delete* dan *Rollback* jika gagal)
-- [ ] Integrasi Library `exifr` untuk ekstraksi EXIF dari beberapa file sekaligus (termasuk `focal_length`)
-- [ ] Pembuatan Form "New Post" (Input Judul, Story, Tag/Koleksi, dan Multiple File Input)
-- [ ] Logika penyimpanan beruntun dengan validasi backend: (Wajib cek maks 1 `is_cover = true` per post)
-- [ ] Halaman Daftar Post di Admin untuk mengelola galeri
+- [x] Setup Halaman Login Admin (`/admin/login`)
+- [x] Pembuatan **Next.js Middleware** untuk mengunci rute `/admin` (Redirect jika tidak ada token Supabase Auth)
+- [x] Pembuatan Layout Admin (Sidebar, Navigation)
+- [x] Pembuatan Endpoint API `/api/cloudinary/sign` (SUPER RESTRICTED: Wajib cek sesi server-side)
+- [x] Pembuatan Endpoint API `/api/post/delete` (Termasuk fitur Cloudinary *Hard Delete* dan *Rollback* jika gagal)
+- [x] Integrasi Library `exifr` untuk ekstraksi EXIF dari beberapa file sekaligus (termasuk `focal_length`)
+- [x] Pembuatan Form "New Post" (Input Judul, Story, Tag/Koleksi, dan Multiple File Input)
+- [x] Logika penyimpanan beruntun dengan validasi backend: (Wajib cek maks 1 `is_cover = true` per post)
+- [x] Halaman Daftar Post di Admin untuk mengelola galeri
 
 ### Phase 3: Frontend Core UI & Design System
 *Fokus: Aesthetics, UX mulus, dan tipografi elegan.*
-- [ ] Setup Tema dengan Tailwind dan variabel warna premium
-- [ ] Pembuatan Komponen Dasar (Header, Footer, Navbar)
-- [ ] Halaman `Home` (Menampilkan cover foto, grid konstan 4:3 / 3:4 dengan Smart Crop)
-- [ ] Halaman `Gallery` (Grid layout dengan Smart Crop)
-- [ ] Halaman `Post Detail` (Struktur wajib: Header, Lokasi, Carousel Foto, EXIF per foto, Story, Download Button)
-- [ ] Integrasi **Embla Carousel** untuk pengalaman *swipe* foto yang mulus di Mobile & PC
-- [ ] Modal/Overlay dinamis untuk memunculkan EXIF masing-masing foto di dalam carousel
+- [x] Setup Tema dengan Tailwind dan variabel warna premium
+- [x] Pembuatan Komponen Dasar (Header, Footer, Navbar)
+- [x] Halaman `Home` (Menampilkan cover foto, grid konstan 4:3 / 3:4 dengan Smart Crop)
+- [x] Halaman `Gallery` (Grid layout dengan Smart Crop)
+- [x] Halaman `Post Detail` (Struktur wajib: Header, Lokasi, Carousel Foto, EXIF per foto, Story, Download Button)
+- [x] Integrasi **Embla Carousel** untuk pengalaman *swipe* foto yang mulus di Mobile & PC
+- [x] Modal/Overlay dinamis untuk memunculkan EXIF masing-masing foto di dalam carousel
 
 ### Phase 4: Frontend Integration & Data Fetching
 *Fokus: Menghubungkan UI publik dengan Supabase dan optimasi performa.*

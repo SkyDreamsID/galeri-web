@@ -1,65 +1,91 @@
-import Image from "next/image";
+import { createClient } from '@/lib/supabase/server'
+import { Navbar } from '@/components/public/Navbar'
+import Link from 'next/link'
 
-export default function Home() {
+export const revalidate = 60 // Revalidate cache every 60 seconds
+
+export default async function Home() {
+  const supabase = await createClient()
+
+  // Ambil postingan publik
+  const { data: posts, error } = await supabase
+    .from('posts')
+    .select(`
+      id, title, slug, location,
+      collections (name),
+      photos (image_url, is_cover)
+    `)
+    .eq('status', 'Published')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Failed to fetch public posts:', error)
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <>
+      <Navbar />
+      <main className="container mx-auto max-w-7xl px-4 md:px-8 py-12 md:py-20">
+        <div className="mb-16">
+          <h1 className="text-4xl md:text-5xl font-heading font-bold text-text-main tracking-tight mb-4">
+            Jurnal Visual.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-lg text-text-muted max-w-2xl font-sans leading-relaxed">
+            Kumpulan cerita dan memori yang ditangkap melalui lensa. Antarmuka minimalis untuk mengutamakan karya.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* CSS Columns untuk gaya Masonry sederhana */}
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+          {posts?.map((post: any) => {
+            const coverImage = post.photos?.find((p: any) => p.is_cover)?.image_url || post.photos?.[0]?.image_url
+            
+            return (
+              <Link key={post.id} href={`/post/${post.slug || post.id}`} className="block group break-inside-avoid">
+                <div className="bg-card rounded-[16px] overflow-hidden border border-border transition-all duration-250 ease-in-out hover:-translate-y-1" style={{ boxShadow: '0 6px 18px rgba(0,0,0,.04)' }}>
+                  {coverImage ? (
+                    <div className="relative w-full overflow-hidden bg-surface aspect-auto">
+                      {/* Karena masonry butuh aspect ratio asli atau auto, kita pakai img standard */}
+                      <img 
+                        src={coverImage} 
+                        alt={post.title} 
+                        className="w-full h-auto object-cover transition-transform duration-500 ease-in-out group-hover:scale-[1.02]"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-64 bg-surface flex items-center justify-center text-text-muted text-sm">
+                      Tidak ada foto
+                    </div>
+                  )}
+                  
+                  <div className="p-5 bg-card">
+                    {post.collections?.name && (
+                      <div className="text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2">
+                        {post.collections.name}
+                      </div>
+                    )}
+                    <h2 className="font-heading text-lg font-bold text-text-main mb-1 group-hover:text-primary-neutral transition-colors">
+                      {post.title}
+                    </h2>
+                    {post.location && (
+                      <p className="text-sm text-text-muted">
+                        {post.location}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
         </div>
+
+        {posts?.length === 0 && (
+          <div className="text-center py-32 text-text-muted">
+            Belum ada momen yang dipublikasikan.
+          </div>
+        )}
       </main>
-    </div>
-  );
+    </>
+  )
 }
