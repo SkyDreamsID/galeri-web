@@ -7,58 +7,66 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 ### Phase 1: Foundation & Bulletproof Planning (Selesai)
 *Fokus: Struktur, Keamanan, dan Arsitektur Multi-Upload*
 - [x] Pembuatan Spesifikasi Teknis yang diperketat (Roadmap & Blueprint V2)
-- [x] Desain Skema Database Nesting (`posts`, `photos`, `exif_data`, `collections`, `tags`, `post_tags`)
+- [x] Desain Skema Database Nesting (`posts`, `photos`, `exif_data`, `collections`, `tags`, `post_tags`, `gears`)
 - [x] Inisialisasi Repositori GitHub
 - [x] Setup Proyek Supabase (Tabel Induk, Tabel Anak, Tabel Pivot)
-- [x] Menerapkan aturan RLS (Row Level Security) yang kaku di Supabase
-- [x] Setup Supabase Auth (Membuat 1 akun Admin tunggal secara manual)
+- [x] Menerapkan aturan RLS (Row Level Security) di Supabase
+- [x] Setup Supabase Auth
 - [x] Setup Akun Cloudinary dan konfigurasi keamanan
 - [x] Inisialisasi Proyek Next.js (`npx create-next-app` + Tailwind CSS)
 - [x] Instalasi pustaka UI (shadcn/ui, Embla Carousel, Framer Motion, Lucide React)
 
-### Phase 2: Web Admin Dashboard (Secure & Validated)
+### Phase 2: Web Admin Dashboard (Selesai)
 *Fokus: Membangun ruang kerja internal dengan proteksi keamanan tinggi.*
 - [x] Setup Halaman Login Admin (`/admin/login`)
-- [x] Pembuatan **Next.js Middleware** untuk mengunci rute `/admin` (Redirect jika tidak ada token Supabase Auth)
+- [x] Pembuatan **Next.js Middleware** untuk mengunci rute `/admin`
 - [x] Pembuatan Layout Admin (Sidebar, Navigation)
-- [x] Pembuatan Endpoint API `/api/cloudinary/sign` (SUPER RESTRICTED: Wajib cek sesi server-side)
-- [x] Pembuatan Endpoint API `/api/post/delete` (Termasuk fitur Cloudinary *Hard Delete* dan *Rollback* jika gagal)
-- [x] Integrasi Library `exifr` untuk ekstraksi EXIF dari beberapa file sekaligus (termasuk `focal_length`)
-- [x] Pembuatan Form "New Post" (Input Judul, Story, Tag/Koleksi, dan Multiple File Input)
-- [x] Logika penyimpanan beruntun dengan validasi backend: (Wajib cek maks 1 `is_cover = true` per post)
-- [x] Halaman Daftar Post di Admin untuk mengelola galeri
+- [x] Pembuatan Endpoint API `/api/cloudinary/sign`
+- [x] Pembuatan Endpoint API `/api/post/delete`
+- [x] Integrasi Library `exifr` untuk ekstraksi EXIF dari beberapa file sekaligus
+- [x] Pembuatan Form "New Post" (Multi File, Auto EXIF)
+- [x] Logika penyimpanan beruntun dengan validasi backend
+- [x] Halaman Daftar Post di Admin
+- [x] **Gear Management**: Fitur CRUD untuk menambah, menghapus, dan melampirkan gambar perlengkapan/gear di dashboard admin (`/admin/gear`).
 
-### Phase 3: Frontend Core UI & Design System
+### Phase 3: Frontend Core UI & Design System (Selesai)
 *Fokus: Aesthetics, UX mulus, dan tipografi elegan.*
-- [x] Setup Tema dengan Tailwind dan variabel warna premium
-- [x] Pembuatan Komponen Dasar (Header, Footer, Navbar)
-- [x] Halaman `Home` (Menampilkan cover foto, grid konstan 4:3 / 3:4 dengan Smart Crop)
-- [x] Halaman `Gallery` (Grid layout dengan Smart Crop)
-- [x] Halaman `Post Detail` (Struktur wajib: Header, Lokasi, Carousel Foto, EXIF per foto, Story, Download Button)
+- [x] Setup Tema dengan Tailwind dan variabel warna premium (Glassmorphism & Nature tones)
+- [x] Halaman `Home` (Menampilkan cover foto, grid masonry, Infinite Scroll skeleton)
+- [x] Halaman `Post Detail` (Header, Lokasi, Carousel Foto, EXIF per foto, Story, Download Button)
 - [x] Integrasi **Embla Carousel** untuk pengalaman *swipe* foto yang mulus di Mobile & PC
 - [x] Modal/Overlay dinamis untuk memunculkan EXIF masing-masing foto di dalam carousel
+- [x] **My Gear Modal**: Integrasi modal pameran alat fotografi di `Navbar`
+- [x] **Per-Photo Copyright**: Memungkinkan hak cipta dinamis untuk tiap foto yang dirender dalam satu album (*agency ready*).
+- [x] Dark Mode Enhancement: Toggle tema Gelap/Terang.
+- [x] Transisi Framer Motion & Tipografi Plus Jakarta Sans.
 
-### Phase 4: Frontend Integration & Data Fetching
+### Phase 3.5: Playground Migration & Refinement (Selesai)
+*Fokus: Memindahkan hasil eksperimen UI/UX (Playground) ke produksi utama.*
+- [x] Merapikan komponen hasil eksperimen di `/playground` (Hero Section, Glassmorphism, dll).
+- [x] Migrasi desain Navbar 3-Mode (Mobile, Tablet, Desktop) ke komponen utama.
+- [x] Memigrasikan rute `/playground` ke `src/app` sebagai rute utama *website*.
+- [x] Membersihkan folder *sandbox* yang tersisa.
+
+### Phase 4: Frontend Integration & Optimization (Selesai)
 *Fokus: Menghubungkan UI publik dengan Supabase dan optimasi performa.*
-- [ ] Fetching Data Post di Halaman Depan dengan **Limit & Offset (Pagination / Infinite Scroll)** agar server tidak berat
-- [ ] Fetching Data Detail Post (Join antara `posts`, `photos`, `exif_data`, `tags`, dan `collections`)
-- [ ] Logika Search System
-- [ ] Micro-interactions (Framer Motion transitions, hover efek premium)
+- [x] Fetching Data Post di Halaman Depan dengan **Pagination / Infinite Scroll** via tombol "Muat Lebih Banyak".
+- [x] Fetching Data Detail Post (Join antara `posts`, `photos`, `exif_data`)
+- [x] Toast Notification (Pesan Sukses/Gagal beranimasi) tanpa menggunakan alert bawaan.
 
-### Phase 5: Polishing, SEO, & Deployment
+### Phase 5: Polishing, SEO, & Deployment (Segera Datang)
 *Fokus: Optimasi performa dan Go-Live.*
-- [ ] Next.js SEO Tags (Title, Meta Description, Open Graph)
-- [ ] Optimasi UX (Loading Skeletons dengan shadcn)
-- [ ] Deployment Frontend + Admin ke Vercel
-- [ ] Uji Coba Flow Lengkap (Upload -> Validasi -> Tampil -> Delete -> Cek Orphaned Files)
-- [ ] Peluncuran Versi 1.0 (Live)
+- [ ] Next.js SEO Tags (Title, Meta Description, Open Graph) & Image Alt Automation.
+- [ ] PWA Support (Progressive Web App) agar web bisa diinstal selayaknya aplikasi.
+- [ ] Deployment Frontend + Admin ke Vercel/Netlify.
+- [ ] Peluncuran Versi 1.0 (Live).
 
 ---
 
-## 🚀 Future Expansion Plan (Post v1.0)
+## 🚀 Future Expansion Plan (Ide Baru Post v1.0)
 
-1. **Gallery Radio**: Menggunakan Zeno.fm dan secara default mute (harus play manual).
-2. **Timeline Photography**: View mode berdasarkan urutan rilis waktu.
-3. **Advanced Analytics**: Integrasi tracking views untuk setiap Post.
-4. **Dark Mode Enhancement**: Toggle tema Gelap/Terang mulus (terintegrasi bawaan Next.js/Tailwind).
-5. **Smooth Page Animation**: Transisi antar halaman gaya aplikasi *Native* menggunakan Framer Motion.
+1. **Client Booking/Hiring Page**: Formulir *booking* langsung untuk klien yang ingin menyewa jasa fotografi.
+2. **Gallery Radio**: Memutar musik (*Zeno.fm* atau *Lo-Fi Player*) di latar belakang (secara default mute).
+3. **Timeline Photography**: *View mode* kronologis (*Timeline Slider*) berdasarkan metadata tanggal jepretan EXIF.
+4. **Watermark Otomatis**: Melampirkan *watermark* dinamis dengan nama `copyright_name` menggunakan transformasi *on-the-fly* Cloudinary.
+5. **Advanced Analytics**: Integrasi Google Analytics / Vercel Web Analytics untuk *tracking views* tiap postingan galeri.

@@ -6,9 +6,9 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-white selection:bg-blue-500/30">
+    <div className="flex min-h-screen bg-background text-text-main selection:bg-primary-neutral/30">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">
+      <main className="flex-1 w-full overflow-y-auto p-4 md:p-8 pt-20 md:pt-8 bg-background">
         {children}
       </main>
     </div>

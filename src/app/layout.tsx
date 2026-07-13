@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   description: "Kumpulan momen dan cerita di balik lensa.",
 };
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,9 +33,18 @@ export default function RootLayout({
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased dark`}
+      className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-background text-text-main transition-colors duration-300">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

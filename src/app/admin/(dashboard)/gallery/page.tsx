@@ -82,14 +82,14 @@ export default function GalleryManagement() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-12">
+    <div className="max-w-6xl mx-auto space-y-6 pb-20 md:pb-12">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-white">Kelola Galeri</h2>
-        <p className="text-zinc-400 mt-1">Daftar momen yang telah dipublikasikan di galeri Anda.</p>
+        <h2 className="text-3xl font-heading font-bold tracking-tight text-text-main">Kelola Galeri</h2>
+        <p className="text-text-muted mt-1 font-sans">Daftar momen yang telah dipublikasikan di galeri Anda.</p>
       </div>
 
       {posts.length === 0 ? (
-        <Card className="bg-zinc-900 border-zinc-800 p-8 text-center text-zinc-500">
+        <Card className="bg-surface border-border/40 p-8 text-center text-text-muted shadow-sm">
           Belum ada momen yang diunggah. Silakan upload momen baru terlebih dahulu.
         </Card>
       ) : (
@@ -97,8 +97,8 @@ export default function GalleryManagement() {
           {posts.map((post) => {
             const coverImage = post.photos?.[0]?.image_url
             return (
-              <Card key={post.id} className="bg-zinc-900 border-zinc-800 overflow-hidden flex flex-col">
-                <div className="h-48 w-full relative bg-zinc-950">
+              <Card key={post.id} className="bg-surface border-border/40 overflow-hidden flex flex-col shadow-sm">
+                <div className="h-48 w-full relative bg-background">
                   {coverImage ? (
                     <img 
                       src={coverImage} 
@@ -106,28 +106,28 @@ export default function GalleryManagement() {
                       className="absolute inset-0 w-full h-full object-cover" 
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-zinc-600 text-xs">
+                    <div className="absolute inset-0 flex items-center justify-center text-text-muted/50 text-xs">
                       Tidak ada foto
                     </div>
                   )}
                   {post.collections?.name && (
-                    <span className="absolute top-2 left-2 bg-blue-600/90 text-white text-xs px-2.5 py-1 rounded-md font-medium">
+                    <span className="absolute top-2 left-2 bg-primary-neutral/90 text-surface text-xs px-2.5 py-1 rounded-md font-semibold shadow-sm">
                       📁 {post.collections.name}
                     </span>
                   )}
                 </div>
 
                 <CardHeader className="p-4 flex-1">
-                  <CardTitle className="text-white text-lg font-bold truncate">{post.title}</CardTitle>
-                  <div className="flex flex-col gap-1.5 text-zinc-400 text-xs mt-2">
+                  <CardTitle className="text-text-main text-lg font-bold font-heading truncate">{post.title}</CardTitle>
+                  <div className="flex flex-col gap-1.5 text-text-muted text-xs mt-2 font-sans">
                     {post.location && (
                       <div className="flex items-center gap-1">
-                        <MapPin size={14} className="text-zinc-500" />
+                        <MapPin size={14} className="text-text-muted/80" />
                         <span>{post.location}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-1">
-                      <Calendar size={14} className="text-zinc-500" />
+                      <Calendar size={14} className="text-text-muted/80" />
                       <span>
                         {new Date(post.created_at).toLocaleDateString('id-ID', {
                           day: 'numeric',
@@ -139,8 +139,8 @@ export default function GalleryManagement() {
                   </div>
                 </CardHeader>
 
-                <CardContent className="p-4 pt-0 border-t border-zinc-800/50 bg-zinc-900/50 flex justify-between items-center">
-                  <span className="text-xs text-zinc-500 font-medium">
+                <CardContent className="p-4 pt-0 border-t border-border/20 bg-background/30 flex justify-between items-center mt-auto">
+                  <span className="text-xs text-text-muted font-medium">
                     {post.photos?.length || 0} Foto
                   </span>
                   <div className="flex gap-2">
@@ -148,7 +148,7 @@ export default function GalleryManagement() {
                       <Button 
                         variant="outline"
                         size="sm"
-                        className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-700 transition-colors"
+                        className="bg-background hover:bg-surface text-text-main border-border/50 transition-colors"
                       >
                         <Pencil size={15} className="mr-1.5" />
                         Edit
@@ -159,7 +159,7 @@ export default function GalleryManagement() {
                       size="sm"
                       disabled={deletingId === post.id}
                       onClick={() => handleDelete(post.id)}
-                      className="bg-red-600/80 hover:bg-red-600 text-white transition-colors"
+                      className="bg-red-500/90 hover:bg-red-500 text-white transition-colors"
                     >
                       {deletingId === post.id ? (
                         <Loader2 size={16} className="animate-spin" />

@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
-import { ChevronLeft, ChevronRight, Info } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Info, Download } from 'lucide-react'
 
-export function EmblaCarousel({ photos }: { photos: any[] }) {
+import { getOptimizedImageUrl } from '@/lib/utils'
+
+export function EmblaCarousel({ photos, license }: { photos: any[], license?: string }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
   const [showExif, setShowExif] = useState<Record<string, boolean>>({})
 
@@ -19,7 +21,7 @@ export function EmblaCarousel({ photos }: { photos: any[] }) {
 
   return (
     <div className="relative group">
-      <div className="overflow-hidden rounded-[16px] bg-[#111111] border border-border" ref={emblaRef}>
+      <div className="overflow-hidden rounded-[16px] bg-surface/50 border border-border backdrop-blur-sm" ref={emblaRef}>
         <div className="flex">
           {photos.map((photo) => {
             const exif = photo.exif_data?.[0]
@@ -31,23 +33,44 @@ export function EmblaCarousel({ photos }: { photos: any[] }) {
               cameraName = cameraName.replace('NIKON CORPORATION ', '')
             }
             
+            // Selalu gunakan versi terkompresi (max 1920px) untuk tampilan frontend web
+            // Resolusi asli HANYA boleh diakses lewat tombol download
+            const displayUrl = getOptimizedImageUrl(photo.image_url, 1920)
+            
             return (
               <div key={photo.id} className="relative flex-[0_0_100%] min-w-0">
                 <img 
-                  src={photo.image_url} 
+                  src={displayUrl} 
                   alt="Gallery image" 
                   className="w-full h-auto max-h-[80vh] object-contain"
                 />
                 
-                {/* Info Button */}
-                {exif && Object.keys(exif).length > 0 && (
-                  <button 
-                    onClick={() => toggleExif(photo.id)}
-                    className="absolute bottom-4 right-4 bg-background/80 backdrop-blur border border-border p-2 rounded-full text-text-main hover:bg-surface transition-colors"
-                  >
-                    <Info size={18} />
-                  </button>
-                )}
+                {/* Action Buttons */}
+                <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                  {/* Download Button */}
+                  {license === 'Free Copyright' && (
+                    <a 
+                      href={photo.image_url.replace('/upload/', '/upload/fl_attachment/')} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-background/80 backdrop-blur border border-border p-2 rounded-full text-text-main hover:bg-surface transition-colors"
+                      title="Unduh Resolusi Penuh"
+                    >
+                      <Download size={18} />
+                    </a>
+                  )}
+
+                  {/* Info Button */}
+                  {exif && Object.keys(exif).length > 0 && (
+                    <button 
+                      onClick={() => toggleExif(photo.id)}
+                      className="bg-background/80 backdrop-blur border border-border p-2 rounded-full text-text-main hover:bg-surface transition-colors"
+                      title="Info EXIF"
+                    >
+                      <Info size={18} />
+                    </button>
+                  )}
+                </div>
 
                 {/* EXIF Card Overlay (JetBrains Mono) */}
                 {isExifVisible && exif && (

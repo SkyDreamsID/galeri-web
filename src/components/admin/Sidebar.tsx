@@ -1,14 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ImagePlus, Images, LogOut, Settings } from 'lucide-react'
+import { ImagePlus, Images, LogOut, Settings, Menu, X, Camera } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -18,17 +20,24 @@ export function Sidebar() {
   const menu = [
     { name: 'Upload Baru', path: '/admin', icon: ImagePlus },
     { name: 'Kelola Galeri', path: '/admin/gallery', icon: Images },
+    { name: 'Kelola Gear', path: '/admin/gear', icon: Camera },
     { name: 'Pengaturan', path: '/admin/settings', icon: Settings },
   ]
 
-  return (
-    <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col hidden md:flex sticky top-0 h-screen">
-      <div className="p-6 border-b border-zinc-800">
-        <h1 className="text-xl font-bold tracking-tight">Admin<span className="text-blue-500">.</span></h1>
-        <p className="text-xs text-zinc-400 mt-1">Galeri Control Panel</p>
+  const SidebarContent = () => (
+    <>
+      <div className="p-4 md:p-6 border-b border-border/40 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-heading font-bold tracking-tight text-text-main">Admin<span className="text-primary-neutral">.</span></h1>
+          <p className="text-xs text-text-muted mt-1 font-sans">Galeri Control Panel</p>
+        </div>
+        {/* Tombol X untuk tutup menu di HP */}
+        <button onClick={() => setIsMenuOpen(false)} className="md:hidden p-2 text-text-muted hover:text-text-main bg-surface rounded-lg">
+          <X size={20} />
+        </button>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto font-sans">
         {menu.map((item) => {
           const isActive = pathname === item.path
           const Icon = item.icon
@@ -36,28 +45,56 @@ export function Sidebar() {
             <Link
               key={item.path}
               href={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              onClick={() => setIsMenuOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 isActive 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                  ? 'bg-primary-neutral text-surface font-semibold shadow-md' 
+                  : 'text-text-muted hover:text-text-main hover:bg-surface border border-transparent'
               }`}
             >
-              <Icon size={20} />
-              <span className="font-medium">{item.name}</span>
+              <Icon size={20} className={isActive ? "text-surface" : "text-text-muted"} />
+              <span>{item.name}</span>
             </Link>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t border-zinc-800">
+      <div className="p-4 border-t border-border/40 font-sans">
         <button 
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-950/30 rounded-lg transition-colors"
+          className="flex w-full items-center gap-3 px-4 py-3 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors font-medium border border-transparent"
         >
           <LogOut size={20} />
-          <span className="font-medium">Keluar</span>
+          <span>Keluar</span>
         </button>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* 📱 TOP NAVBAR KHUSUS HP (MOBILE VIEW) */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-background/90 backdrop-blur-md border-b border-border/40 flex items-center justify-between px-4 z-50">
+        <h1 className="text-lg font-heading font-bold tracking-tight text-text-main">Admin<span className="text-primary-neutral">.</span></h1>
+        <button 
+          onClick={() => setIsMenuOpen(true)}
+          className="p-2 text-text-main bg-surface rounded-xl border border-border/50"
+        >
+          <Menu size={20} />
+        </button>
+      </div>
+
+      {/* 📱 MOBILE MENU DROPDOWN (OVERLAY) */}
+      {isMenuOpen && (
+        <div className="md:hidden fixed inset-0 bg-background/95 backdrop-blur-sm z-[60] flex flex-col w-full h-full animate-in fade-in duration-200">
+          <SidebarContent />
+        </div>
+      )}
+
+      {/* 💻 SIDEBAR KHUSUS TABLET & DESKTOP */}
+      <aside className="hidden md:flex w-64 bg-background border-r border-border/40 flex-col sticky top-0 h-screen">
+        <SidebarContent />
+      </aside>
+    </>
   )
 }
