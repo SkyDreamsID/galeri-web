@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ThemeToggle } from './ThemeToggle'
+import { AboutModal } from './AboutModal'
 
 export function Navbar() {
   return (
@@ -12,9 +13,7 @@ export function Navbar() {
           <Link href="/" className="text-sm font-medium text-text-muted hover:text-text-main transition-colors">
             Karya
           </Link>
-          <Link href="/about" className="text-sm font-medium text-text-muted hover:text-text-main transition-colors">
-            Tentang
-          </Link>
+          <AboutModal />
           <div className="h-4 w-px bg-border mx-2"></div>
           <ThemeToggle />
         </nav>

@@ -12,14 +12,18 @@ interface TagInputProps {
 export function TagInput({ tags, setTags, placeholder }: TagInputProps) {
   const [inputValue, setInputValue] = useState('')
 
+  const addTag = () => {
+    const newTag = inputValue.trim().replace(/^,+|,+$/g, '')
+    if (newTag && !tags.includes(newTag)) {
+      setTags([...tags, newTag])
+    }
+    setInputValue('')
+  }
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault()
-      const newTag = inputValue.trim().replace(/^,+|,+$/g, '') // Hapus koma di awal/akhir
-      if (newTag && !tags.includes(newTag)) {
-        setTags([...tags, newTag])
-      }
-      setInputValue('')
+      addTag()
     }
   }
 
@@ -28,17 +32,17 @@ export function TagInput({ tags, setTags, placeholder }: TagInputProps) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 focus-within:ring-2 focus-within:ring-zinc-700 transition-shadow">
+    <div className="flex flex-wrap items-center gap-2 rounded-md border border-border/50 bg-background px-3 py-2 focus-within:ring-1 focus-within:ring-primary-neutral/50 transition-shadow">
       {tags.map((tag) => (
         <span 
           key={tag} 
-          className="flex items-center gap-1 bg-zinc-800 text-white text-xs px-2 py-1 rounded-md border border-zinc-700"
+          className="flex items-center gap-1 bg-surface text-text-main text-xs px-2 py-1 rounded-md border border-border/50"
         >
           {tag}
           <button 
             type="button" 
             onClick={() => removeTag(tag)}
-            className="hover:text-red-400 focus:outline-none transition-colors"
+            className="hover:text-red-500 text-text-muted focus:outline-none transition-colors"
           >
             <X size={14} />
           </button>
@@ -49,8 +53,9 @@ export function TagInput({ tags, setTags, placeholder }: TagInputProps) {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
+        onBlur={addTag}
         placeholder={tags.length === 0 ? placeholder : 'Ketik tag baru...'}
-        className="flex-1 min-w-[120px] bg-transparent text-white text-sm outline-none placeholder:text-zinc-600"
+        className="flex-1 min-w-[120px] bg-transparent text-text-main text-sm outline-none placeholder:text-text-muted/60"
       />
     </div>
   )

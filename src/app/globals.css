@@ -117,3 +117,28 @@
     @apply font-heading;
   }
 }
+
+/* =====================================================================
+   CUSTOM ANIMATIONS
+   Ubah-ubah bagian ini kalau lu mau nyesuain efek teks berjalannya
+====================================================================== */
+@keyframes marquee {
+  /* 
+     Jalan ke kiri dulu dari 0% ke 80%.
+     Pas udah mentok (80%), dia berhenti selama sisa waktu (sampai 100%).
+     Terus ngeloop balik ke 0% tanpa ketahuan karena teksnya di-copy.
+  */
+  0% { transform: translateX(0%); }
+  80%, 100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+  /* 
+     - 15s: Kecepatan teks berjalan (Makin besar = Makin lambat)
+     - linear: Biar jalannya konstan gak ada gas/rem
+     - infinite: Biar ngeloop selamanya tanpa henti
+  */
+  animation: marquee 15s linear infinite;
+}

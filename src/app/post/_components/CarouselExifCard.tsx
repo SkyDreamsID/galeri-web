@@ -1,7 +1,16 @@
 import React from 'react'
 
 export function CarouselExifCard({ exif, cameraName, isVisible }: { exif: any, cameraName: string, isVisible: boolean }) {
-  if (!isVisible || !exif || Object.keys(exif).length === 0) return null;
+  if (!isVisible) return null;
+
+  // Jika tidak ada data EXIF sama sekali
+  if (!exif || Object.keys(exif).length === 0) {
+    return (
+      <div className="absolute bottom-16 right-4 p-4 rounded-xl shadow-xl border border-[#3A3A3A] bg-[#F4F4F4] dark:bg-[#1F1F1F] text-sm w-64 animate-in fade-in slide-in-from-bottom-4 duration-250 z-50">
+        <p className="text-text-muted text-[12px] text-center py-2">⚠️ Data EXIF tidak tersedia untuk foto ini.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="absolute bottom-16 right-4 p-4 rounded-xl shadow-xl border border-[#3A3A3A] bg-[#F4F4F4] dark:bg-[#1F1F1F] text-sm w-72 animate-in fade-in slide-in-from-bottom-4 duration-250 z-50">

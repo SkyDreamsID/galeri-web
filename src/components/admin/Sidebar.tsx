@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ImagePlus, Images, LogOut, Settings, Menu, X, Camera } from 'lucide-react'
+import { ImagePlus, Images, LogOut, Settings, Menu, X, Camera, Folder, Tag } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export function Sidebar() {
@@ -20,6 +20,8 @@ export function Sidebar() {
   const menu = [
     { name: 'Upload Baru', path: '/admin', icon: ImagePlus },
     { name: 'Kelola Galeri', path: '/admin/gallery', icon: Images },
+    { name: 'Koleksi (Album)', path: '/admin/collections', icon: Folder },
+    { name: 'Kelola Tags', path: '/admin/tags', icon: Tag },
     { name: 'Kelola Gear', path: '/admin/gear', icon: Camera },
     { name: 'Pengaturan', path: '/admin/settings', icon: Settings },
   ]

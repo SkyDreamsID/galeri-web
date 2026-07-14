@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Info, Download } from 'lucide-react'
 
 import { getOptimizedImageUrl } from '@/lib/utils'
 
-export function EmblaCarousel({ photos, license }: { photos: any[], license?: string }) {
+export function EmblaCarousel({ photos }: { photos: any[] }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
   const [showExif, setShowExif] = useState<Record<string, boolean>>({})
 
@@ -48,7 +48,7 @@ export function EmblaCarousel({ photos, license }: { photos: any[], license?: st
                 {/* Action Buttons */}
                 <div className="absolute bottom-4 right-4 flex items-center gap-2">
                   {/* Download Button */}
-                  {license === 'Free Copyright' && (
+                  {photo.license_type === 'Free Copyright' && (
                     <a 
                       href={photo.image_url.replace('/upload/', '/upload/fl_attachment/')} 
                       target="_blank"

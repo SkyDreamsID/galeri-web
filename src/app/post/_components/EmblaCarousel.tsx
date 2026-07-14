@@ -71,7 +71,7 @@ export function EmblaCarousel({ photos, license }: { photos: any[], license?: st
                   <img src={displayUrl} alt="Mobile View" className="max-w-full max-h-full w-auto h-auto object-contain" />
                   
                   <CarouselActions 
-                    photo={photo} license={license} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
+                    photo={photo} license={photo.license_type} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
                   />
                   <CarouselExifCard exif={exif} cameraName={cameraName} isVisible={isExifVisible} />
                 </div>
@@ -85,7 +85,7 @@ export function EmblaCarousel({ photos, license }: { photos: any[], license?: st
                   <img src={displayUrl} alt="Tablet View" className="max-w-full max-h-full w-auto h-auto object-contain" />
                   
                   <CarouselActions 
-                    photo={photo} license={license} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
+                    photo={photo} license={photo.license_type} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
                   />
                   <CarouselExifCard exif={exif} cameraName={cameraName} isVisible={isExifVisible} />
                 </div>
@@ -99,7 +99,7 @@ export function EmblaCarousel({ photos, license }: { photos: any[], license?: st
                   <img src={displayUrl} alt="Desktop View" className="max-w-full max-h-full w-auto h-auto object-contain" />
                   
                   <CarouselActions 
-                    photo={photo} license={license} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
+                    photo={photo} license={photo.license_type} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
                   />
                   <CarouselExifCard exif={exif} cameraName={cameraName} isVisible={isExifVisible} />
                 </div>

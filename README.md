@@ -9,7 +9,10 @@ Proyek ini tidak hanya sekadar *image viewer*, tetapi dilengkapi dengan sistem m
 - **Masonry Grid & Smart Crop**: Menampilkan foto dalam *grid* yang rapi dan teroptimasi ukurannya (dukungan orientasi *landscape* & *portrait*).
 - **Auto-EXIF Extraction**: Mengunggah foto secara otomatis mengekstrak metadata kamera (Kamera, Lensa, *Focal Length*, Aperture, ISO, *Shutter Speed*, Waktu).
 - **Per-Photo Copyright**: Hak cipta yang dapat dikonfigurasi per-foto, sangat cocok untuk kolaborasi *agency* atau kontributor ganda.
-- **Gear Showcase**: Pop-up modal "My Gear" yang elegan untuk memamerkan koleksi kamera dan lensa andalan.
+- 🌓 **Mode Gelap Legendaris**: UI responsif dengan tema gelap premium (Classic Studio/Legendary UI).
+- ⚙️ **Gear Showcase**: Integrasi komponen yang memamerkan kamera & lensa yang digunakan.
+- 📻 **Gallery Radio**: Widget pemutar musik Lo-Fi real-time terintegrasi dengan Zeno.fm dan Last.fm API untuk *cover art* dinamis.
+- ⚡ **Optimasi Kecepatan**: Menggunakan *Infinite Scroll* (Muat Lebih Banyak) & Server Actions untuk performa super cepat.
 - **Admin Dashboard**: Panel kontrol terisolasi (dilindungi Auth) untuk mengunggah *(drag & drop)* foto, manajemen galeri, dan kelola perlengkapan *(gears)*.
 - **Cloudinary Integration**: Penyimpanan gambar, pengoptimalan (*WebP/AVIF* otomatis), dan pemotongan cerdas (*smart cropping*) secara otomatis di *cloud*.
 - **Premium UI/UX**: Mendukung mode gelap/terang, desain efek kaca (*glassmorphism*), dan animasi halus yang memanjakan mata *(Framer Motion & Embla Carousel)*.

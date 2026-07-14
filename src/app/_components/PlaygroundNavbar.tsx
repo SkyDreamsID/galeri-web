@@ -62,10 +62,6 @@ export function PlaygroundNavbar() {
                   <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3.5 text-base font-semibold rounded-xl hover:bg-background hover:text-text-main active:bg-background transition-colors">Source Code</a>
                   <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3.5 text-base font-semibold rounded-xl hover:bg-background hover:text-text-main active:bg-background transition-colors">About Me (GitHub)</a>
                   <div className="h-px bg-border my-2"></div>
-                  <span className="block px-4 py-2 text-[11px] font-bold text-text-muted uppercase tracking-widest">Organize</span>
-                  <button type="button" className="w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">📁 Daftar Album</button>
-                  <button type="button" className="w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">🏷️ Cari Tagar</button>
-                  <div className="h-px bg-border my-2"></div>
                   <span className="block px-4 py-2 text-[11px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">📸 My Gear</button>
                   <a href="mailto:email.lu@gmail.com" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">✉️ Hubungi Saya</a>
@@ -113,10 +109,6 @@ export function PlaygroundNavbar() {
               </summary>
               <div className="absolute right-0 mt-2 w-52 rounded-xl border border-border bg-surface p-2 shadow-xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
                 <div className="space-y-1">
-                  <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Organize</span>
-                  <button type="button" className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📁 Daftar Album</button>
-                  <button type="button" className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">🏷️ Cari Tagar</button>
-                  <div className="h-px bg-border my-1"></div>
                   <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
                   <a href="mailto:email.lu@gmail.com" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya</a>
@@ -162,10 +154,6 @@ export function PlaygroundNavbar() {
               </summary>
               <div className="absolute right-0 mt-2 w-52 rounded-xl border border-border bg-surface p-2 shadow-xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
                 <div className="space-y-1">
-                  <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Organize</span>
-                  <button type="button" className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📁 Daftar Album</button>
-                  <button type="button" className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">🏷️ Cari Tagar</button>
-                  <div className="h-px bg-border my-1"></div>
                   <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
                   <a href="mailto:email.lu@gmail.com" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya</a>

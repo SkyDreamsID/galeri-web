@@ -17,6 +17,7 @@ type FileWithExif = {
   file?: File // Jika baru dipilih
   preview: string
   public_id?: string
+  license_type: string
   exif: {
     camera?: string
     lens?: string
@@ -25,6 +26,7 @@ type FileWithExif = {
     iso?: string
     shutter_speed?: string
     date_taken?: string
+    copyright_name?: string
   }
 }
 
@@ -41,9 +43,14 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [location, setLocation] = useState('')
   const [album, setAlbum] = useState('')
   const [tags, setTags] = useState<string[]>([])
-  const [license, setLicense] = useState('Copyright')
+  const [availableCollections, setAvailableCollections] = useState<{id: string, name: string}[]>([])
   const [images, setImages] = useState<FileWithExif[]>([])
   const [isDragging, setIsDragging] = useState(false)
+
+  // Bulk Edit States
+  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
+  const [bulkCopyrightName, setBulkCopyrightName] = useState('Rifki Eka Putra')
+  const [bulkLicense, setBulkLicense] = useState('Copyright')
 
   // Track deleted existing photos
   const [deletedPhotos, setDeletedPhotos] = useState<{ id: string; public_id: string }[]>([])
@@ -55,10 +62,9 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         const { data: post, error: postErr } = await supabase
           .from('posts')
           .select(`
-            id, title, story, location, license_type,
-            collections (name),
+            id, title, story, location, license_type, collection_id,
             photos (
-              id, image_url, public_id, sort_order, bytes, format, original_filename,
+              id, image_url, public_id, sort_order, bytes, format, original_filename, license_type, copyright_name,
               exif_data (camera, lens, focal_length, aperture, iso, shutter_speed, date_taken)
             )
           `)
@@ -70,8 +76,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         setTitle(post.title)
         setStory(post.story || '')
         setLocation(post.location || '')
-        setAlbum(post.collections?.name || '')
-        setLicense(post.license_type || 'Copyright')
+        setAlbum(post.collection_id || '')
+        setAlbum(post.collection_id || '')
+
+        // Fetch collections
+        const { data: cols } = await supabase.from('collections').select('id, name').order('name', { ascending: true })
+        if (cols) setAvailableCollections(cols)
 
         // 2. Fetch Tags
         const { data: postTags } = await supabase
@@ -93,6 +103,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
               id: p.id,
               preview: p.image_url,
               public_id: p.public_id,
+              license_type: p.license_type || 'Copyright',
               exif: {
                 camera: exif.camera || undefined,
                 lens: exif.lens || undefined,
@@ -101,6 +112,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 iso: exif.iso || undefined,
                 shutter_speed: exif.shutter_speed || undefined,
                 date_taken: exif.date_taken || undefined,
+                copyright_name: p.copyright_name || 'Rifki Eka Putra'
               }
             }
           })
@@ -139,7 +151,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           console.warn('Could not parse EXIF for', file.name)
         }
 
-        return { file, preview: URL.createObjectURL(file), exif: exifData }
+        return { file, preview: URL.createObjectURL(file), license_type: 'Copyright', exif: { ...exifData, copyright_name: 'Rifki Eka Putra' } }
       })
     )
     setImages((prev) => [...prev, ...newImages])
@@ -168,6 +180,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       setDeletedPhotos((prev) => [...prev, { id: imgToRemove.id!, public_id: imgToRemove.public_id! }])
     }
     setImages((prev) => prev.filter((_, i) => i !== index))
+    setSelectedPhotos((prev) => prev.filter(i => i !== index).map(i => i > index ? i - 1 : i))
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -221,7 +234,10 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
               { method: 'POST', body: formData }
             )
             
-            if (!cloudRes.ok) throw new Error('Cloudinary upload failed')
+            if (!cloudRes.ok) {
+              const errText = await cloudRes.text()
+              throw new Error(`Cloudinary upload failed: ${errText}`)
+            }
             const cloudData = await cloudRes.json()
             
             return {
@@ -237,25 +253,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       }
 
       // 3. Handle Album (Collections)
-      let collectionId = null
-      if (album.trim()) {
-        const { data: existingCol } = await supabase
-          .from('collections')
-          .select('id')
-          .eq('name', album.trim())
-          .maybeSingle()
-
-        if (existingCol) {
-          collectionId = existingCol.id
-        } else {
-          const { data: newCol } = await supabase
-            .from('collections')
-            .insert({ name: album.trim() })
-            .select('id')
-            .single()
-          if (newCol) collectionId = newCol.id
-        }
-      }
+      let collectionId = album || null
 
       // 4. Update Post
       const { error: postUpdateErr } = await supabase
@@ -265,7 +263,6 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           story,
           location,
           collection_id: collectionId,
-          license_type: license,
         })
         .eq('id', postId)
 
@@ -310,20 +307,44 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             bytes: photo.bytes,
             format: photo.format,
             original_filename: photo.original_filename,
+            license_type: photo.license_type || 'Copyright',
             is_cover: remainingExistingCount === 0 && i === 0, // Cover jika tidak ada foto lama tersisa
-            sort_order: remainingExistingCount + i
+            sort_order: remainingExistingCount + i,
+            copyright_name: photo.exif.copyright_name || 'Rifki Eka Putra'
           })
           .select('id')
           .single()
 
         if (photoError || !photoData) throw photoError
 
-        const hasExif = Object.values(photo.exif).some(val => val !== undefined)
+        const { copyright_name, ...exifToInsert } = photo.exif
+        const hasExif = Object.values(exifToInsert).some(val => val !== undefined)
         if (hasExif) {
           await supabase.from('exif_data').insert({
             photo_id: photoData.id,
-            ...photo.exif
+            ...exifToInsert
           })
+        }
+      }
+
+      // 7. Update metadata foto lama (lisensi & copyright_name) yang tidak dihapus
+      const existingPhotos = images.filter(img => img.id !== undefined)
+      for (const img of existingPhotos) {
+        await supabase.from('photos').update({ 
+          license_type: img.license_type,
+          copyright_name: img.exif.copyright_name || 'Rifki Eka Putra'
+        }).eq('id', img.id)
+        
+        const { copyright_name, ...exifToInsert } = img.exif
+        const hasExif = Object.values(exifToInsert).some(val => val !== undefined)
+        
+        if (hasExif) {
+          const { data: existingExif } = await supabase.from('exif_data').select('id').eq('photo_id', img.id).maybeSingle()
+          if (existingExif) {
+            await supabase.from('exif_data').update({ ...exifToInsert }).eq('photo_id', img.id)
+          } else {
+            await supabase.from('exif_data').insert({ photo_id: img.id, ...exifToInsert })
+          }
         }
       }
 
@@ -331,7 +352,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       router.push('/admin/gallery')
     } catch (err) {
       console.error(err)
-      alert('Gagal menyimpan perubahan. Cek console.')
+      alert('Gagal menyimpan! Pastikan ukuran per foto baru tidak lebih dari 10MB.')
     } finally {
       setIsSaving(false)
     }
@@ -349,72 +370,63 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
       <div className="flex items-center gap-3">
         <Link href="/admin/gallery">
-          <Button variant="outline" size="icon" className="bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-white">
+          <Button variant="outline" size="icon" className="bg-surface border-border/50 hover:bg-hover-bg text-text-main">
             <ArrowLeft size={18} />
           </Button>
         </Link>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-white">Edit Momen</h2>
-          <p className="text-zinc-400 mt-1">Ubah cerita, lokasi, tag, atau foto pada momen ini.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-text-main">Edit Momen</h2>
+          <p className="text-text-muted mt-1">Ubah cerita, lokasi, tag, atau foto pada momen ini.</p>
         </div>
       </div>
 
       <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left column: metadata */}
         <div className="lg:col-span-1 space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-surface border-border/40 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-white">Detail Momen</CardTitle>
+              <CardTitle className="text-text-main font-heading">Detail Momen</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-zinc-300">Judul Momen</Label>
+                <Label className="text-text-muted">Judul Momen</Label>
                 <Input 
                   value={title} onChange={(e) => setTitle(e.target.value)}
                   placeholder="Misal: Senja di Stasiun Tugu" required
-                  className="bg-zinc-950 border-zinc-800 text-white"
+                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-300">Lokasi (Opsional)</Label>
+                <Label className="text-text-muted">Lokasi (Opsional)</Label>
                 <Input 
                   value={location} onChange={(e) => setLocation(e.target.value)}
                   placeholder="Yogyakarta"
-                  className="bg-zinc-950 border-zinc-800 text-white"
+                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-300">Album / Koleksi</Label>
-                <Input 
+                <Label className="text-text-muted">Album / Koleksi</Label>
+                <select 
                   value={album} onChange={(e) => setAlbum(e.target.value)}
-                  placeholder="Misal: Trip Jepang 2026"
-                  className="bg-zinc-950 border-zinc-800 text-white"
-                />
+                  className="w-full rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral appearance-none"
+                >
+                  <option value="">-- Tanpa Koleksi --</option>
+                  {availableCollections.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-300">Tags</Label>
+                <Label className="text-text-muted">Tags</Label>
                 <TagInput tags={tags} setTags={setTags} placeholder="Ketik tag & enter" />
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-300">Cerita / Deskripsi</Label>
+                <Label className="text-text-muted">Cerita / Deskripsi</Label>
                 <textarea 
                   value={story} onChange={(e) => setStory(e.target.value)}
                   placeholder="Tulis cerita di balik foto ini..."
-                  className="w-full min-h-[120px] rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-700"
+                  className="w-full min-h-[120px] rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-zinc-300">Lisensi Gambar</Label>
-                <select 
-                  value={license} onChange={(e) => setLicense(e.target.value)}
-                  className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-zinc-700"
-                >
-                  <option value="Copyright">Copyright (Tidak boleh diunduh)</option>
-                  <option value="Free Copyright">Free Copyright (Bebas diunduh)</option>
-                  <option value="CC BY">CC BY (Atribusi)</option>
-                  <option value="CC BY-SA">CC BY-SA (Atribusi-BerbagiSerupa)</option>
-                  <option value="CC BY-NC">CC BY-NC (Atribusi-NonKomersial)</option>
-                </select>
               </div>
             </CardContent>
           </Card>
@@ -422,22 +434,22 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
         {/* Right column: photos */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-zinc-900 border-zinc-800 border-dashed">
+          <Card className="bg-surface border-border/40 border-dashed shadow-sm">
             <CardContent className="p-8">
               <label 
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-                  isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-zinc-800 bg-zinc-950 hover:bg-zinc-900'
+                  isDragging ? 'border-primary-neutral bg-primary-neutral/10' : 'border-border/60 bg-background hover:bg-background/80'
                 }`}
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6 pointer-events-none">
-                  <UploadCloud className="w-10 h-10 mb-3 text-zinc-500" />
-                  <p className="mb-2 text-sm text-zinc-400">
-                    <span className="font-semibold text-white">Klik untuk tambah foto</span> atau drag and drop
+                  <UploadCloud className="w-10 h-10 mb-3 text-text-muted" />
+                  <p className="mb-2 text-sm text-text-muted">
+                    <span className="font-semibold text-text-main">Klik untuk tambah foto</span> atau drag and drop
                   </p>
-                  <p className="text-xs text-zinc-500">JPG, PNG (Bisa multi-upload)</p>
+                  <p className="text-xs text-text-muted/70 mt-1">JPG, PNG (Bisa multi-upload) • Max 10MB/foto</p>
                 </div>
                 <input type="file" className="hidden" multiple accept="image/*" onChange={handleFileChange} />
               </label>
@@ -446,37 +458,129 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
           {/* Preview Area */}
           {images.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {images.map((img, idx) => (
-                <Card key={idx} className="bg-zinc-900 border-zinc-800 overflow-hidden group relative">
-                  <button 
-                    type="button" 
-                    onClick={() => removeImage(idx)}
-                    className="absolute top-2 right-2 bg-red-500/80 p-1.5 rounded-md hover:bg-red-500 z-10 transition-colors"
+            <div className="space-y-4">
+              {/* Bulk Apply Bar */}
+              <Card className="bg-surface border-border/40 p-4 shadow-sm flex flex-col sm:flex-row items-center gap-4 justify-between">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedPhotos.length === images.length && images.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedPhotos(images.map((_, i) => i))
+                      else setSelectedPhotos([])
+                    }}
+                    className="w-4 h-4 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer"
+                  />
+                  <span className="text-sm text-text-muted font-medium">
+                    Pilih Semua ({selectedPhotos.length}/{images.length})
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Input 
+                    value={bulkCopyrightName} 
+                    onChange={(e) => setBulkCopyrightName(e.target.value)}
+                    placeholder="Misal: Tina"
+                    className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-32 text-sm"
+                  />
+                  <select 
+                    value={bulkLicense}
+                    onChange={(e) => setBulkLicense(e.target.value)}
+                    className="bg-background border border-border/50 text-text-main rounded-md focus:outline-none focus:border-primary-neutral h-9 px-2 w-full sm:w-36 text-sm"
                   >
-                    <X size={16} className="text-white" />
-                  </button>
-                  <div className="h-48 w-full relative">
-                    <img src={img.preview} alt="preview" className="absolute inset-0 w-full h-full object-cover" />
-                  </div>
-                  <div className="p-4 bg-zinc-900 text-xs text-zinc-400 space-y-1">
-                    <div className="font-medium text-white mb-2 truncate">
-                      {img.file ? img.file.name : 'Foto Tersimpan'}
+                    <option value="Copyright">Copyright</option>
+                    <option value="Free Copyright">Free Copyright</option>
+                  </select>
+                  <Button 
+                    type="button"
+                    disabled={selectedPhotos.length === 0}
+                    onClick={() => {
+                      setImages(prev => prev.map((img, i) => 
+                        selectedPhotos.includes(i) ? { ...img, license_type: bulkLicense, exif: { ...img.exif, copyright_name: bulkCopyrightName || img.exif.copyright_name } } : img
+                      ))
+                      setSelectedPhotos([])
+                    }}
+                    className="bg-primary-neutral hover:bg-primary-neutral/90 text-surface h-9 text-sm px-4 shrink-0"
+                  >
+                    Terapkan
+                  </Button>
+                </div>
+              </Card>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {images.map((img, idx) => (
+                  <Card 
+                    key={idx} 
+                    className={`bg-surface border-2 overflow-hidden group relative shadow-sm transition-colors cursor-pointer ${
+                      selectedPhotos.includes(idx) ? 'border-primary-neutral/60' : 'border-border/40 hover:border-primary-neutral/30'
+                    }`}
+                    onClick={() => {
+                      setSelectedPhotos(prev => 
+                        prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
+                      )
+                    }}
+                  >
+                    {/* Checkbox Overlay */}
+                    <div className="absolute top-2 left-2 z-10 bg-background/80 p-1.5 rounded-lg backdrop-blur-sm border border-border/50">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedPhotos.includes(idx)}
+                        onChange={() => {}} // handled by parent onClick
+                        className="w-4 h-4 rounded border-border/50 bg-background accent-primary-neutral pointer-events-none"
+                      />
                     </div>
-                    {img.exif.camera && <p>📷 {img.exif.camera} {img.exif.lens}</p>}
-                    {img.exif.aperture && (
-                      <p>⚙️ {img.exif.focal_length} • {img.exif.aperture} • {img.exif.shutter_speed} • {img.exif.iso}</p>
-                    )}
-                    {!img.exif.camera && <p className="text-yellow-500/80">⚠️ Data EXIF tidak terdeteksi</p>}
-                  </div>
-                </Card>
-              ))}
+
+                    <button 
+                      type="button" 
+                      onClick={(e) => { e.stopPropagation(); removeImage(idx); }}
+                      className="absolute top-2 right-2 bg-red-500/90 p-2 md:p-1.5 rounded-lg hover:bg-red-500 z-10 transition-colors shadow-sm"
+                    >
+                      <X size={16} className="text-white" />
+                    </button>
+                    <div className="h-48 w-full relative">
+                      <img src={img.preview} alt="preview" className="absolute inset-0 w-full h-full object-cover" />
+                    </div>
+                    <div className="p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="font-medium text-text-main truncate" title={img.file ? img.file.name : 'Foto Tersimpan'}>
+                          {img.file ? img.file.name : 'Foto Tersimpan'}
+                        </div>
+                        <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[10px] font-medium text-primary-neutral border border-primary-neutral/20">
+                          © {img.exif.copyright_name}
+                        </span>
+                      </div>
+                      
+                      <select
+                        value={img.license_type}
+                        onChange={(e) => {
+                          e.stopPropagation()
+                          const newImages = [...images]
+                          newImages[idx].license_type = e.target.value
+                          setImages(newImages)
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full bg-background border border-border/50 text-text-main rounded py-1 px-2 text-xs focus:outline-none focus:border-primary-neutral"
+                      >
+                        <option value="Copyright">Hak Cipta (Dilarang Unduh)</option>
+                        <option value="Free Copyright">Bebas (Izinkan Unduh)</option>
+                      </select>
+
+                      <div className="pt-1 space-y-1">
+                        {img.exif.camera && <p>📷 {img.exif.camera} {img.exif.lens}</p>}
+                        {img.exif.aperture && (
+                          <p>⚙️ {img.exif.focal_length} • {img.exif.aperture} • {img.exif.shutter_speed} • {img.exif.iso}</p>
+                        )}
+                        {!img.exif.camera && <p className="text-yellow-500/80">⚠️ Data EXIF tidak terdeteksi</p>}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             </div>
           )}
 
           <div className="flex justify-end gap-3 pt-4">
             <Link href="/admin/gallery">
-              <Button type="button" variant="outline" className="bg-zinc-900 border-zinc-800 text-white hover:bg-zinc-800">
+              <Button type="button" variant="outline" className="bg-surface border-border/50 text-text-main hover:bg-hover-bg">
                 Batal
               </Button>
             </Link>

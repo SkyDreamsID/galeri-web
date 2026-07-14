@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, MapPin, Calendar, Trash2, Pencil } from 'lucide-react'
+import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 type Post = {
@@ -12,6 +12,7 @@ type Post = {
   title: string
   location: string | null
   created_at: string
+  views: number
   collections: { name: string } | null
   photos: { image_url: string }[]
 }
@@ -31,6 +32,7 @@ export default function GalleryManagement() {
           title,
           location,
           created_at,
+          views,
           collections (name),
           photos (image_url)
         `)
@@ -140,9 +142,14 @@ export default function GalleryManagement() {
                 </CardHeader>
 
                 <CardContent className="p-4 pt-0 border-t border-border/20 bg-background/30 flex justify-between items-center mt-auto">
-                  <span className="text-xs text-text-muted font-medium">
-                    {post.photos?.length || 0} Foto
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-text-muted font-medium">
+                      {post.photos?.length || 0} Foto
+                    </span>
+                    <span className="text-xs text-text-muted font-medium flex items-center gap-1">
+                      <Eye size={13} /> {post.views || 0}
+                    </span>
+                  </div>
                   <div className="flex gap-2">
                     <Link href={`/admin/edit/${post.id}`}>
                       <Button 

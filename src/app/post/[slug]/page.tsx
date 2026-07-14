@@ -3,6 +3,9 @@ import { PlaygroundNavbar } from '../../_components/PlaygroundNavbar'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { EmblaCarousel } from '../_components/EmblaCarousel'
+import { Metadata } from 'next'
+import { getOptimizedImageUrl } from '@/lib/utils'
+import { ViewTracker } from '@/components/public/ViewTracker'
 
 // =========================================================================
 // 🛠️ PAPAN KONTROL UKURAN (Tinggal ganti di sini biar gampang utak-atik)
@@ -16,6 +19,46 @@ const LAYOUT_CONFIG = {
   storyText: "text-sm md:text-[15px] lg:text-base",
 };
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = await createClient()
+
+  let post = null
+  const { data } = await supabase
+    .from('posts')
+    .select('title, story, photos (image_url, is_cover)')
+    .eq('slug', slug)
+    .single()
+  
+  if (data) post = data
+  if (!post) {
+    const { data: byId } = await supabase.from('posts').select('title, story, photos (image_url, is_cover)').eq('id', slug).single()
+    if (byId) post = byId
+  }
+
+  if (!post) return {}
+
+  const coverPhoto = post.photos?.find((p: any) => p.is_cover) || post.photos?.[0]
+  const imageUrl = coverPhoto ? getOptimizedImageUrl(coverPhoto.image_url, 1200) : ''
+  const desc = post.story ? post.story.substring(0, 160) + '...' : 'Sebuah momen tertangkap kamera.'
+
+  return {
+    title: `${post.title} | Galeri`,
+    description: desc,
+    openGraph: {
+      title: post.title,
+      description: desc,
+      images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630 }] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: desc,
+      images: imageUrl ? [imageUrl] : [],
+    }
+  }
+}
+
 export default async function PostDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const supabase = await createClient()
@@ -28,7 +71,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
       collections (name),
       post_tags ( tags (name) ),
       photos (
-        id, image_url, sort_order, copyright_name,
+        id, image_url, sort_order, bytes, format, original_filename, license_type, copyright_name,
         exif_data (camera, lens, focal_length, aperture, iso, shutter_speed, date_taken)
       )
     `)
@@ -45,7 +88,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
         collections (name),
         post_tags ( tags (name) ),
         photos (
-          id, image_url, sort_order, copyright_name,
+          id, image_url, sort_order, bytes, format, original_filename, license_type, copyright_name,
           exif_data (camera, lens, focal_length, aperture, iso, shutter_speed, date_taken)
         )
       `)
@@ -60,6 +103,10 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
 
   // Sortir foto berdasarkan sort_order
   const photos = finalPost.photos?.sort((a: any, b: any) => a.sort_order - b.sort_order) || []
+
+  // Buat Ambient Glow dari gambar cover
+  const ambientCover = photos.find((p: any) => p.is_cover) || photos[0]
+  const ambientGlowUrl = ambientCover ? getOptimizedImageUrl(ambientCover.image_url, 400) : null
 
   // Cari tanggal diambil dari EXIF foto pertama, fallback ke created_at
   const firstExifDate = photos[0]?.exif_data?.[0]?.date_taken
@@ -77,6 +124,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
 
   return (
     <>
+      <ViewTracker postId={finalPost.id} />
       <PlaygroundNavbar />
       <main className="container mx-auto max-w-5xl px-4 md:px-8 py-10 md:py-16">
         {/* Header Area */}
@@ -97,9 +145,14 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
           </div>
         </div>
 
-        {/* Carousel Area */}
-        <div className="mb-12">
-          <EmblaCarousel photos={photos} license={finalPost.license_type} />
+        {/* Carousel Area dengan Ambient Glow */}
+        <div className="mb-12 relative">
+          {ambientGlowUrl && (
+            <div className="absolute inset-0 -z-10 blur-[60px] opacity-40 transform scale-95 translate-y-8 rounded-full pointer-events-none transition-all duration-1000">
+              <img src={ambientGlowUrl} alt="" className="w-full h-full object-cover rounded-full" />
+            </div>
+          )}
+          <EmblaCarousel photos={photos} />
         </div>
 
         {/* Info & Story Area */}
@@ -133,9 +186,9 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
               <div className="pt-4 md:pt-6">
                 <div className="flex flex-wrap gap-2">
                   {finalPost.post_tags.map((pt: any, idx: number) => (
-                    <span key={idx} className="px-3 py-1.5 bg-surface border border-border text-[11px] md:text-xs font-medium text-text-muted rounded-full">
+                    <Link key={idx} href={`/tag/${pt.tags.name}`} className="px-3 py-1.5 bg-surface border border-border text-[11px] md:text-xs font-medium text-text-muted hover:text-text-main hover:border-primary-neutral/50 transition-colors rounded-full cursor-pointer">
                       #{pt.tags.name}
-                    </span>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -143,6 +196,41 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
           </div>
         </div>
       </main>
+
+      {/* Footer Khusus Single Post */}
+      <footer className="border-t border-border/40 bg-surface/30 mt-0.25">
+        
+        {/* Bagian Atas Footer (Logo/Tagline & Link Sosmed) */}
+        <div className="container mx-auto max-w-7xl px-2 md:px-4 py-2 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3">
+          
+          {/* Logo & Tagline */}
+          <div className="flex flex-col items-center md:items-start gap-2">
+            <span className="font-heading text-xl font-bold tracking-tight">Galeri<span className="text-primary-neutral"></span></span>
+            <p className="text-sm text-text-muted text-center md:text-left">
+              Menangkap momen, merangkai cerita.
+            </p>
+          </div>
+          
+          {/* Link Sosial Media (Ganti URL href-nya dengan link asli lu) */}
+          <div className="flex items-center gap-6 text-sm text-text-muted">
+            <a href="https://instagram.com/rifkiekap07" target="_blank" rel="noopener noreferrer" className="hover:text-primary-neutral transition-colors">Instagram</a>
+            <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="hover:text-primary-neutral transition-colors">GitHub</a>
+            <a href="mailto:arunikaframes2025@gmail.com" className="hover:text-primary-neutral transition-colors">Email</a>
+          </div>
+        </div>
+
+        {/* Bagian Bawah Footer (Copyright & Tech Stack) */}
+        <div className="border-t border-border/40 py-3 text-center space-y-0.5">
+          {/* Teks Copyright */}
+          <p className="text-xs text-text-muted/60">
+            &copy; {new Date().getFullYear()} Rifki Eka Putra | All Rights Reserved
+          </p>
+          {/* Teks "Made with Love" */}
+          <p className="text-xs text-text-muted/60">
+            Made with <span className="text-primary-neutral">♥</span> using Supabase + Cloudinary + Next.js
+          </p>
+        </div>
+      </footer>
     </>
   )
 }

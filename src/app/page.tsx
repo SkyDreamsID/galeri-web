@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getOptimizedImageUrl } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { PlaygroundNavbar } from './_components/PlaygroundNavbar'
+import { ProgressiveImage } from '@/components/public/ProgressiveImage'
 
 // =========================================================================
 // 🛠️ PAPAN KONTROL UKURAN (Tinggal ganti di sini biar gampang utak-atik)
@@ -39,6 +40,10 @@ export default function PlaygroundPage() {
   const [isDark, setIsDark] = useState(false)
   // State untuk burger menu dropdown
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  // Filter States
+  const [tags, setTags] = useState<{id: string, name: string}[]>([])
+  const [collections, setCollections] = useState<{id: string, name: string}[]>([])
 
   // ==========================================
   // 🔄 FUNGSI TARIK DATA (PAGINATION / INFINITE SCROLL)
@@ -87,6 +92,17 @@ export default function PlaygroundPage() {
 
   useEffect(() => {
     fetchPosts(0, true)
+
+    // Fetch filters
+    const fetchFilters = async () => {
+      const [{ data: tagData }, { data: colData }] = await Promise.all([
+        supabase.from('tags').select('id, name').order('name'),
+        supabase.from('collections').select('id, name').order('name')
+      ])
+      if (tagData) setTags(tagData)
+      if (colData) setCollections(colData)
+    }
+    fetchFilters()
   }, [])
 
   const toggleDarkMode = () => {
@@ -120,8 +136,44 @@ export default function PlaygroundPage() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
             className={`${LAYOUT_CONFIG.heroDesc} text-text-muted max-w-2xl font-sans leading-relaxed`}
           >
-            Ruang untuk menyimpan momen, membagikan cerita dan mendokumentasikan perjalanan melalui fotografi.
+            Ruang untuk menyimpan momen, membagikan cerita dan mendokumentasikan perjalanan melalui lensa
           </motion.p>
+        </div>
+
+        {/* --- FILTER BUTTONS (TAGS & COLLECTIONS) --- */}
+        <div className="mb-8 md:mb-12">
+          <div className="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x">
+            <Link 
+              href="/" 
+              className="shrink-0 snap-start px-4 py-2 rounded-full bg-primary-neutral text-surface text-sm font-medium whitespace-nowrap shadow-sm"
+            >
+              Semua Foto
+            </Link>
+            
+            {collections.map(c => (
+              <Link 
+                key={`col-${c.id}`} 
+                href={`/collection/${c.id}`}
+                className="shrink-0 snap-start px-4 py-2 rounded-full bg-surface border border-border/60 text-text-main hover:border-primary-neutral/50 transition-colors text-sm font-medium whitespace-nowrap flex items-center gap-1.5"
+              >
+                📁 {c.name}
+              </Link>
+            ))}
+
+            {collections.length > 0 && tags.length > 0 && (
+              <div className="shrink-0 w-px h-6 bg-border mx-2"></div>
+            )}
+
+            {tags.map(t => (
+              <Link 
+                key={`tag-${t.id}`} 
+                href={`/tag/${t.name}`}
+                className="shrink-0 snap-start px-4 py-2 rounded-full bg-surface border border-border/60 text-text-main hover:border-primary-neutral/50 transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                #{t.name}
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* CSS Columns untuk gaya Masonry sederhana */}
@@ -151,8 +203,8 @@ export default function PlaygroundPage() {
                       className="block group cursor-pointer relative overflow-hidden rounded-none md:rounded-2xl bg-surface"
                     >
                       {coverImage ? (
-                        <img 
-                          src={coverImage} 
+                        <ProgressiveImage 
+                          src={rawCoverImage} 
                           alt={post.title} 
                           // group-hover:scale-110 = foto membesar pas container utamanya di-hover
                           className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"

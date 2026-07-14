@@ -54,8 +54,9 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 - [x] Fetching Data Detail Post (Join antara `posts`, `photos`, `exif_data`)
 - [x] Toast Notification (Pesan Sukses/Gagal beranimasi) tanpa menggunakan alert bawaan.
 
-### Phase 5: Polishing, SEO, & Deployment (Segera Datang)
-*Fokus: Optimasi performa dan Go-Live.*
+### Phase 5: Polishing, SEO, & Deployment (Sedang Berjalan)
+*Fokus: Optimasi performa, fitur tambahan, dan Go-Live.*
+- [x] **Gallery Radio**: Integrasi Zeno.fm dan Last.fm API untuk cover art. (Selesai)
 - [ ] Next.js SEO Tags (Title, Meta Description, Open Graph) & Image Alt Automation.
 - [ ] PWA Support (Progressive Web App) agar web bisa diinstal selayaknya aplikasi.
 - [ ] Deployment Frontend + Admin ke Vercel/Netlify.
@@ -66,7 +67,6 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 ## 🚀 Future Expansion Plan (Ide Baru Post v1.0)
 
 1. **Client Booking/Hiring Page**: Formulir *booking* langsung untuk klien yang ingin menyewa jasa fotografi.
-2. **Gallery Radio**: Memutar musik (*Zeno.fm* atau *Lo-Fi Player*) di latar belakang (secara default mute).
-3. **Timeline Photography**: *View mode* kronologis (*Timeline Slider*) berdasarkan metadata tanggal jepretan EXIF.
-4. **Watermark Otomatis**: Melampirkan *watermark* dinamis dengan nama `copyright_name` menggunakan transformasi *on-the-fly* Cloudinary.
-5. **Advanced Analytics**: Integrasi Google Analytics / Vercel Web Analytics untuk *tracking views* tiap postingan galeri.
+2. **Timeline Photography**: *View mode* kronologis (*Timeline Slider*) berdasarkan metadata tanggal jepretan EXIF.
+3. **Watermark Otomatis**: Melampirkan *watermark* dinamis dengan nama `copyright_name` menggunakan transformasi *on-the-fly* Cloudinary.
+4. **Advanced Analytics**: Integrasi Google Analytics / Vercel Web Analytics untuk *tracking views* tiap postingan galeri.

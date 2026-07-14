@@ -20,9 +20,22 @@ const fontMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Galeri - Portfolio Fotografi",
   description: "Kumpulan momen dan cerita di balik lensa.",
+  openGraph: {
+    title: "Galeri - Portfolio Fotografi",
+    description: "Kumpulan momen dan cerita di balik lensa.",
+    type: "website",
+    locale: "id_ID",
+    siteName: "Galeri Rifki",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Galeri - Portfolio Fotografi",
+    description: "Kumpulan momen dan cerita di balik lensa.",
+  }
 };
 
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { GalleryRadio } from "@/components/public/GalleryRadio";
 
 export default function RootLayout({
   children,
@@ -35,7 +48,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-text-main transition-colors duration-300">
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-text-main transition-colors duration-300">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -43,6 +56,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          {/* Global Floating Radio */}
+          <GalleryRadio />
         </ThemeProvider>
       </body>
     </html>

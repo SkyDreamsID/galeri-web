@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import exifr from 'exifr'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -8,11 +8,13 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Loader2, UploadCloud, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import { TagInput } from './TagInput'
 
 type FileWithExif = {
   file: File
   preview: string
+  license_type: string
   exif: {
     camera?: string
     lens?: string
@@ -26,6 +28,7 @@ type FileWithExif = {
 }
 
 export function UploadForm() {
+  const router = useRouter()
   const supabase = createClient()
   const [isUploading, setIsUploading] = useState(false)
   const [title, setTitle] = useState('')
@@ -33,11 +36,21 @@ export function UploadForm() {
   const [location, setLocation] = useState('')
   const [album, setAlbum] = useState('')
   const [tags, setTags] = useState<string[]>(['Landscape', 'Potret'])
-  const [license, setLicense] = useState('Copyright')
-  const [images, setImages] = useState<FileWithExif[]>([])
-  const [isDragging, setIsDragging] = useState(false)
-  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
   const [bulkCopyrightName, setBulkCopyrightName] = useState('Rifki Eka Putra')
+  const [bulkLicense, setBulkLicense] = useState('Copyright')
+  const [availableCollections, setAvailableCollections] = useState<{id: string, name: string}[]>([])
+  const [images, setImages] = useState<FileWithExif[]>([])
+  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
+  const [isDragging, setIsDragging] = useState(false)
+
+  // Fetch collections on mount
+  useEffect(() => {
+    const fetchCollections = async () => {
+      const { data } = await supabase.from('collections').select('id, name').order('name', { ascending: true })
+      if (data) setAvailableCollections(data)
+    }
+    fetchCollections()
+  }, [])
 
   const processFiles = async (files: File[]) => {
     const newImages = await Promise.all(
@@ -70,6 +83,7 @@ export function UploadForm() {
         return { 
           file, 
           preview: URL.createObjectURL(file), 
+          license_type: 'Copyright',
           exif: { ...exifData, copyright_name: 'Rifki Eka Putra' } 
         }
       })
@@ -141,7 +155,10 @@ export function UploadForm() {
             { method: 'POST', body: formData }
           )
           
-          if (!cloudRes.ok) throw new Error('Cloudinary upload failed')
+          if (!cloudRes.ok) {
+            const errText = await cloudRes.text()
+            throw new Error(`Cloudinary upload failed: ${errText}`)
+          }
           const cloudData = await cloudRes.json()
           
           return {
@@ -150,31 +167,14 @@ export function UploadForm() {
             bytes: cloudData.bytes,
             format: cloudData.format,
             original_filename: cloudData.original_filename,
+            license_type: img.license_type,
             exif: img.exif
           }
         })
       )
 
-      // 3. Handle Album (Collections)
-      let collectionId = null
-      if (album.trim()) {
-        const { data: existingCol } = await supabase
-          .from('collections')
-          .select('id')
-          .eq('name', album.trim())
-          .maybeSingle()
-
-        if (existingCol) {
-          collectionId = existingCol.id
-        } else {
-          const { data: newCol } = await supabase
-            .from('collections')
-            .insert({ name: album.trim() })
-            .select('id')
-            .single()
-          if (newCol) collectionId = newCol.id
-        }
-      }
+      // 3. Handle Album (Collections) - Langsung pakai ID yang dipilih
+      let collectionId = album || null
 
       // 4. Insert Post (termasuk slug)
       const generatedSlug = slugify(title)
@@ -186,7 +186,6 @@ export function UploadForm() {
           story,
           location,
           collection_id: collectionId,
-          license_type: license,
           status: 'Published'
         })
         .select('id')
@@ -231,6 +230,7 @@ export function UploadForm() {
             bytes: photo.bytes,
             format: photo.format,
             original_filename: photo.original_filename,
+            license_type: photo.license_type,
             is_cover: i === 0,
             sort_order: i,
             copyright_name: photo.exif.copyright_name || 'Rifki Eka Putra'
@@ -240,30 +240,23 @@ export function UploadForm() {
 
         if (photoError || !photoData) throw photoError
 
-        // Insert EXIF if exists
-        const hasExif = Object.values(photo.exif).some(val => val !== undefined)
+        const { copyright_name, ...exifToInsert } = photo.exif
+        const hasExif = Object.values(exifToInsert).some(val => val !== undefined)
         if (hasExif) {
           await supabase.from('exif_data').insert({
             photo_id: photoData.id,
-            ...photo.exif
+            ...exifToInsert
           })
         }
       }
 
       alert('Upload sukses! Momen berhasil di-publish.')
       
-      // Reset form
-      setImages([])
-      setTitle('')
-      setStory('')
-      setLocation('')
-      setAlbum('')
-      setTags(['Landscape', 'Potret'])
-      setSelectedPhotos([])
-      setBulkCopyrightName('Rifki Eka Putra')
+      // Arahkan ke halaman kelola galeri
+      router.push('/admin/gallery')
     } catch (err) {
-      console.error(err)
-      alert('Gagal upload. Cek console.')
+      console.error('BOSKU ERRORNYA INI:', err)
+      alert('Gagal upload! Pastikan ukuran per foto tidak lebih dari 10MB.')
     } finally {
       setIsUploading(false)
     }
@@ -312,11 +305,15 @@ export function UploadForm() {
             </div>
             <div className="space-y-2">
               <Label className="text-text-muted">Album / Koleksi</Label>
-              <Input 
+              <select 
                 value={album} onChange={(e) => setAlbum(e.target.value)}
-                placeholder="Misal: Trip Jepang 2026"
-                className="bg-background border-border/50 text-text-main focus:border-primary-neutral"
-              />
+                className="w-full rounded-xl border border-border/50 bg-background px-4 py-2.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary-neutral appearance-none"
+              >
+                <option value="">-- Tanpa Koleksi --</option>
+                {availableCollections.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label className="text-text-muted">Tags</Label>
@@ -329,16 +326,6 @@ export function UploadForm() {
                 placeholder="Tulis cerita di balik foto ini..."
                 className="w-full min-h-[120px] rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
               />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-text-muted">Lisensi Gambar</Label>
-              <select 
-                value={license} onChange={(e) => setLicense(e.target.value)}
-                className="w-full rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral"
-              >
-                <option value="Copyright">Copyright (Tidak boleh diunduh)</option>
-                <option value="Free Copyright">Free Copyright (Bebas diunduh)</option>
-              </select>
             </div>
           </CardContent>
         </Card>
@@ -361,7 +348,7 @@ export function UploadForm() {
                 <p className="mb-2 text-sm text-text-muted">
                   <span className="font-semibold text-text-main">Klik untuk upload</span> atau drag and drop
                 </p>
-                <p className="text-xs text-text-muted/70">JPG, PNG (Bisa multi-upload)</p>
+                <p className="text-xs text-text-muted/70 mt-1">JPG, PNG (Bisa multi-upload) • Max 10MB/foto</p>
               </div>
               <input type="file" className="hidden" multiple accept="image/*" onChange={handleFileChange} />
             </label>
@@ -391,19 +378,27 @@ export function UploadForm() {
                 <Input 
                   value={bulkCopyrightName} 
                   onChange={(e) => setBulkCopyrightName(e.target.value)}
-                  placeholder="Misal: Tina"
-                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-48 text-sm"
+                  placeholder="Masukkan Nama"
+                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-32 text-sm"
                 />
+                <select 
+                  value={bulkLicense}
+                  onChange={(e) => setBulkLicense(e.target.value)}
+                  className="bg-background border border-border/50 text-text-main rounded-md focus:outline-none focus:border-primary-neutral h-9 px-2 w-full sm:w-36 text-sm"
+                >
+                  <option value="Copyright">Copyright</option>
+                  <option value="Free Copyright">Free Copyright</option>
+                </select>
                 <Button 
                   type="button"
-                  disabled={selectedPhotos.length === 0 || !bulkCopyrightName.trim()}
+                  disabled={selectedPhotos.length === 0}
                   onClick={() => {
                     setImages(prev => prev.map((img, i) => 
-                      selectedPhotos.includes(i) ? { ...img, exif: { ...img.exif, copyright_name: bulkCopyrightName } } : img
+                      selectedPhotos.includes(i) ? { ...img, license_type: bulkLicense, exif: { ...img.exif, copyright_name: bulkCopyrightName || img.exif.copyright_name } } : img
                     ))
                     setSelectedPhotos([])
                   }}
-                  className="bg-primary-neutral hover:bg-primary-neutral/90 text-surface h-9 text-sm px-4"
+                  className="bg-primary-neutral hover:bg-primary-neutral/90 text-surface h-9 text-sm px-4 shrink-0"
                 >
                   Terapkan
                 </Button>
@@ -443,20 +438,38 @@ export function UploadForm() {
                   <div className="h-48 w-full relative">
                     <img src={img.preview} alt="preview" className="absolute inset-0 w-full h-full object-cover" />
                   </div>
-                  <div className="p-4 bg-surface text-xs text-text-muted space-y-1.5 border-t border-border/40">
+                  <div className="p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40">
                     <div className="flex justify-between items-start gap-2">
-                      <div className="font-medium text-text-main truncate">{img.file.name}</div>
+                      <div className="font-medium text-text-main truncate" title={img.file.name}>{img.file.name}</div>
                       <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[10px] font-medium text-primary-neutral border border-primary-neutral/20">
                         © {img.exif.copyright_name}
                       </span>
                     </div>
-                    {img.exif.camera && <p>📷 {img.exif.camera} {img.exif.lens}</p>}
-                  {img.exif.aperture && (
-                    <p>⚙️ {img.exif.focal_length} • {img.exif.aperture} • {img.exif.shutter_speed} • {img.exif.iso}</p>
-                  )}
-                  {!img.exif.camera && <p className="text-yellow-500/80">⚠️ Data EXIF tidak terdeteksi</p>}
-                </div>
-              </Card>
+                    
+                    <select
+                      value={img.license_type}
+                      onChange={(e) => {
+                        e.stopPropagation()
+                        const newImages = [...images]
+                        newImages[idx].license_type = e.target.value
+                        setImages(newImages)
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full bg-background border border-border/50 text-text-main rounded py-1 px-2 text-xs focus:outline-none focus:border-primary-neutral"
+                    >
+                      <option value="Copyright">Hak Cipta (Dilarang Unduh)</option>
+                      <option value="Free Copyright">Bebas (Izinkan Unduh)</option>
+                    </select>
+
+                      <div className="pt-1 space-y-1">
+                        {img.exif.camera && <p>📷 {img.exif.camera} {img.exif.lens}</p>}
+                        {img.exif.aperture && (
+                          <p>⚙️ {img.exif.focal_length} • {img.exif.aperture} • {img.exif.shutter_speed} • {img.exif.iso}</p>
+                        )}
+                        {!img.exif.camera && <p className="text-yellow-500/80">⚠️ Data EXIF tidak terdeteksi</p>}
+                      </div>
+                    </div>
+                  </Card>
             ))}
             </div>
           </div>
@@ -471,7 +484,7 @@ export function UploadForm() {
             {isUploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sedang Mengudara...
+                Memproses...
               </>
             ) : (
               'Publish Momen'

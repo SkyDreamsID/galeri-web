@@ -16,6 +16,11 @@ export function GearModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
   const supabase = createClient()
   const [gears, setGears] = useState<Gear[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [expandedGears, setExpandedGears] = useState<Record<string, boolean>>({})
+
+  const toggleExpand = (id: string) => {
+    setExpandedGears(prev => ({ ...prev, [id]: !prev[id] }))
+  }
 
   useEffect(() => {
     if (isOpen) {
@@ -49,6 +54,20 @@ export function GearModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
     return acc
   }, {} as Record<string, Gear[]>)
 
+  // Sort categories based on priority
+  const categoryOrder: Record<string, number> = { 
+    'Kamera': 1, 
+    'Lensa': 2, 
+    'Drone': 3, 
+    'Lainnya': 4 
+  }
+  
+  const sortedCategories = Object.keys(groupedGears).sort((a, b) => {
+    const orderA = categoryOrder[a] || 99
+    const orderB = categoryOrder[b] || 99
+    return orderA - orderB
+  })
+
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 md:p-12">
       {/* Backdrop */}
@@ -66,7 +85,7 @@ export function GearModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
               <Camera className="text-primary-neutral" size={24} />
               My Gear
             </h2>
-            <p className="text-sm text-text-muted mt-1">Peralatan tempur yang gue pakai buat hunting foto.</p>
+            <p className="text-sm text-text-muted mt-1">Peralatan tempur yang saya pakai.</p>
           </div>
           <button 
             onClick={onClose}
@@ -91,7 +110,7 @@ export function GearModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
             </div>
           ) : (
             <div className="space-y-10">
-              {Object.keys(groupedGears).map((type) => (
+              {sortedCategories.map((type) => (
                 <div key={type} className="space-y-4">
                   <h3 className="text-lg font-heading font-bold text-text-main flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-primary-neutral"></span>
@@ -111,9 +130,19 @@ export function GearModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
                         <div className="p-4">
                           <h4 className="font-bold text-text-main mb-1 line-clamp-2 leading-snug">{gear.name}</h4>
                           {gear.description && (
-                            <p className="text-xs text-text-muted line-clamp-2 leading-relaxed mt-1.5">
-                              {gear.description}
-                            </p>
+                            <div 
+                              onClick={() => toggleExpand(gear.id)}
+                              className={`cursor-pointer group/desc transition-all ${gear.description.length > 80 ? 'active:opacity-70' : ''}`}
+                            >
+                              <p className={`text-xs text-text-muted leading-relaxed mt-1.5 transition-all ${expandedGears[gear.id] ? '' : 'line-clamp-2'}`}>
+                                {gear.description}
+                              </p>
+                              {gear.description.length > 80 && (
+                                <p className="text-[10px] text-primary-neutral mt-1.5 font-medium opacity-80 hover:opacity-100 hover:underline">
+                                  {expandedGears[gear.id] ? 'Tutup' : 'Selengkapnya...'}
+                                </p>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
