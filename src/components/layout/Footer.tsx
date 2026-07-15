@@ -1,0 +1,55 @@
+import React from 'react'
+import { createClient } from '@/lib/supabase/server'
+
+export async function Footer() {
+  const supabase = await createClient()
+  const { data: settings } = await supabase.from('site_settings').select('*').limit(1).single()
+  
+  const authorName = settings?.author_name || 'Rifki Eka Putra'
+  const socialLinks: {title: string, url: string}[] = settings?.social_links || []
+  return (
+    <footer className="border-t border-border/10 bg-background mt-auto relative overflow-hidden">
+      {/* Subtle Glow Background */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-px bg-gradient-to-r from-transparent via-text-muted/20 to-transparent"></div>
+
+      <div className="container mx-auto max-w-3xl px-6 pt-10 pb-16 md:pt-16 md:pb-20 lg:pb-24 flex flex-col items-center text-center">
+        
+        {/* Branding Minimalis */}
+        <span className="font-heading text-lg md:text-2xl font-bold tracking-tight text-text-main mb-3">
+          {authorName}
+        </span>
+        <p className="text-[13px] md:text-sm text-text-muted max-w-md leading-relaxed mb-8">
+          Ruang digital untuk menyimpan momen, merangkai cerita, dan mendokumentasikan perjalanan melalui lensa.
+        </p>
+        
+        {/* Sosmed Links */}
+        {socialLinks.length > 0 && (
+          <div className="flex flex-wrap justify-center items-center gap-5 md:gap-6 mb-10">
+            {socialLinks.map((link, idx) => (
+              <a 
+                key={idx} 
+                href={link.url} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-[11px] md:text-xs font-bold uppercase tracking-widest text-text-muted hover:text-text-main transition-colors"
+              >
+                {link.title}
+              </a>
+            ))}
+          </div>
+        )}
+
+        {/* Copyright */}
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-[11px] md:text-xs font-medium text-text-muted/60">
+            &copy; {new Date().getFullYear()} {authorName}. All rights reserved.
+          </p>
+          <p className="text-[10px] md:text-[11px] text-text-muted/50 leading-relaxed max-w-[250px] md:max-w-none mx-auto">
+            Made with <span className="text-primary-neutral animate-pulse mx-0.5 inline-block">♥</span> using Next.js, Tailwind, Supabase, Cloudinary & ZenoFM.
+          </p>
+        </div>
+
+      </div>
+    </footer>
+  )
+}

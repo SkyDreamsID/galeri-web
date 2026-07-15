@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2, UploadCloud, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { TagInput } from './TagInput'
 
 type FileWithExif = {
@@ -42,6 +43,7 @@ export function UploadForm() {
   const [images, setImages] = useState<FileWithExif[]>([])
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState('')
 
   // Fetch collections on mount
   useEffect(() => {
@@ -53,6 +55,15 @@ export function UploadForm() {
   }, [])
 
   const processFiles = async (files: File[]) => {
+    // Validasi ukuran file sebelum dikirim ke Cloudinary
+    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+    const oversized = files.filter(f => f.size > MAX_SIZE)
+    if (oversized.length > 0) {
+      toast.error(`${oversized.length} foto ditolak! Ukuran melebihi 10MB: ${oversized.map(f => f.name).join(', ')}`)
+      files = files.filter(f => f.size <= MAX_SIZE)
+      if (files.length === 0) return
+    }
+
     const newImages = await Promise.all(
       files.map(async (file) => {
         let exifData: FileWithExif['exif'] = {}
@@ -128,8 +139,12 @@ export function UploadForm() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (images.length === 0) return alert('Pilih foto dulu!')
+    if (images.length === 0) return toast.warning('Pilih foto dulu sebelum publish!')
+    if (!title.trim()) return toast.warning('Judul momen tidak boleh kosong!')
     setIsUploading(true)
+    
+    // Tracking public_id yang berhasil diupload ke Cloudinary (untuk rollback)
+    const uploadedPublicIds: string[] = []
 
     try {
       // 1. Get Signature & API Key
@@ -141,37 +156,41 @@ export function UploadForm() {
       })
       const { signature, apiKey } = await sigRes.json()
 
-      // 2. Upload tiap foto ke Cloudinary
-      const uploadedPhotos = await Promise.all(
-        images.map(async (img) => {
-          const formData = new FormData()
-          formData.append('file', img.file)
-          formData.append('api_key', apiKey)
-          formData.append('timestamp', timestamp.toString())
-          formData.append('signature', signature)
+      // 2. Upload tiap foto ke Cloudinary (satu per satu + progress)
+      const uploadedPhotos = []
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i]
+        setUploadProgress(`Mengunggah foto ${i + 1} dari ${images.length}...`)
+        
+        const formData = new FormData()
+        formData.append('file', img.file)
+        formData.append('api_key', apiKey)
+        formData.append('timestamp', timestamp.toString())
+        formData.append('signature', signature)
 
-          const cloudRes = await fetch(
-            `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-            { method: 'POST', body: formData }
-          )
-          
-          if (!cloudRes.ok) {
-            const errText = await cloudRes.text()
-            throw new Error(`Cloudinary upload failed: ${errText}`)
-          }
-          const cloudData = await cloudRes.json()
-          
-          return {
-            image_url: cloudData.secure_url,
-            public_id: cloudData.public_id,
-            bytes: cloudData.bytes,
-            format: cloudData.format,
-            original_filename: cloudData.original_filename,
-            license_type: img.license_type,
-            exif: img.exif
-          }
+        const cloudRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          { method: 'POST', body: formData }
+        )
+        
+        if (!cloudRes.ok) {
+          const errText = await cloudRes.text()
+          throw new Error(`Gagal upload foto "${img.file.name}": ${errText}`)
+        }
+        const cloudData = await cloudRes.json()
+        uploadedPublicIds.push(cloudData.public_id)
+        
+        uploadedPhotos.push({
+          image_url: cloudData.secure_url,
+          public_id: cloudData.public_id,
+          bytes: cloudData.bytes,
+          format: cloudData.format,
+          original_filename: cloudData.original_filename,
+          license_type: img.license_type,
+          exif: img.exif
         })
-      )
+      }
+      setUploadProgress('Menyimpan data ke database...')
 
       // 3. Handle Album (Collections) - Langsung pakai ID yang dipilih
       let collectionId = album || null
@@ -250,13 +269,34 @@ export function UploadForm() {
         }
       }
 
-      alert('Upload sukses! Momen berhasil di-publish.')
+      toast.success('Upload sukses! Momen berhasil di-publish 🎉')
+      setUploadProgress('')
       
       // Arahkan ke halaman kelola galeri
       router.push('/admin/gallery')
-    } catch (err) {
-      console.error('BOSKU ERRORNYA INI:', err)
-      alert('Gagal upload! Pastikan ukuran per foto tidak lebih dari 10MB.')
+    } catch (err: any) {
+      console.error('Upload error:', err)
+      
+      // Rollback: hapus foto yang udah telanjur naik ke Cloudinary
+      if (uploadedPublicIds.length > 0) {
+        toast.error(`Upload gagal. Membersihkan ${uploadedPublicIds.length} foto dari Cloudinary...`)
+        try {
+          await fetch('/api/cloudinary/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ public_ids: uploadedPublicIds })
+          })
+        } catch (cleanupErr) {
+          console.error('Rollback Cloudinary gagal:', cleanupErr)
+        }
+      }
+      
+      // Tunjukkin error yang spesifik ke user
+      const message = err?.message?.includes('10MB') || err?.message?.includes('File size')
+        ? 'Foto terlalu besar! Maksimal 10MB per foto.'
+        : err?.message || 'Gagal upload. Coba lagi.'
+      toast.error(message)
+      setUploadProgress('')
     } finally {
       setIsUploading(false)
     }
@@ -484,7 +524,7 @@ export function UploadForm() {
             {isUploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Memproses...
+                {uploadProgress || 'Memproses...'}
               </>
             ) : (
               'Publish Momen'

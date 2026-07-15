@@ -17,25 +17,37 @@ const fontMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Galeri - Portfolio Fotografi",
-  description: "Kumpulan momen dan cerita di balik lensa.",
-  openGraph: {
-    title: "Galeri - Portfolio Fotografi",
-    description: "Kumpulan momen dan cerita di balik lensa.",
-    type: "website",
-    locale: "id_ID",
-    siteName: "Galeri Rifki",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Galeri - Portfolio Fotografi",
-    description: "Kumpulan momen dan cerita di balik lensa.",
+import { createClient } from '@/lib/supabase/server'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = await createClient()
+  const { data: settings } = await supabase.from('site_settings').select('*').limit(1).single()
+  
+  const siteTitle = settings?.site_title || "Galeri - Portfolio Fotografi"
+  const siteDesc = settings?.hero_description || "Kumpulan momen dan cerita di balik lensa."
+
+  return {
+    title: siteTitle,
+    description: siteDesc,
+    openGraph: {
+      title: siteTitle,
+      description: siteDesc,
+      type: "website",
+      locale: "id_ID",
+      siteName: siteTitle,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: siteTitle,
+      description: siteDesc,
+    }
   }
-};
+}
 
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { GalleryRadio } from "@/components/public/GalleryRadio";
+import { GalleryRadio } from "@/components/layout/GalleryRadio";
+import { Footer } from "@/components/layout/Footer";
+import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
@@ -56,8 +68,21 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          {/* Global Footer */}
+          <Footer />
           {/* Global Floating Radio */}
           <GalleryRadio />
+          {/* Global Toast Notifications */}
+          <Toaster
+            position="bottom-right"
+            richColors
+            closeButton
+            toastOptions={{
+              classNames: {
+                toast: 'font-sans',
+              },
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>

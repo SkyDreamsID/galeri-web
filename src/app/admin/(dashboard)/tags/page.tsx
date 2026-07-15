@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, Plus, Trash2, Edit } from 'lucide-react'
+import { toast } from 'sonner'
 
 type Tag = {
   id: string
@@ -52,14 +53,16 @@ export default function TagsPage() {
         .update({ name: normalizedName })
         .eq('id', editingId)
       
-      if (error) alert('Gagal update tag (mungkin nama tag sudah ada)')
+      if (error) toast.error('Gagal update tag — mungkin nama tag sudah ada')
+      else toast.success('Tag berhasil diperbarui!')
     } else {
       // Insert
       const { error } = await supabase
         .from('tags')
         .insert([{ name: normalizedName }])
       
-      if (error) alert('Gagal tambah tag (mungkin nama tag sudah ada)')
+      if (error) toast.error('Gagal tambah tag — mungkin nama tag sudah ada')
+      else toast.success('Tag berhasil ditambahkan!')
     }
     
     setFormData({ name: '' })
@@ -77,8 +80,8 @@ export default function TagsPage() {
     if (!confirm('Yakin ingin menghapus tag ini? Semua foto yang menggunakan tag ini akan kehilangan tagnya.')) return
     
     const { error } = await supabase.from('tags').delete().eq('id', id)
-    if (error) alert('Gagal hapus tag')
-    else fetchTags()
+    if (error) toast.error('Gagal hapus tag')
+    else { toast.success('Tag berhasil dihapus!'); fetchTags() }
   }
 
   if (loading) {

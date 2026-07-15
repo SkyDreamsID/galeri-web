@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, Plus, Trash2, Edit } from 'lucide-react'
+import { toast } from 'sonner'
 
 type Collection = {
   id: string
@@ -50,14 +51,16 @@ export default function CollectionsPage() {
         .update({ name: formData.name, description: formData.description })
         .eq('id', editingId)
       
-      if (error) alert('Gagal update koleksi')
+      if (error) toast.error('Gagal update koleksi')
+      else toast.success('Koleksi berhasil diperbarui!')
     } else {
       // Insert
       const { error } = await supabase
         .from('collections')
         .insert([{ name: formData.name, description: formData.description }])
       
-      if (error) alert('Gagal tambah koleksi')
+      if (error) toast.error('Gagal tambah koleksi')
+      else toast.success('Koleksi berhasil ditambahkan!')
     }
     
     setFormData({ name: '', description: '' })
@@ -75,8 +78,8 @@ export default function CollectionsPage() {
     if (!confirm('Yakin ingin menghapus koleksi ini? (Postingan dengan koleksi ini tidak akan terhapus, hanya kehilangan label koleksinya)')) return
     
     const { error } = await supabase.from('collections').delete().eq('id', id)
-    if (error) alert('Gagal hapus koleksi')
-    else fetchCollections()
+    if (error) toast.error('Gagal hapus koleksi')
+    else { toast.success('Koleksi berhasil dihapus!'); fetchCollections() }
   }
 
   if (loading) {

@@ -63,40 +63,10 @@ export function EmblaCarousel({ photos, license }: { photos: any[], license?: st
               <div key={photo.id} className="relative flex-[0_0_100%] min-w-0">
                 
                 {/* ======================================================= */}
-                {/* 📱 1. TAMPILAN KHUSUS HP (MOBILE VIEW) 📱 */}
-                {/* Hanya muncul di layar kecil. Otomatis hilang di Tablet. */}
-                {/* Silakan edit ukuran h-[55vh] di bawah sesuai selera lu! */}
+                {/* 📸 KONTENER FOTO RESPONSIVE 📸 */}
                 {/* ======================================================= */}
-                <div className="flex md:hidden w-full h-[30vh] items-center justify-center">
-                  <img src={displayUrl} alt="Mobile View" className="max-w-full max-h-full w-auto h-auto object-contain" />
-                  
-                  <CarouselActions 
-                    photo={photo} license={photo.license_type} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
-                  />
-                  <CarouselExifCard exif={exif} cameraName={cameraName} isVisible={isExifVisible} />
-                </div>
-
-                {/* ======================================================= */}
-                {/* 💊 2. TAMPILAN KHUSUS TABLET (TABLET VIEW) 💊 */}
-                {/* Hanya muncul di iPad/Tablet. Hilang di HP & PC. */}
-                {/* Silakan edit ukuran h-[65vh] di bawah sesuai selera lu! */}
-                {/* ======================================================= */}
-                <div className="hidden md:flex lg:hidden w-full h-[45vh] items-center justify-center">
-                  <img src={displayUrl} alt="Tablet View" className="max-w-full max-h-full w-auto h-auto object-contain" />
-                  
-                  <CarouselActions 
-                    photo={photo} license={photo.license_type} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
-                  />
-                  <CarouselExifCard exif={exif} cameraName={cameraName} isVisible={isExifVisible} />
-                </div>
-
-                {/* ======================================================= */}
-                {/* 💻 3. TAMPILAN KHUSUS LAPTOP/PC (DESKTOP VIEW) 💻 */}
-                {/* Hanya muncul di Laptop ke atas. Hilang di HP & Tablet. */}
-                {/* Silakan edit ukuran h-[75vh] di bawah sesuai selera lu! */}
-                {/* ======================================================= */}
-                <div className="hidden lg:flex w-full h-[75vh] items-center justify-center">
-                  <img src={displayUrl} alt="Desktop View" className="max-w-full max-h-full w-auto h-auto object-contain" />
+                <div className="flex w-full items-center justify-center h-[55vh] md:h-[65vh] lg:h-[80vh] landscape:h-[85vh] lg:landscape:h-[80vh]">
+                  <img src={displayUrl} alt="Photo View" className="max-w-full max-h-full w-auto h-auto object-contain" />
                   
                   <CarouselActions 
                     photo={photo} license={photo.license_type} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}

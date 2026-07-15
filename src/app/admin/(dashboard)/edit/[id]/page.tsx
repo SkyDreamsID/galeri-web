@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2, UploadCloud, X, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { TagInput } from '@/components/admin/TagInput'
+import { toast } from 'sonner'
 import Link from 'next/link'
 
 type FileWithExif = {
@@ -120,7 +121,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         }
       } catch (err) {
         console.error(err)
-        alert('Gagal memuat data momen')
+        toast.error('Gagal memuat data momen. Kembali ke galeri...')
         router.push('/admin/gallery')
       } finally {
         setLoading(false)
@@ -185,7 +186,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (images.length === 0) return alert('Minimal harus ada 1 foto!')
+    if (images.length === 0) return toast.warning('Minimal harus ada 1 foto dalam momen!')
     setIsSaving(true)
 
     try {
@@ -348,11 +349,14 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         }
       }
 
-      alert('Momen berhasil diperbarui!')
+      toast.success('Momen berhasil diperbarui! ✅')
       router.push('/admin/gallery')
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
-      alert('Gagal menyimpan! Pastikan ukuran per foto baru tidak lebih dari 10MB.')
+      const message = err?.message?.includes('File size') || err?.message?.includes('10MB')
+        ? 'Foto baru terlalu besar! Maksimal 10MB per foto.'
+        : err?.message || 'Gagal menyimpan perubahan. Coba lagi.'
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }

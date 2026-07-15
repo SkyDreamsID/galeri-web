@@ -122,7 +122,7 @@ export function GearModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
                       <div key={gear.id} className="bg-background/50 border border-border/40 rounded-xl overflow-hidden hover:border-primary-neutral/50 transition-colors group">
                         <div className="h-40 w-full relative bg-surface flex items-center justify-center border-b border-border/40">
                           {gear.image_url ? (
-                            <img src={gear.image_url} alt={gear.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <img src={gear.image_url} alt={gear.name} className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500" />
                           ) : (
                             <Camera className="w-12 h-12 text-text-muted/20" />
                           )}

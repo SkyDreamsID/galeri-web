@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 type Post = {
   id: string
@@ -65,11 +66,11 @@ export default function GalleryManagement() {
 
       if (!res.ok) throw new Error(data.error || 'Failed to delete')
 
-      alert('Momen berhasil dihapus!')
+      toast.success('Momen berhasil dihapus!')
       setPosts((prev) => prev.filter((post) => post.id !== postId))
     } catch (err: any) {
       console.error(err)
-      alert(`Gagal menghapus: ${err.message}`)
+      toast.error(`Gagal menghapus: ${err.message}`)
     } finally {
       setDeletingId(null)
     }

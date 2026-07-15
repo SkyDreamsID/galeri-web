@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       try {
         const deletePromises = photos.map(async (photo) => {
           return new Promise((resolve, reject) => {
-            cloudinary.uploader.destroy(photo.public_id, (error, result) => {
+            cloudinary.uploader.destroy(photo.public_id, (error: any, result: any) => {
               if (error) {
                 console.error(`Failed to delete ${photo.public_id} from Cloudinary:`, error)
                 reject(error)

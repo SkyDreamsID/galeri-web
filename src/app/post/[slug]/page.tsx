@@ -1,22 +1,24 @@
 import { createClient } from '@/lib/supabase/server'
-import { PlaygroundNavbar } from '../../_components/PlaygroundNavbar'
+import { Navbar } from '@/components/layout/Navbar'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { EmblaCarousel } from '../_components/EmblaCarousel'
+import { EmblaCarousel } from '@/components/post/EmblaCarousel'
 import { Metadata } from 'next'
 import { getOptimizedImageUrl } from '@/lib/utils'
-import { ViewTracker } from '@/components/public/ViewTracker'
+import { ViewTracker } from '@/components/post/ViewTracker'
+import { CarouselActions } from '@/components/post/CarouselActions'
+import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 
 // =========================================================================
 // 🛠️ PAPAN KONTROL UKURAN (Tinggal ganti di sini biar gampang utak-atik)
 // =========================================================================
 const LAYOUT_CONFIG = {
-  // Ukuran Judul Postingan (HP: text-2xl, Tablet: text-4xl, Laptop: text-5xl)
-  postTitle: "text-2xl md:text-4xl lg:text-5xl",
+  // Ukuran Judul Postingan
+  postTitle: "text-3xl md:text-5xl lg:text-5xl",
   // Ukuran Teks Sub-Judul Cerita
   storySubtitle: "text-lg md:text-xl lg:text-2xl",
-  // Ukuran Teks Cerita (HP: text-sm, Tablet: text-[15px], Laptop: text-base)
-  storyText: "text-sm md:text-[15px] lg:text-base",
+  // Ukuran Teks Cerita
+  storyText: "text-sm md:text-base lg:text-base",
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -101,8 +103,14 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     finalPost = postById
   }
 
+  if (!finalPost) {
+    notFound()
+  }
+
+  const postData = finalPost
+
   // Sortir foto berdasarkan sort_order
-  const photos = finalPost.photos?.sort((a: any, b: any) => a.sort_order - b.sort_order) || []
+  const photos = postData.photos?.sort((a: any, b: any) => a.sort_order - b.sort_order) || []
 
   // Buat Ambient Glow dari gambar cover
   const ambientCover = photos.find((p: any) => p.is_cover) || photos[0]
@@ -110,7 +118,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
 
   // Cari tanggal diambil dari EXIF foto pertama, fallback ke created_at
   const firstExifDate = photos[0]?.exif_data?.[0]?.date_taken
-  const displayDate = firstExifDate ? new Date(firstExifDate) : new Date(finalPost.created_at)
+  const displayDate = firstExifDate ? new Date(firstExifDate) : new Date(postData.created_at)
 
   // Ambil semua copyright_name unik dari foto
   const uniqueCopyrights = Array.from(
@@ -122,115 +130,113 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     ? uniqueCopyrights.join(', ') 
     : 'Rifki Eka Putra'
 
+  // Safely extract collection name
+  const collectionName = postData.collections
+    ? (Array.isArray(postData.collections)
+      ? (postData.collections[0] as any)?.name
+      : (postData.collections as any)?.name)
+    : null
+
   return (
     <>
-      <ViewTracker postId={finalPost.id} />
-      <PlaygroundNavbar />
-      <main className="container mx-auto max-w-5xl px-4 md:px-8 py-10 md:py-16">
-        {/* Header Area */}
-        <div className="mb-10">
-          <Link href="/" className="inline-flex items-center gap-2 text-[10px] md:text-xs font-bold text-text-muted hover:text-text-main transition-colors uppercase tracking-widest mb-6 md:mb-8 group cursor-pointer select-none">
-            <span className="transition-transform group-hover:-translate-x-1">←</span> Kembali ke Galeri
-          </Link>
-          {finalPost.collections?.name && (
-            <div className="text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-3">
-              {finalPost.collections.name}
-            </div>
-          )}
-          <h1 className={`${LAYOUT_CONFIG.postTitle} font-heading font-bold text-text-main mb-4 leading-tight`}>
-            {finalPost.title}
-          </h1>
-          <div className="flex flex-wrap items-center gap-4 text-sm text-text-muted font-sans">
-            {finalPost.location && <span>📍 {finalPost.location}</span>}
-          </div>
-        </div>
-
-        {/* Carousel Area dengan Ambient Glow */}
-        <div className="mb-12 relative">
-          {ambientGlowUrl && (
-            <div className="absolute inset-0 -z-10 blur-[60px] opacity-40 transform scale-95 translate-y-8 rounded-full pointer-events-none transition-all duration-1000">
-              <img src={ambientGlowUrl} alt="" className="w-full h-full object-cover rounded-full" />
-            </div>
-          )}
-          <EmblaCarousel photos={photos} />
-        </div>
-
-        {/* Info & Story Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-          {/* Story */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 text-[13px] md:text-sm text-text-muted font-sans mb-2">
-              <span>🗓️ Diposting: {new Date(finalPost.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-              
-              <span className="text-border">•</span>
-              <span>🖼️ {photos.length} Foto</span>
-
-              {firstExifDate && (
-                <>
-                  <span className="text-border">•</span>
-                  <span>📷 Diambil: {new Date(firstExifDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                </>
+      <ViewTracker postId={postData.id} />
+      <Navbar />
+      <main className="container mx-auto max-w-7xl px-4 md:px-8 py-10 md:py-16 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
+        {/* Kontainer Utama: Kolom 1 tumpuk di Mobile Portrait, 2 Kolom di Landscape & Desktop */}
+        <div className="flex flex-col landscape:grid landscape:grid-cols-5 lg:grid lg:grid-cols-5 gap-10 lg:gap-16 items-start">
+          
+          {/* === BAGIAN KIRI: Foto (Sticky saat grid/layar besar) === */}
+          <div className="landscape:col-span-3 lg:col-span-3 order-1 w-full landscape:sticky landscape:top-24 lg:sticky lg:top-24">
+            <div className="relative">
+              {ambientGlowUrl && (
+                <div className="absolute inset-0 -z-10 blur-[60px] opacity-40 transform scale-95 translate-y-8 rounded-full pointer-events-none transition-all duration-1000">
+                  <img src={ambientGlowUrl} alt="" className="w-full h-full object-cover rounded-full" />
+                </div>
               )}
+              <EmblaCarousel photos={photos} />
             </div>
-            <h3 className={`${LAYOUT_CONFIG.storySubtitle} font-heading font-bold text-text-main mb-3`}>Cerita di Balik Lensa</h3>
-            {finalPost.story ? (
-              <p className={`${LAYOUT_CONFIG.storyText} text-text-main leading-relaxed font-sans whitespace-pre-line`}>
-                {finalPost.story}
-              </p>
-            ) : (
-              <p className={`${LAYOUT_CONFIG.storyText} text-text-muted italic`}>Tidak ada cerita yang dilampirkan untuk momen ini.</p>
-            )}
+          </div>
 
-            {/* Tags */}
-            {finalPost.post_tags && finalPost.post_tags.length > 0 && (
-              <div className="pt-4 md:pt-6">
-                <div className="flex flex-wrap gap-2">
-                  {finalPost.post_tags.map((pt: any, idx: number) => (
-                    <Link key={idx} href={`/tag/${pt.tags.name}`} className="px-3 py-1.5 bg-surface border border-border text-[11px] md:text-xs font-medium text-text-muted hover:text-text-main hover:border-primary-neutral/50 transition-colors rounded-full cursor-pointer">
-                      #{pt.tags.name}
-                    </Link>
-                  ))}
+          {/* === BAGIAN KANAN: Detail & Cerita === */}
+          {/* Di layar besar, jadi panel setinggi layar dikurangi navbar biar bisa discroll sendiri */}
+          <div className="landscape:col-span-2 lg:col-span-2 order-2 w-full landscape:sticky landscape:top-20 lg:sticky lg:top-20 landscape:h-[calc(100vh-80px)] lg:h-[calc(100vh-80px)] flex flex-col">
+            
+            {/* ZONA ATAS: Tombol Kembali (Sticky di dalam panel saat desktop, normal di mobile) */}
+            <div className="shrink-0 pb-4 border-b border-border/20 mb-6">
+              <Link href="/" className="inline-flex items-center gap-2 text-[10px] md:text-xs font-bold text-text-muted hover:text-text-main transition-colors uppercase tracking-widest group cursor-pointer select-none">
+                <span className="transition-transform group-hover:-translate-x-1">←</span> Kembali ke Galeri
+              </Link>
+            </div>
+
+            {/* ZONA BAWAH: Konten Utama (Scrollable area saat Desktop, normal saat Mobile) */}
+            <div className="landscape:flex-1 landscape:overflow-y-auto lg:flex-1 lg:overflow-y-auto pr-1 landscape:scrollbar-thin lg:scrollbar-thin space-y-6 md:space-y-8 pb-10">
+              
+              {/* Header Area */}
+              <div>
+                {collectionName && (
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2 md:mb-3">
+                    {collectionName}
+                  </div>
+                )}
+                <h1 className={`${LAYOUT_CONFIG.postTitle} font-heading font-extrabold text-text-main mb-3 md:mb-4 tracking-tighter leading-tight`}>
+                  {postData.title}
+                </h1>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-text-muted font-sans">
+                  {postData.location && <span>📍 {postData.location}</span>}
                 </div>
               </div>
-            )}
+
+              {/* Story Area */}
+              <div className="space-y-6">
+                {/* Metadata Tanggal dll */}
+                <div className="flex flex-col gap-2 text-[13px] md:text-sm text-text-muted font-sans pb-4 border-b border-border/10">
+                  <div className="flex items-center gap-2">
+                    <span>🗓️ Diposting:</span>
+                    <span className="text-text-main">{new Date(postData.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                  </div>
+                  {firstExifDate && (
+                    <div className="flex items-center gap-2">
+                      <span>📷 Diambil:</span>
+                      <span className="text-text-main">{new Date(firstExifDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <span>🖼️ File:</span>
+                    <span className="text-text-main">{photos.length} Foto</span>
+                  </div>
+                </div>
+                
+                {/* Teks Cerita */}
+                <div>
+                  <h3 className={`${LAYOUT_CONFIG.storySubtitle} font-heading font-bold text-text-main mb-3`}>Cerita di Balik Lensa</h3>
+                  {postData.story ? (
+                    <p className={`${LAYOUT_CONFIG.storyText} text-text-main leading-relaxed font-sans whitespace-pre-line`}>
+                      {postData.story}
+                    </p>
+                  ) : (
+                    <p className={`${LAYOUT_CONFIG.storyText} text-text-muted italic`}>Tidak ada cerita yang dilampirkan untuk momen ini.</p>
+                  )}
+                </div>
+
+                {/* Tags */}
+                {postData.post_tags && postData.post_tags.length > 0 && (
+                  <div className="pt-2 md:pt-4 pb-6">
+                    <div className="flex flex-wrap gap-2">
+                      {postData.post_tags.map((pt: any, idx: number) => (
+                        <Link key={idx} href={`/tag/${pt.tags.name}`} className="px-4 py-1.5 bg-surface/50 border border-border/20 text-xs font-medium text-text-muted hover:text-text-main hover:bg-surface/80 hover:border-border/40 transition-all duration-300 rounded-full cursor-pointer backdrop-blur-sm">
+                          #{pt.tags.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
           </div>
+          
         </div>
       </main>
-
-      {/* Footer Khusus Single Post */}
-      <footer className="border-t border-border/40 bg-surface/30 mt-0.25">
-        
-        {/* Bagian Atas Footer (Logo/Tagline & Link Sosmed) */}
-        <div className="container mx-auto max-w-7xl px-2 md:px-4 py-2 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3">
-          
-          {/* Logo & Tagline */}
-          <div className="flex flex-col items-center md:items-start gap-2">
-            <span className="font-heading text-xl font-bold tracking-tight">Galeri<span className="text-primary-neutral"></span></span>
-            <p className="text-sm text-text-muted text-center md:text-left">
-              Menangkap momen, merangkai cerita.
-            </p>
-          </div>
-          
-          {/* Link Sosial Media (Ganti URL href-nya dengan link asli lu) */}
-          <div className="flex items-center gap-6 text-sm text-text-muted">
-            <a href="https://instagram.com/rifkiekap07" target="_blank" rel="noopener noreferrer" className="hover:text-primary-neutral transition-colors">Instagram</a>
-            <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="hover:text-primary-neutral transition-colors">GitHub</a>
-            <a href="mailto:arunikaframes2025@gmail.com" className="hover:text-primary-neutral transition-colors">Email</a>
-          </div>
-        </div>
-
-        {/* Bagian Bawah Footer (Copyright & Tech Stack) */}
-        <div className="border-t border-border/40 py-3 text-center space-y-0.5">
-          {/* Teks Copyright */}
-          <p className="text-xs text-text-muted/60">
-            &copy; {new Date().getFullYear()} Rifki Eka Putra | All Rights Reserved
-          </p>
-          {/* Teks "Made with Love" */}
-          <p className="text-xs text-text-muted/60">
-            Made with <span className="text-primary-neutral">♥</span> using Supabase + Cloudinary + Next.js
-          </p>
-        </div>
-      </footer>
     </>
   )
 }

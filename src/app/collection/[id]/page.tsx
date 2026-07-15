@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getOptimizedImageUrl } from '@/lib/utils'
 import { motion } from 'framer-motion'
-import { PlaygroundNavbar } from '@/app/_components/PlaygroundNavbar'
-import { ProgressiveImage } from '@/components/public/ProgressiveImage'
+import { Navbar } from '@/components/layout/Navbar'
+import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 import { ArrowLeft } from 'lucide-react'
 
 const LAYOUT_CONFIG = {
@@ -81,7 +81,7 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="bg-background text-text-main min-h-screen">
-      <PlaygroundNavbar />
+      <Navbar />
 
       <main className={`mx-auto ${LAYOUT_CONFIG.maxWidth} py-12 md:py-20`}>
         <div className="mb-10 md:mb-16">

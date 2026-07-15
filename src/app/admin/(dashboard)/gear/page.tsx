@@ -90,7 +90,7 @@ export default function GearManagement() {
         const sigRes = await fetch('/api/cloudinary/sign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ paramsToSign: { timestamp } })
+          body: JSON.stringify({ paramsToSign: { timestamp, folder: 'galeri_gears' } })
         })
         const { signature, apiKey } = await sigRes.json()
 
