@@ -3,9 +3,19 @@ import Link from 'next/link'
 import { getOptimizedImageUrl } from '@/lib/utils'
 import { ArrowLeft, Image as ImageIcon } from 'lucide-react'
 
-export const metadata = {
-  title: 'Albums | Rifki Eka Putra',
-  description: 'Koleksi foto dan album',
+export async function generateMetadata() {
+  const supabase = await createClient()
+  const { data: settings } = await supabase.from('site_settings').select('site_title').limit(1).single()
+  const title = `Albums | ${settings?.site_title || 'Galeri'}`
+  
+  return {
+    title,
+    description: 'Koleksi foto dan album',
+    openGraph: {
+      title,
+      description: 'Koleksi foto dan album',
+    }
+  }
 }
 
 export default async function AlbumsPage() {

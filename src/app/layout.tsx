@@ -25,10 +25,15 @@ export async function generateMetadata(): Promise<Metadata> {
   
   const siteTitle = settings?.site_title || "Galeri - Portfolio Fotografi"
   const siteDesc = settings?.hero_description || "Kumpulan momen dan cerita di balik lensa."
+  const siteLogo = settings?.site_logo_url || "/icon.jpg"
 
   return {
     title: siteTitle,
     description: siteDesc,
+    icons: {
+      icon: siteLogo,
+      apple: siteLogo,
+    },
     openGraph: {
       title: siteTitle,
       description: siteDesc,

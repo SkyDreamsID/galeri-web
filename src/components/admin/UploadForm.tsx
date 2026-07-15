@@ -40,22 +40,27 @@ export function UploadForm() {
   const [story, setStory] = useState('')
   const [location, setLocation] = useState('')
   const [album, setAlbum] = useState('')
-  const [tags, setTags] = useState<string[]>(['Landscape', 'Potret'])
+  const [tags, setTags] = useState<string[]>([])
   const [bulkCopyrightName, setBulkCopyrightName] = useState('Rifki Eka Putra')
   const [bulkLicense, setBulkLicense] = useState('Copyright')
   const [availableCollections, setAvailableCollections] = useState<{id: string, name: string}[]>([])
+  const [availableTags, setAvailableTags] = useState<string[]>([])
   const [images, setImages] = useState<FileWithExif[]>([])
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
 
-  // Fetch collections on mount
+  // Fetch collections and tags on mount
   useEffect(() => {
-    const fetchCollections = async () => {
-      const { data } = await supabase.from('collections').select('id, name').order('name', { ascending: true })
-      if (data) setAvailableCollections(data)
+    const fetchData = async () => {
+      const [colsRes, tagsRes] = await Promise.all([
+        supabase.from('collections').select('id, name').order('name', { ascending: true }),
+        supabase.from('tags').select('name').order('name', { ascending: true })
+      ])
+      if (colsRes.data) setAvailableCollections(colsRes.data)
+      if (tagsRes.data) setAvailableTags(tagsRes.data.map(t => t.name))
     }
-    fetchCollections()
+    fetchData()
   }, [])
 
   const processFiles = async (files: File[]) => {
@@ -361,7 +366,11 @@ export function UploadForm() {
             </div>
             <div className="space-y-2">
               <Label className="text-text-muted">Tags</Label>
-              <TagInput tags={tags} setTags={setTags} placeholder="Ketik tag & enter" />
+                  <TagInput 
+                    tags={tags} 
+                    setTags={setTags} 
+                    availableTags={availableTags} 
+                  />
             </div>
             <div className="space-y-2">
               <Label className="text-text-muted">Cerita / Deskripsi</Label>
