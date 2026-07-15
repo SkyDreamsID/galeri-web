@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import useEmblaCarousel from 'embla-carousel-react'
 
 import { getOptimizedImageUrl } from '@/lib/utils'
@@ -66,7 +67,15 @@ export function EmblaCarousel({ photos, license }: { photos: any[], license?: st
                 {/* 📸 KONTENER FOTO RESPONSIVE 📸 */}
                 {/* ======================================================= */}
                 <div className="flex w-full items-center justify-center h-[55vh] md:h-[65vh] lg:h-[80vh] landscape:h-[85vh] lg:landscape:h-[80vh]">
-                  <img src={displayUrl} alt="Photo View" className="max-w-full max-h-full w-auto h-auto object-contain" />
+                  <Image 
+                    src={displayUrl} 
+                    alt="Photo View" 
+                    width={1920}
+                    height={1080}
+                    style={{ width: 'auto', height: '100%', maxHeight: '100%', maxWidth: '100%' }}
+                    className="object-contain" 
+                    unoptimized
+                  />
                   
                   <CarouselActions 
                     photo={photo} license={photo.license_type} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}

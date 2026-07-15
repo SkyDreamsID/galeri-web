@@ -31,7 +31,6 @@ export default async function HomePage() {
 
   return (
     <>
-      <Navbar />
       <HomeClient
         initialPosts={initialPosts}
         initialHasMore={initialHasMore}

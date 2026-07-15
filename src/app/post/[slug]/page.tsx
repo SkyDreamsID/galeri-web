@@ -140,7 +140,6 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   return (
     <>
       <ViewTracker postId={postData.id} />
-      <Navbar />
       <main className="container mx-auto max-w-7xl px-4 md:px-8 py-10 md:py-16 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
         {/* Kontainer Utama: Kolom 1 tumpuk di Mobile Portrait, 2 Kolom di Landscape & Desktop */}
         <div className="flex flex-col landscape:grid landscape:grid-cols-5 lg:grid lg:grid-cols-5 gap-10 lg:gap-16 items-start">

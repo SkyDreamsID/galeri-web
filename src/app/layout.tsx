@@ -45,15 +45,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Navbar } from "@/components/layout/Navbar";
 import { GalleryRadio } from "@/components/layout/GalleryRadio";
 import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "sonner";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient()
+  const { data: settings } = await supabase.from('site_settings').select('*').limit(1).single()
+
   return (
     <html
       lang="id"
@@ -67,6 +71,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {/* Global Navbar */}
+          <Navbar 
+            authorName={settings?.author_name} 
+            siteLogo={settings?.site_logo_url} 
+            socialLinks={settings?.social_links} 
+          />
           {children}
           {/* Global Footer */}
           <Footer />

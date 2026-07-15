@@ -103,23 +103,25 @@ export function GalleryRadio() {
 
   useEffect(() => {
     const checkPortal = () => {
-      setIsMobile(window.innerWidth < 768)
-      const mobileNode = document.getElementById('radio-portal-mobile')
-      setPortalTarget(prev => prev !== mobileNode ? mobileNode : prev)
+      const width = window.innerWidth
+      setIsMobile(width < 1024) // Sekarang mencakup layar Tablet dan Mobile Landscape (lg = 1024px)
+      
+      let targetId = 'radio-portal-mobile'
+      if (width >= 768 && width < 1024) {
+        targetId = 'radio-portal-tablet'
+      }
+      
+      const targetNode = document.getElementById(targetId)
+      setPortalTarget(prev => prev !== targetNode ? targetNode : prev)
     }
     
-    // Initial check
-    checkPortal()
+    // Initial check (use timeout to ensure Navbar is rendered on first mount)
+    setTimeout(checkPortal, 100)
     
     window.addEventListener('resize', checkPortal)
     
-    // Observer untuk mantau kalau Navbar di-remount pas ganti halaman
-    const observer = new MutationObserver(checkPortal)
-    observer.observe(document.body, { childList: true, subtree: true })
-    
     return () => {
       window.removeEventListener('resize', checkPortal)
-      observer.disconnect()
     }
   }, [])
 
@@ -250,7 +252,7 @@ export function GalleryRadio() {
           animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
           exit={{ opacity: 0, scale: 0.01, y: -30, filter: "blur(10px)", transition: { duration: 0.25, ease: "easeInOut" } }}
           transition={{ type: "spring", damping: 14, stiffness: 280, mass: 0.8 }}
-          className="fixed top-[72px] right-6 z-[9990] max-w-[220px] bg-surface/95 border border-border/50 shadow-lg rounded-full px-2.5 py-1.5 flex items-center gap-2 md:hidden pointer-events-auto select-text backdrop-blur-md"
+          className="fixed top-[72px] right-6 z-[9990] max-w-[220px] bg-surface/95 border border-border/50 shadow-lg rounded-full px-2.5 py-1.5 flex items-center gap-2 lg:hidden pointer-events-auto select-text backdrop-blur-md"
         >
           {/* Cover Art Super Mini */}
           <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden bg-background flex items-center justify-center relative shadow-sm border border-border/50">

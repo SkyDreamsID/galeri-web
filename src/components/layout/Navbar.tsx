@@ -4,19 +4,26 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Sun, Moon, Menu, X, Camera } from 'lucide-react'
 import { GearModal } from './GearModal'
+import { useTheme } from 'next-themes'
 
-export function Navbar() {
-  const [isDark, setIsDark] = useState(false)
+interface NavbarProps {
+  authorName?: string
+  siteLogo?: string
+  socialLinks?: { title: string; url: string }[]
+}
+
+export function Navbar({ 
+  authorName = 'Rifki Eka Putra', 
+  siteLogo = '', 
+  socialLinks = [] 
+}: NavbarProps) {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [isGearModalOpen, setIsGearModalOpen] = useState(false)
-  const [authorName, setAuthorName] = useState('Rifki Eka Putra')
-  const [siteLogo, setSiteLogo] = useState('')
-  const [socialLinks, setSocialLinks] = useState<{ title: string, url: string }[]>([])
 
-  // Sync with current document theme on mount
+  // Avoid hydration mismatch by waiting for mount
   useEffect(() => {
-    if (document.documentElement.classList.contains('dark')) {
-      setIsDark(true)
-    }
+    setMounted(true)
 
     // Handle click outside to close details menus
     const handleClickOutside = (e: MouseEvent) => {
@@ -30,30 +37,13 @@ export function Navbar() {
     };
     
     document.addEventListener('click', handleClickOutside);
-
-    // Fetch settings
-    const fetchSettings = async () => {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      const { data } = await supabase.from('site_settings').select('*').limit(1).single()
-      if (data) {
-        if (data.author_name) setAuthorName(data.author_name)
-        if (data.site_logo_url) setSiteLogo(data.site_logo_url)
-        if (data.social_links) setSocialLinks(data.social_links)
-      }
-    }
-    fetchSettings()
-
     return () => document.removeEventListener('click', handleClickOutside);
   }, [])
 
+  const isDark = mounted && (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches))
+
   const toggleDarkMode = () => {
-    setIsDark(!isDark);
-    if (!isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    setTheme(isDark ? 'light' : 'dark');
   };
 
   return (

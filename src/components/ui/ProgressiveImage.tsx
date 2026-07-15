@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
+import Image from 'next/image'
 import { getOptimizedImageUrl } from '@/lib/utils'
 
 interface ProgressiveImageProps {
@@ -16,36 +17,28 @@ export function ProgressiveImage({
   className = '',
   width = 800
 }: ProgressiveImageProps) {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [currentSrc, setCurrentSrc] = useState('')
+  if (!src) return null;
 
-  useEffect(() => {
-    if (!src) return;
-    
-    // 1. Generate URL gambar nge-blur (low quality) dari Cloudinary
-    let lowRes = src
-    if (src.includes('upload/')) {
-       lowRes = src.replace('upload/', 'upload/e_blur:1000,f_auto,q_1,w_100/')
-    }
-    setCurrentSrc(lowRes)
+  // 1. Generate URL gambar nge-blur (low quality) dari Cloudinary untuk placeholder
+  let blurUrl = src
+  if (src.includes('upload/')) {
+     blurUrl = src.replace('upload/', 'upload/e_blur:1000,f_auto,q_1,w_100/')
+  }
 
-    // 2. Preload gambar asli (kualitas bagus) di background
-    const highResUrl = getOptimizedImageUrl(src, width)
-    const img = new Image()
-    img.src = highResUrl
-    img.onload = () => {
-      // 3. Kalau udah beres ke-download, langsung ganti source-nya
-      setCurrentSrc(highResUrl)
-      setIsLoaded(true)
-    }
-  }, [src, width])
+  // 2. Gunakan getOptimizedImageUrl bawaan untuk kualitas utama
+  const highResUrl = getOptimizedImageUrl(src, width)
 
   return (
-    <img 
-      src={currentSrc || src} 
+    <Image 
+      src={highResUrl} 
       alt={alt} 
-      className={`${className} transition-[filter] duration-1000 ${isLoaded ? 'blur-0' : 'blur-md'}`}
-      loading="lazy"
+      width={width}
+      height={width} // dummy height, css auto overrides it
+      style={{ width: '100%', height: 'auto' }}
+      placeholder="blur"
+      blurDataURL={blurUrl}
+      className={className}
+      unoptimized // Cloudinary sudah melakukan kompresi f_auto,q_auto
     />
   )
 }
