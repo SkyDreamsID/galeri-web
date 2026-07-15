@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { TagInput } from './TagInput'
+import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
 type FileWithExif = {
   file: File
@@ -31,6 +32,9 @@ type FileWithExif = {
 export function UploadForm() {
   const router = useRouter()
   const supabase = createClient()
+  const settings = useSiteSettings()
+  const cloudName = settings?.cloudinary_cloud_name || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+  
   const [isUploading, setIsUploading] = useState(false)
   const [title, setTitle] = useState('')
   const [story, setStory] = useState('')
@@ -169,7 +173,7 @@ export function UploadForm() {
         formData.append('signature', signature)
 
         const cloudRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
           { method: 'POST', body: formData }
         )
         

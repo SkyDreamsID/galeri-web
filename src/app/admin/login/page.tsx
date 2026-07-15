@@ -13,9 +13,9 @@ export default function LoginPage({
     <div className="flex h-screen w-full items-center justify-center bg-zinc-950 px-4">
       <Card className="w-full max-w-sm bg-zinc-900 border-zinc-800 text-white shadow-2xl">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold tracking-tight">Admin Area</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">Hayo mau ngapain?</CardTitle>
           <CardDescription className="text-zinc-400">
-            Masuk dengan kredensial rahasia lo.
+            Buat akun di Supabase dulu coi 🫵😂
           </CardDescription>
         </CardHeader>
         <form action={login}>

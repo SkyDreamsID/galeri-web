@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { getOptimizedImageUrl } from '@/lib/utils'
@@ -25,6 +26,7 @@ type Post = {
   title: string
   slug: string
   location: string | null
+  created_at: string
   collections: { name: string } | null
   photos: { image_url: string; is_cover: boolean }[]
 }
@@ -46,11 +48,27 @@ export function HomeClient({
   heroTitle: string
   heroDesc: string
 }) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentSort = searchParams.get('sort') || 'newest'
+
   const supabase = createClient()
   const [posts, setPosts] = useState<Post[]>(initialPosts)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(initialHasMore)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+
+  // Sinkronisasi dengan initialPosts dari server ketika URL / sort berubah
+  useEffect(() => {
+    setPosts(initialPosts)
+    setPage(1)
+    setHasMore(initialHasMore)
+  }, [initialPosts, initialHasMore])
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value
+    router.push(`/?sort=${val}`)
+  }
 
   const loadMore = useCallback(async () => {
     setIsLoadingMore(true)
@@ -58,15 +76,28 @@ export function HomeClient({
       const from = page * POSTS_PER_PAGE
       const to = from + POSTS_PER_PAGE - 1
 
+      let orderColumn = 'created_at'
+      let isAscending = false
+      if (currentSort === 'oldest') {
+        orderColumn = 'created_at'
+        isAscending = true
+      } else if (currentSort === 'az') {
+        orderColumn = 'title'
+        isAscending = true
+      } else if (currentSort === 'za') {
+        orderColumn = 'title'
+        isAscending = false
+      }
+
       const { data, error, count } = await supabase
         .from('posts')
         .select(`
-          id, title, slug, location,
+          id, title, slug, location, created_at,
           collections (name),
           photos (image_url, is_cover)
         `, { count: 'exact' })
         .eq('status', 'Published')
-        .order('created_at', { ascending: false })
+        .order(orderColumn, { ascending: isAscending })
         .range(from, to)
 
       if (error) throw error
@@ -110,9 +141,9 @@ export function HomeClient({
           </motion.p>
         </div>
 
-        {/* Filter Pills */}
-        <div className="mb-8 md:mb-12">
-          <div className="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x">
+        {/* Filter Pills & Sort */}
+        <div className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x flex-1">
             <Link
               href="/"
               className="shrink-0 snap-start px-4 py-1.5 rounded-full bg-text-main text-background hover:opacity-90 transition-opacity text-sm font-semibold whitespace-nowrap shadow-sm"
@@ -143,6 +174,20 @@ export function HomeClient({
                 #{t.name}
               </Link>
             ))}
+          </div>
+
+          <div className="shrink-0">
+            <select
+              value={currentSort}
+              onChange={handleSortChange}
+              className="appearance-none bg-surface border border-border/50 text-text-main text-sm font-medium rounded-full px-4 py-2 pr-8 focus:outline-none focus:border-primary-neutral cursor-pointer hover:bg-surface/80 transition-colors"
+              style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a1a1aa%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.7rem top 50%', backgroundSize: '0.65rem auto' }}
+            >
+              <option value="newest">Terbaru</option>
+              <option value="oldest">Terlama</option>
+              <option value="az">Nama (A-Z)</option>
+              <option value="za">Nama (Z-A)</option>
+            </select>
           </div>
         </div>
 
@@ -188,9 +233,14 @@ export function HomeClient({
                     <h3 className="font-heading text-sm md:text-xl font-bold text-text-main mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2">
                       {post.title}
                     </h3>
-                    <p className="text-[9px] md:text-xs text-text-muted translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150 line-clamp-1">
-                      {post.location || 'Unknown Location'}
-                    </p>
+                    <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150">
+                      <p className="text-[9px] md:text-xs text-text-muted line-clamp-1">
+                        {post.location || 'Unknown Location'}
+                      </p>
+                      <p className="text-[8px] md:text-[10px] text-text-muted/70 font-medium">
+                        {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
 
                     {post.photos && post.photos.length > 1 && (
                       <div className="flex items-center gap-1 md:gap-1.5 mt-2 md:mt-4 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-200">

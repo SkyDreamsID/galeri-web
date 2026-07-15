@@ -7,6 +7,7 @@ export async function Footer() {
   
   const authorName = settings?.author_name || 'Rifki Eka Putra'
   const socialLinks: {title: string, url: string}[] = settings?.social_links || []
+  const footerText = settings?.footer_text || 'Ruang digital untuk menyimpan momen, merangkai cerita, dan mendokumentasikan perjalanan melalui lensa.'
   return (
     <footer className="border-t border-border/10 bg-background mt-auto relative overflow-hidden">
       {/* Subtle Glow Background */}
@@ -18,8 +19,8 @@ export async function Footer() {
         <span className="font-heading text-lg md:text-2xl font-bold tracking-tight text-text-main mb-3">
           {authorName}
         </span>
-        <p className="text-[13px] md:text-sm text-text-muted max-w-md leading-relaxed mb-8">
-          Ruang digital untuk menyimpan momen, merangkai cerita, dan mendokumentasikan perjalanan melalui lensa.
+        <p className="text-[13px] md:text-sm text-text-muted max-w-md leading-relaxed mb-8 whitespace-pre-wrap">
+          {footerText}
         </p>
         
         {/* Sosmed Links */}
@@ -44,6 +45,14 @@ export async function Footer() {
           <p className="text-[11px] md:text-xs font-medium text-text-muted/60">
             &copy; {new Date().getFullYear()} {authorName}. All rights reserved.
           </p>
+          
+          {/* EASTER EGG COPYRIGHT: Khusus buat yang fork web ini */}
+          {authorName.toLowerCase() !== 'rifki eka putra' && (
+            <p className="text-[10px] md:text-[11px] text-text-muted/50 font-bold mb-1 animate-pulse">
+              Designed by <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="hover:text-primary-neutral transition-colors">SkyDreamsID</a>
+            </p>
+          )}
+
           <p className="text-[10px] md:text-[11px] text-text-muted/50 leading-relaxed max-w-[250px] md:max-w-none mx-auto">
             Made with <span className="text-primary-neutral animate-pulse mx-0.5 inline-block">♥</span> using Next.js, Tailwind, Supabase, Cloudinary & ZenoFM.
           </p>

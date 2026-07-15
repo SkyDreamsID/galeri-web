@@ -88,17 +88,20 @@ export function Navbar({
               </summary>
               <div className="absolute right-0 mt-4 w-[240px] rounded-2xl border border-border bg-surface p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
                 <div className="space-y-1">
-                  {socialLinks.map((link, idx) => (
-                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3.5 text-base font-semibold rounded-xl hover:bg-background hover:text-text-main active:bg-background transition-colors">
-                      {link.title}
-                    </a>
-                  ))}
+                  <Link href="/albums" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">📁 Albums</Link>
+                  <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">📸 My Gear</button>
+                  <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">👨‍💻 About Me</a>
+                  <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">💻 Source Code (Free)</a>
+                  
                   <div className="h-px bg-border my-2"></div>
                   <span className="block px-4 py-2 text-[11px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
-                  <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">👨‍💻 About Me</a>
-                  <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">💻 Source Code</a>
-                  <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">📸 My Gear</button>
-                  <a href="mailto:arunikaframes2025@gmail.com" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">✉️ Hubungi Saya</a>
+                  
+                  {socialLinks.map((link, idx) => (
+                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main active:bg-background transition-colors">
+                      {link.title === 'Instagram' ? '📷 Instagram' : link.title === 'GitHub' ? '🐙 GitHub' : link.title}
+                    </a>
+                  ))}
+                  <a href="mailto:arunikaframes2025@gmail.com" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">✉️ Hubungi Saya (Email)</a>
                 </div>
               </div>
             </details>
@@ -121,7 +124,8 @@ export function Navbar({
 
           <div className="flex items-center gap-3 relative z-50 shrink-0">
             <nav className="flex items-center gap-4">
-              <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-muted hover:text-text-main transition-colors cursor-pointer select-none">Source Code</a>
+              <Link href="/albums" className="text-sm font-medium text-text-muted hover:text-text-main transition-colors cursor-pointer select-none">Albums</Link>
+              <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-muted hover:text-text-main transition-colors cursor-pointer select-none">Source Code (Free)</a>
               <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-muted hover:text-text-main transition-colors cursor-pointer select-none">About Me</a>
             </nav>
             <div className="h-4 w-px bg-border mx-1"></div>
@@ -148,7 +152,7 @@ export function Navbar({
                 <div className="space-y-1">
                   <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
-                  <a href="mailto:arunikaframes2025@gmail.com" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya</a>
+                  <a href="mailto:arunikaframes2025@gmail.com" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
                 </div>
               </div>
             </details>
@@ -171,7 +175,8 @@ export function Navbar({
 
           <div className="flex items-center gap-4 relative z-50 shrink-0">
             <nav className="flex items-center gap-6">
-              <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-muted hover:text-primary-neutral transition-colors cursor-pointer select-none">Source Code</a>
+              <Link href="/albums" className="text-sm font-medium text-text-muted hover:text-primary-neutral transition-colors cursor-pointer select-none">Albums</Link>
+              <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-muted hover:text-primary-neutral transition-colors cursor-pointer select-none">Source Code (Free)</a>
               <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-muted hover:text-primary-neutral transition-colors cursor-pointer select-none">About Me</a>
             </nav>
             <div className="h-4 w-px bg-border/50 mx-2"></div>
@@ -193,7 +198,7 @@ export function Navbar({
                 <div className="space-y-1">
                   <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
-                  <a href="mailto:arunikaframes@gmail.com" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya</a>
+                  <a href="mailto:arunikaframes2025@gmail.com" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
                 </div>
               </div>
             </details>

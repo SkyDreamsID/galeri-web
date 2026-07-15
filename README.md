@@ -1,62 +1,97 @@
-# 📸 Galeri - Jurnal Visual Fotografi
+# 📸 Galeri - Premium Visual Journal & CMS
 
 Sebuah platform galeri foto premium dan jurnal visual, dibangun menggunakan teknologi modern untuk fotografer yang ingin memamerkan mahakaryanya dengan elegan. 
 
-Proyek ini tidak hanya sekadar *image viewer*, tetapi dilengkapi dengan sistem manajemen CMS (*Content Management System*) eksklusif, ekstraksi data EXIF otomatis, dan *showcase* perlengkapan (Gear Management).
+Proyek ini bukan sekadar *image viewer*, melainkan **Aplikasi Full-Stack dengan CMS (Content Management System) Internal**, ekstraksi data EXIF otomatis, *showcase* perlengkapan (Gear Management), dan integrasi radio lo-fi interaktif.
+
+![Web Preview](public/preview.png) *(Silakan ganti dengan screenshot web Anda)*
 
 ## ✨ Fitur Utama
 
-- **Masonry Grid & Smart Crop**: Menampilkan foto dalam *grid* yang rapi dan teroptimasi ukurannya (dukungan orientasi *landscape* & *portrait*).
-- **Auto-EXIF Extraction**: Mengunggah foto secara otomatis mengekstrak metadata kamera (Kamera, Lensa, *Focal Length*, Aperture, ISO, *Shutter Speed*, Waktu).
-- **Per-Photo Copyright**: Hak cipta yang dapat dikonfigurasi per-foto, sangat cocok untuk kolaborasi *agency* atau kontributor ganda.
-- 🌓 **Mode Gelap Legendaris**: UI responsif dengan tema gelap premium (Classic Studio/Legendary UI).
+- **Web CMS (Pengaturan Dinamis)**: Ubah nama website, teks footer, *social media links*, dan ID ZenoFM langsung dari Dasbor Admin tanpa menyentuh kode!
+- **Masonry Grid & Smart Crop**: Menampilkan foto dalam *grid* rapi dengan pengoptimalan orientasi cerdas (integrasi Cloudinary).
+- **Auto-EXIF Extraction**: Mengunggah foto secara otomatis mengekstrak metadata kamera (Kamera, Lensa, Focal Length, Aperture, ISO, Shutter Speed).
+- **Per-Photo Copyright & Easter Egg**: Hak cipta per-foto dinamis (cocok untuk *agency*). Dilengkapi *easter egg* khusus jika template ini di-fork!
 - ⚙️ **Gear Showcase**: Integrasi komponen yang memamerkan kamera & lensa yang digunakan.
-- 📻 **Gallery Radio**: Widget pemutar musik Lo-Fi real-time terintegrasi dengan Zeno.fm dan Last.fm API untuk *cover art* dinamis.
-- ⚡ **Optimasi Kecepatan**: Menggunakan *Infinite Scroll* (Muat Lebih Banyak) & Server Actions untuk performa super cepat.
-- **Admin Dashboard**: Panel kontrol terisolasi (dilindungi Auth) untuk mengunggah *(drag & drop)* foto, manajemen galeri, dan kelola perlengkapan *(gears)*.
-- **Cloudinary Integration**: Penyimpanan gambar, pengoptimalan (*WebP/AVIF* otomatis), dan pemotongan cerdas (*smart cropping*) secara otomatis di *cloud*.
-- **Premium UI/UX**: Mendukung mode gelap/terang, desain efek kaca (*glassmorphism*), dan animasi halus yang memanjakan mata *(Framer Motion & Embla Carousel)*.
+- 📻 **Gallery Radio (ZenoFM)**: Widget pemutar musik *real-time* yang bisa dinonaktifkan secara otomatis jika ID dikosongkan.
+- ⚡ **Optimasi Kecepatan**: Menggunakan *Infinite Scroll* & Server Actions (Next.js 14+) untuk performa super cepat.
+- **Admin Dashboard**: Panel kontrol terisolasi (dilindungi Auth Middleware) untuk mengunggah *(drag & drop)* foto, manajemen galeri, dan pengaturan situs.
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 14+ (App Router)](https://nextjs.org/)
+- **Framework**: [Next.js 14+ (App Router + Turbopack)](https://nextjs.org/)
 - **Bahasa**: TypeScript
 - **Styling**: Tailwind CSS & [shadcn/ui](https://ui.shadcn.com/)
-- **Database**: [Supabase](https://supabase.com/) (PostgreSQL & Auth)
+- **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL)
 - **Media Storage**: [Cloudinary](https://cloudinary.com/)
-- **Animasi & UI Ekstra**: Framer Motion, Embla Carousel, Lucide React
-- **EXIF Parser**: `exifr`
+- **Animasi**: Framer Motion, Embla Carousel
 
-## 🚀 Cara Menjalankan Secara Lokal
+---
 
-1. **Clone repository ini:**
-   ```bash
-   git clone https://github.com/SkyDreamsID/galeri-web.git
-   cd galeri-web
-   ```
+## 🚀 Panduan Instalasi Lengkap (Tutorial untuk Forker)
 
-2. **Instal dependensi:**
-   ```bash
-   npm install
-   ```
+Jika Anda melakukan *fork* atau *clone* pada repositori ini, ikuti langkah-langkah berikut untuk menghidupkan proyek ini di komputer Anda.
 
-3. **Konfigurasi Environment Variables (`.env.local`):**
-   Ganti nilai-nilai di bawah ini dengan kredensial dari Supabase dan Cloudinary Anda:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   
-   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
-   NEXT_PUBLIC_CLOUDINARY_API_KEY=your_api_key
-   CLOUDINARY_API_SECRET=your_api_secret
-   ```
+### 1. Clone & Instalasi
+```bash
+git clone https://github.com/SkyDreamsID/galeri-web.git
+cd galeri-web
+npm install
+```
 
-4. **Jalankan Server Development:**
-   ```bash
-   npm run dev
-   ```
+### 2. Konfigurasi Supabase (Database & Auth)
+Proyek ini sangat bergantung pada Supabase.
+1. Buat proyek baru di [Supabase](https://supabase.com/).
+2. Masuk ke menu **SQL Editor** di Supabase, dan jalankan rancangan skema tabel berikut (Atau buat secara manual via Table Editor):
+   - `site_settings`: id (uuid), site_title (varchar), author_name (varchar), hero_title (varchar), hero_description (text), footer_text (text), social_links (jsonb), zenofm_station_id (varchar).
+   - `collections`: id (uuid), name (varchar), description (text).
+   - `posts`: id (uuid), title (varchar), story (text), location (varchar), status (varchar), collection_id (fk).
+   - `photos`: id (uuid), post_id (fk), image_url (varchar), public_id (varchar), is_cover (boolean), copyright_name (varchar), sort_order (int).
+   - `exif_data`: photo_id (fk), camera, lens, focal_length, aperture, iso, shutter_speed.
+   - `gears`: id (uuid), name, type, description, image_url, public_id.
+3. Buat satu baris *default* di tabel `site_settings` agar web tidak *error* saat pertama dirender.
+4. Masuk ke menu **Authentication > Users** di Supabase, lalu buat satu **Add User** baru. Ini akan menjadi akun login Admin Anda.
 
-5. Buka [http://localhost:3000](http://localhost:3000) di *browser* Anda. Untuk masuk ke dasbor admin, akses [http://localhost:3000/admin](http://localhost:3000/admin).
+### 3. Konfigurasi Cloudinary (Penyimpanan Foto)
+1. Buat akun di [Cloudinary](https://cloudinary.com/).
+2. Ambil `Cloud Name`, `API Key`, dan `API Secret` dari dasbor Cloudinary Anda.
+
+### 4. Setup Environment Variables
+Ubah nama file `.env.example` menjadi `.env.local` di *root* folder proyek, lalu isi dengan kredensial Anda:
+
+```env
+# SUPABASE
+NEXT_PUBLIC_SUPABASE_URL="https://[YOUR_PROJECT_ID].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key-here"
+
+# CLOUDINARY
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
+
+# ZENO FM (Opsional, juga bisa diatur dari Dasbor Admin)
+NEXT_PUBLIC_ZENO_STATION_ID="cnho9wgxkkovv"
+```
+
+> **⚠️ Keamanan Penting**: `CLOUDINARY_API_SECRET` adalah rahasia dapur. Jangan pernah menaruhnya di tabel Database CMS, biarkan ia tetap aman di dalam `.env.local`!
+
+### 5. Jalankan Aplikasi
+```bash
+npm run dev
+```
+Buka [http://localhost:3000](http://localhost:3000) untuk melihat web publik, dan buka [http://localhost:3000/admin/login](http://localhost:3000/admin/login) untuk masuk ke Dasbor Admin menggunakan akun Supabase Auth yang baru Anda buat.
+
+---
+
+## ⚙️ Menggunakan Web CMS (Pengaturan Admin)
+
+Setelah berhasil login ke `/admin`, navigasikan ke menu **Pengaturan**. Di sini Anda bisa:
+- **Mengubah Nama Author & Teks Utama**: Tanpa menyentuh *source code*.
+- **Manajemen Link Sosial Media**: Tambah/Hapus URL sesuka hati (Instagram, GitHub, dll).
+- **Zeno.fm Radio**: Masukkan *Station ID* Zeno.fm Anda agar pemutar musik *lo-fi* muncul di pojok web. Jika dikosongkan, widget otomatis disembunyikan. 
 
 ## 📄 Lisensi
-Proyek ini dilisensikan di bawah [MIT License](LICENSE). Anda bebas untuk menggunakan, memodifikasi, dan mendistribusikannya.
+Proyek ini dilisensikan di bawah [MIT License](LICENSE). Anda bebas untuk menggunakan, memodifikasi, dan mendistribusikannya secara personal maupun komersial.
+
+---
+*Built with logic, passion, and AI assistance by a Tech Enthusiast.*

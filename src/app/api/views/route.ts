@@ -3,7 +3,12 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
-    const { postId } = await request.json()
+    const bodyText = await request.text()
+    if (!bodyText) {
+      return NextResponse.json({ error: 'Post ID is required' }, { status: 400 })
+    }
+    const { postId } = JSON.parse(bodyText)
+    
     if (!postId) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 })
     }

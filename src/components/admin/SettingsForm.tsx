@@ -17,6 +17,11 @@ export function SettingsForm() {
     hero_description: '',
     author_name: '',
     site_logo_url: '',
+    footer_text: '',
+    zenofm_station_id: '',
+    lastfm_username: '',
+    lastfm_api_key: '',
+    cloudinary_cloud_name: '',
     social_links: [] as { title: string, url: string }[]
   })
 
@@ -37,6 +42,11 @@ export function SettingsForm() {
         hero_description: data.hero_description || '',
         author_name: data.author_name || '',
         site_logo_url: data.site_logo_url || '',
+        footer_text: data.footer_text || '',
+        zenofm_station_id: data.zenofm_station_id || '',
+        lastfm_username: data.lastfm_username || '',
+        lastfm_api_key: data.lastfm_api_key || '',
+        cloudinary_cloud_name: data.cloudinary_cloud_name || '',
         social_links: data.social_links || []
       })
     }
@@ -114,31 +124,31 @@ export function SettingsForm() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
+      const payload = {
+        site_title: settings.site_title,
+        hero_title: settings.hero_title,
+        hero_description: settings.hero_description,
+        author_name: settings.author_name,
+        site_logo_url: settings.site_logo_url,
+        footer_text: settings.footer_text,
+        zenofm_station_id: settings.zenofm_station_id,
+        lastfm_username: settings.lastfm_username,
+        lastfm_api_key: settings.lastfm_api_key,
+        cloudinary_cloud_name: settings.cloudinary_cloud_name,
+        social_links: settings.social_links
+      }
+
       // Jika belum ada ID, berarti tabel kosong, pakai insert. Kalau udah ada ID, update.
       if (settings.id) {
         const { error } = await supabase
           .from('site_settings')
-          .update({
-            site_title: settings.site_title,
-            hero_title: settings.hero_title,
-            hero_description: settings.hero_description,
-            author_name: settings.author_name,
-            site_logo_url: settings.site_logo_url,
-            social_links: settings.social_links
-          })
+          .update(payload)
           .eq('id', settings.id)
         if (error) throw error
       } else {
         const { error, data } = await supabase
           .from('site_settings')
-          .insert([{
-            site_title: settings.site_title,
-            hero_title: settings.hero_title,
-            hero_description: settings.hero_description,
-            author_name: settings.author_name,
-            site_logo_url: settings.site_logo_url,
-            social_links: settings.social_links
-          }])
+          .insert([payload])
           .select()
         
         if (error) throw error
@@ -209,6 +219,18 @@ export function SettingsForm() {
               rows={3}
               className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none resize-none" 
               placeholder="Ruang untuk menyimpan momen..."
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-text-muted">Teks Footer</label>
+            <textarea 
+              name="footer_text"
+              value={settings.footer_text}
+              onChange={handleInputChange}
+              rows={2}
+              className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none resize-none" 
+              placeholder="Teks penjelasan singkat di area footer..."
             />
           </div>
         </div>
@@ -311,6 +333,56 @@ export function SettingsForm() {
             <Plus className="w-4 h-4" />
             Tambah Tautan Sosial Media
           </button>
+        </div>
+      </div>
+
+      {/* Pengaturan API & Integrasi */}
+      <div className="bg-surface border border-border/50 rounded-2xl p-6 md:p-8 shadow-sm">
+        <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
+          <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">4</span>
+          API & Integrasi Eksternal
+        </h2>
+        <p className="text-sm text-text-muted mb-6">
+          Kosongkan kolom ini jika ingin menggunakan file <code className="bg-background px-1 py-0.5 rounded text-primary-neutral font-mono text-xs">.env.local</code> bawaan. Berguna bagi pengguna yang mem-fork template ini.
+        </p>
+        
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-text-muted">Zeno.fm Station ID</label>
+            <input 
+              name="zenofm_station_id"
+              value={settings.zenofm_station_id}
+              onChange={handleInputChange}
+              className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
+              placeholder="Misal: cnho9wgxkkovv"
+            />
+            <p className="text-xs text-text-muted">Kumpulan kode acak yang ada di akhir URL stream Zeno.fm.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-50">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-muted">Last.fm Username (Segera Hadir)</label>
+              <input 
+                name="lastfm_username"
+                value={settings.lastfm_username}
+                onChange={handleInputChange}
+                disabled
+                className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
+                placeholder="Username"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-muted">Last.fm API Key (Segera Hadir)</label>
+              <input 
+                name="lastfm_api_key"
+                value={settings.lastfm_api_key}
+                onChange={handleInputChange}
+                disabled
+                className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
+                placeholder="API Key"
+              />
+            </div>
+          </div>
         </div>
       </div>
 

@@ -50,7 +50,7 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
       const { data, error, count } = await supabase
         .from('posts')
         .select(`
-          id, title, slug, location,
+          id, title, slug, location, created_at,
           collections (name),
           photos (image_url, is_cover)
         `, { count: 'exact' })
@@ -141,9 +141,14 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
                         <h3 className="font-heading text-sm md:text-xl font-bold text-text-main mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2">
                           {post.title}
                         </h3>
-                        <p className="text-[9px] md:text-xs text-text-muted translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150 line-clamp-1">
-                          {post.location || 'Unknown Location'}
-                        </p>
+                        <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150">
+                          <p className="text-[9px] md:text-xs text-text-muted line-clamp-1">
+                            {post.location || 'Unknown Location'}
+                          </p>
+                          <p className="text-[8px] md:text-[10px] text-text-muted/70 font-medium">
+                            {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
                       </div>
                     </Link>
                   </motion.div>

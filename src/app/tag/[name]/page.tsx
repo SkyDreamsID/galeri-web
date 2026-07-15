@@ -40,7 +40,7 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
       const { data, error, count } = await supabase
         .from('posts')
         .select(`
-          id, title, slug, location,
+          id, title, slug, location, created_at,
           collections (name),
           photos (image_url, is_cover),
           post_tags!inner(
@@ -73,8 +73,8 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
   }, [tagName])
 
   return (
-    <>
-      <main className="container mx-auto px-6 py-12 md:py-20 mt-16 max-w-7xl min-h-screen">
+    <div className="bg-background text-text-main min-h-screen">
+      <main className="container mx-auto px-6 py-12 md:py-20 mt-16 max-w-7xl">
         <div className="mb-10 md:mb-16">
           <Link href="/" className="inline-flex items-center gap-2 text-text-muted hover:text-primary-neutral transition-colors mb-6 text-sm font-medium">
             <ArrowLeft className="w-4 h-4" />
@@ -134,9 +134,14 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
                         <h3 className="font-heading text-sm md:text-xl font-bold text-text-main mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2">
                           {post.title}
                         </h3>
-                        <p className="text-[9px] md:text-xs text-text-muted translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150 line-clamp-1">
-                          {post.location || 'Unknown Location'}
-                        </p>
+                        <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150">
+                          <p className="text-[9px] md:text-xs text-text-muted line-clamp-1">
+                            {post.location || 'Unknown Location'}
+                          </p>
+                          <p className="text-[8px] md:text-[10px] text-text-muted/70 font-medium">
+                            {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
                       </div>
                     </Link>
                   </motion.div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,6 +21,9 @@ type Gear = {
 
 export default function GearManagement() {
   const supabase = createClient()
+  const settings = useSiteSettings()
+  const cloudName = settings?.cloudinary_cloud_name || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+  
   const [gears, setGears] = useState<Gear[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
@@ -101,13 +105,13 @@ export default function GearManagement() {
         formData.append('signature', signature)
         formData.append('folder', 'galeri_gears')
 
-        const cloudRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        const uploadRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
           { method: 'POST', body: formData }
         )
         
-        if (!cloudRes.ok) throw new Error('Upload gambar gagal')
-        const cloudData = await cloudRes.json()
+        if (!uploadRes.ok) throw new Error('Upload gambar gagal')
+        const cloudData = await uploadRes.json()
         
         imageUrl = cloudData.secure_url
         publicId = cloudData.public_id

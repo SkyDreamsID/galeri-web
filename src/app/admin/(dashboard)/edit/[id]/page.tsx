@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/client'
 import { TagInput } from '@/components/admin/TagInput'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
 type FileWithExif = {
   id?: string // Jika sudah ada di DB
@@ -35,6 +36,9 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const router = useRouter()
   const { id: postId } = use(params)
   const supabase = createClient()
+  const settings = useSiteSettings()
+  const cloudName = settings?.cloudinary_cloud_name || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+  
   const [loading, setLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -231,7 +235,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             formData.append('signature', signature)
 
             const cloudRes = await fetch(
-              `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+              `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
               { method: 'POST', body: formData }
             )
             

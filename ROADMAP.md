@@ -57,6 +57,7 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 ### Phase 5: Polishing, SEO, & Deployment (Sedang Berjalan)
 *Fokus: Optimasi performa, fitur tambahan, dan Go-Live.*
 - [x] **Gallery Radio**: Integrasi Zeno.fm dan Last.fm API untuk cover art. (Selesai)
+- [x] **Web CMS (Settings)**: Fitur Pengaturan Website dinamis di Admin untuk edit identitas, medsos, footer, dan integrasi API (*fallback logic*).
 - [ ] Next.js SEO Tags (Title, Meta Description, Open Graph) & Image Alt Automation.
 - [ ] PWA Support (Progressive Web App) agar web bisa diinstal selayaknya aplikasi.
 - [ ] Deployment Frontend + Admin ke Vercel/Netlify.

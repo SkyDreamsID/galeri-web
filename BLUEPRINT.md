@@ -69,6 +69,20 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 | `public_id` | VARCHAR | Nullable | ID gambar Cloudinary |
 | `created_at` | TIMESTAMPZ | Default NOW() | Tanggal pembuatan record |
 
+### Table: `site_settings` (Global Configuration & CMS)
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | UUID | Primary Key | Identifier unik (selalu sama) |
+| `site_title` | VARCHAR | Nullable | Judul website global |
+| `author_name` | VARCHAR | Nullable | Nama pemilik / Author |
+| `hero_title` | VARCHAR | Nullable | Judul besar di halaman utama |
+| `hero_description` | TEXT | Nullable | Deskripsi halaman utama |
+| `footer_text` | TEXT | Nullable | Teks pada bagian footer |
+| `social_links` | JSONB | Nullable | Daftar tautan sosial media |
+| `zenofm_station_id`| VARCHAR | Nullable | ID stream stasiun ZenoFM |
+| `lastfm_username` | VARCHAR | Nullable | (Segera Hadir) Last.fm Username |
+| `lastfm_api_key` | VARCHAR | Nullable | (Segera Hadir) Last.fm API |
+
 *(Tabel `collections`, `tags`, dan `post_tags` berlanjut seperti sebelumnya).*
 
 ## 4. UI Flow Publik & Navigasi
@@ -93,3 +107,10 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 
 ### Logika Ekstraksi Hak Cipta
 Pada komponen unggah galeri (`UploadForm`), admin diberikan kotak centang (*checkbox*) untuk memilih gambar spesifik yang akan menerima `copyright_name`. Data diunggah ke `photos` secara bergilir, dan EXIF di-*parse* secara klien sebelum pengiriman HTTP.
+
+### Sistem CMS & Fallback Konfigurasi (SiteSettings)
+Untuk mendukung *forkability* dan kemudahan pengaturan:
+1. Data dari `site_settings` ditarik **sekali saja** di tingkat global (`src/app/layout.tsx`).
+2. Data disalurkan ke semua komponen *Client* dan *Server* via `SiteSettingsContext`.
+3. **Fallback Logic:** Jika API eksternal (seperti ZenoFM) dikosongkan di Dasbor Admin, sistem akan otomatis jatuh kembali (membaca) dari variabel *environment* `.env.local` pengguna.
+4. **Keamanan API:** Rahasia API (seperti Cloudinary API Secret) **TIDAK PERNAH** diekspos ke antarmuka CMS untuk mencegah kebocoran saat *hydration* Next.js, dan dipertahankan khusus di `.env.local`.

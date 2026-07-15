@@ -4,19 +4,35 @@ import { HomeClient } from '@/components/home/HomeClient'
 
 const POSTS_PER_PAGE = 9
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
+  const { sort } = await searchParams
   const supabase = await createClient()
+
+  // Tentukan order berdasarkan parameter sort
+  let orderColumn = 'created_at'
+  let isAscending = false
+  
+  if (sort === 'oldest') {
+    orderColumn = 'created_at'
+    isAscending = true
+  } else if (sort === 'az') {
+    orderColumn = 'title'
+    isAscending = true
+  } else if (sort === 'za') {
+    orderColumn = 'title'
+    isAscending = false
+  }
 
   // Fetch initial page of posts di server (SEO-friendly)
   const { data: postsData, count } = await supabase
     .from('posts')
     .select(`
-      id, title, slug, location,
+      id, title, slug, location, created_at,
       collections (name),
       photos (image_url, is_cover)
     `, { count: 'exact' })
     .eq('status', 'Published')
-    .order('created_at', { ascending: false })
+    .order(orderColumn, { ascending: isAscending })
     .range(0, POSTS_PER_PAGE - 1)
 
   // Fetch tags, collections, and settings

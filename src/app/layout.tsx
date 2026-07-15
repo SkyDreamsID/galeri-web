@@ -48,6 +48,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Navbar } from "@/components/layout/Navbar";
 import { GalleryRadio } from "@/components/layout/GalleryRadio";
 import { Footer } from "@/components/layout/Footer";
+import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { Toaster } from "sonner";
 
 export default async function RootLayout({
@@ -71,18 +72,20 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {/* Global Navbar */}
-          <Navbar 
-            authorName={settings?.author_name} 
-            siteLogo={settings?.site_logo_url} 
-            socialLinks={settings?.social_links} 
-          />
-          {children}
-          {/* Global Footer */}
-          <Footer />
-          {/* Global Floating Radio */}
-          <GalleryRadio />
-          {/* Global Toast Notifications */}
+          <SiteSettingsProvider settings={settings}>
+            {/* Global Navbar */}
+            <Navbar 
+              authorName={settings?.author_name} 
+              siteLogo={settings?.site_logo_url} 
+              socialLinks={settings?.social_links} 
+            />
+            {children}
+            {/* Global Footer */}
+            <Footer />
+            {/* Global Floating Radio */}
+            <GalleryRadio />
+            {/* Global Toast Notifications */}
+
           <Toaster
             position="bottom-right"
             richColors
@@ -93,6 +96,7 @@ export default async function RootLayout({
               },
             }}
           />
+          </SiteSettingsProvider>
         </ThemeProvider>
       </body>
     </html>

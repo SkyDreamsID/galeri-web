@@ -4,8 +4,18 @@ import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Play, Pause, Music, Disc } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
 export function GalleryRadio() {
+  const settings = useSiteSettings()
+  let rawZenoId = settings?.zenofm_station_id || process.env.NEXT_PUBLIC_ZENO_STATION_ID
+  let zenoId = rawZenoId?.trim()
+  if (zenoId && zenoId.includes('/')) {
+    const parts = zenoId.split('/').filter(Boolean)
+    zenoId = parts[parts.length - 1]
+  }
+
+  if (!zenoId) return null
   const [isPlaying, setIsPlaying] = useState(false)
   
   // State untuk data radio
@@ -13,7 +23,7 @@ export function GalleryRadio() {
     title: "Menunggu last.fm API...",
     artist: "SkyDreamsID",
     coverUrl: "", 
-    streamUrl: "https://stream.zeno.fm/cnho9wgxkkovv" 
+    streamUrl: `https://stream.zeno.fm/${zenoId}`
   })
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -33,7 +43,7 @@ export function GalleryRadio() {
         }
         setIsPlaying(false)
       } else {
-        audioRef.current.src = `https://stream.zeno.fm/cnho9wgxkkovv?nocache=${new Date().getTime()}`
+        audioRef.current.src = `https://stream.zeno.fm/${zenoId}`
         audioRef.current.load()
         const playPromise = audioRef.current.play()
         playPromiseRef.current = playPromise
@@ -50,7 +60,7 @@ export function GalleryRadio() {
   // Effect untuk Zeno.fm dan deteksi Portal Target
   useEffect(() => {
     // 1. Zeno.fm Fetch
-    const eventSource = new EventSource("https://api.zeno.fm/mounts/metadata/subscribe/cnho9wgxkkovv")
+    const eventSource = new EventSource(`https://api.zeno.fm/mounts/metadata/subscribe/${zenoId}`)
 
     eventSource.onmessage = (event) => {
       try {
@@ -252,7 +262,9 @@ export function GalleryRadio() {
           animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
           exit={{ opacity: 0, scale: 0.01, y: -30, filter: "blur(10px)", transition: { duration: 0.25, ease: "easeInOut" } }}
           transition={{ type: "spring", damping: 14, stiffness: 280, mass: 0.8 }}
-          className="fixed top-[72px] right-6 z-[9990] max-w-[220px] bg-surface/95 border border-border/50 shadow-lg rounded-full px-2.5 py-1.5 flex items-center gap-2 lg:hidden pointer-events-auto select-text backdrop-blur-md"
+          /* 🛠️ UBAH JARAK WIDGET DARI ATAS DI SINI */
+          /* 'top-[68px]' = jarak dari layar atas. Kecilin angka (contoh: top-[64px]) kalau mau makin naik nempel ke navbar. */
+          className="fixed top-[68px] right-6 z-[9990] max-w-[220px] bg-surface/95 border border-border/50 shadow-lg rounded-full px-2.5 py-1.5 flex items-center gap-2 lg:hidden pointer-events-auto select-text backdrop-blur-md"
         >
           {/* Cover Art Super Mini */}
           <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden bg-background flex items-center justify-center relative shadow-sm border border-border/50">
@@ -286,6 +298,8 @@ export function GalleryRadio() {
       )}
     </AnimatePresence>
   )
+
+  if (!zenoId) return null;
 
   return (
     <>

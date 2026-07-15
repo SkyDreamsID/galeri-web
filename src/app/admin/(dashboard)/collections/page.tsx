@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Plus, Trash2, Edit } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit, ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
+import { ManageCollectionPhotosModal } from '@/components/admin/ManageCollectionPhotosModal'
 
 type Collection = {
   id: string
@@ -17,6 +18,7 @@ export default function CollectionsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({ name: '', description: '' })
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [managingCollection, setManagingCollection] = useState<Collection | null>(null)
 
   const supabase = createClient()
 
@@ -160,10 +162,13 @@ export default function CollectionsPage() {
                   <td className="p-4 font-medium text-text-main">{c.name}</td>
                   <td className="p-4 text-text-muted hidden md:table-cell truncate max-w-[200px]">{c.description || '-'}</td>
                   <td className="p-4 text-right space-x-2">
-                    <button onClick={() => handleEdit(c)} className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 rounded-lg transition-colors">
+                    <button onClick={() => setManagingCollection(c)} className="p-2 bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 rounded-lg transition-colors" title="Kelola Foto">
+                      <ImageIcon className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleEdit(c)} className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 rounded-lg transition-colors" title="Edit Koleksi">
                       <Edit className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(c.id)} className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors">
+                    <button onClick={() => handleDelete(c.id)} className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors" title="Hapus Koleksi">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
@@ -173,6 +178,14 @@ export default function CollectionsPage() {
           </table>
         )}
       </div>
+
+      {managingCollection && (
+        <ManageCollectionPhotosModal
+          collectionId={managingCollection.id}
+          collectionName={managingCollection.name}
+          onClose={() => setManagingCollection(null)}
+        />
+      )}
     </div>
   )
 }
