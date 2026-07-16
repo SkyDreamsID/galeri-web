@@ -24,7 +24,26 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
 
   useEffect(() => {
     setMounted(true)
+    
+    // Tangkap event tombol back android/browser
+    const handlePopState = () => {
+      setZoomedImage(prev => prev ? null : prev)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  const openZoom = (url: string) => {
+    window.history.pushState({ lightbox: true }, '')
+    setZoomedImage(url)
+  }
+
+  const closeZoom = () => {
+    setZoomedImage(null)
+    if (window.history.state?.lightbox) {
+      window.history.back()
+    }
+  }
 
   useEffect(() => {
     if (zoomedImage) {
@@ -97,7 +116,7 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
                     style={{ width: 'auto', height: '100%', maxHeight: '100%', maxWidth: '100%' }}
                     className="object-contain cursor-zoom-in transition-transform hover:scale-[1.01]" 
                     unoptimized
-                    onClick={() => setZoomedImage(displayUrl)}
+                    onClick={() => openZoom(displayUrl)}
                   />
                   
                   <CarouselActions 
@@ -136,7 +155,7 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95 backdrop-blur-xl"
-              onClick={() => setZoomedImage(null)}
+              onClick={closeZoom}
             >
               {/* Close Button */}
               <motion.button
@@ -147,7 +166,7 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
                 className="absolute top-6 right-6 lg:top-10 lg:right-10 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 hover:scale-110 transition-all cursor-pointer z-50"
                 onClick={(e) => {
                   e.stopPropagation()
-                  setZoomedImage(null)
+                  closeZoom()
                 }}
               >
                 <X size={24} />
