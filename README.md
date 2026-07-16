@@ -23,21 +23,28 @@ Proyek ini bukan sekadar *image viewer*, melainkan **Aplikasi Full-Stack dengan 
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 14/15 (App Router)](https://nextjs.org/)
+- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/) + React 19
 - **Bahasa**: TypeScript
-- **Styling**: Tailwind CSS & [shadcn/ui](https://ui.shadcn.com/)
-- **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL)
+- **Styling**: Tailwind CSS v4 & [shadcn/ui](https://ui.shadcn.com/)
+- **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL + RLS)
 - **Media Storage**: [Cloudinary](https://cloudinary.com/)
 - **Animasi**: Framer Motion, Embla Carousel
+- **Lainnya**: `next-pwa`, `next-themes`, `sonner`, `react-zoom-pan-pinch`, `exifr`
 
 ---
 
 ## 🚀 Panduan Instalasi Lengkap (Tutorial untuk Forker)
 
-Jika Anda melakukan *fork* atau *clone* pada repositori ini, ikuti panduan komprehensif ini untuk menghidupkan proyek ini di komputer atau server Anda.
+Jika Anda melakukan *fork* atau *clone* pada repositori ini, ikuti panduan komprehensif ini untuk menjalankan proyek ini di komputer Anda.
 
 ### Tahap 1: Persiapan
-Pastikan Anda sudah menginstal **Node.js** dan **Git** di komputer Anda. Anda juga membutuhkan akun [Supabase](https://supabase.com/) (gratis) dan [Cloudinary](https://cloudinary.com/) (gratis).
+Pastikan Anda sudah menginstal tool berikut di komputer Anda:
+- **Node.js v18.18 atau lebih baru** ([Download Node.js](https://nodejs.org/)) — *Wajib! Proyek ini tidak akan bisa dijalankan di Node.js di bawah v18.18.*
+- **Git** ([Download Git](https://git-scm.com/))
+- Akun [Supabase](https://supabase.com/) (gratis)
+- Akun [Cloudinary](https://cloudinary.com/) (gratis)
+
+> 💡 Cek versi Node.js Anda dengan perintah: `node -v`
 
 ### Tahap 2: Clone & Instalasi Dependencies
 ```bash
@@ -49,23 +56,96 @@ npm install
 ### Tahap 3: Konfigurasi Supabase (Database & Keamanan)
 Proyek ini menyimpan semua teks dan relasi data di Supabase.
 1. Buat proyek baru di [Supabase](https://supabase.com/).
-2. Masuk ke menu **SQL Editor**, buat **New Query**, *copy-paste* kode SQL sakti di bawah ini, lalu klik **RUN**. Kode ini akan membuatkan semua tabel yang dibutuhkan dan mengunci keamanannya secara otomatis.
+2. Masuk ke menu **SQL Editor**, buat **New Query**, *copy-paste* seluruh kode SQL di bawah ini, lalu klik **RUN**.
 
 ```sql
+-- =====================================================
+-- GALERI WEB - FULL DATABASE SETUP (Jalankan sekaligus)
+-- =====================================================
+
 -- 1. BUAT TABEL
-CREATE TABLE collections (id uuid DEFAULT gen_random_uuid() PRIMARY KEY, name varchar, description text);
-CREATE TABLE site_settings (id uuid PRIMARY KEY, site_title varchar, author_name varchar, hero_title varchar, hero_description text, footer_text text, contact_email varchar, social_links jsonb, zenofm_station_id varchar, theme_config jsonb);
-CREATE TABLE tags (id uuid DEFAULT gen_random_uuid() PRIMARY KEY, name varchar);
-CREATE TABLE gears (id uuid DEFAULT gen_random_uuid() PRIMARY KEY, name varchar, type varchar, description text, image_url varchar, public_id varchar, created_at timestamptz DEFAULT now());
-CREATE TABLE posts (id uuid DEFAULT gen_random_uuid() PRIMARY KEY, title varchar, story text, location varchar, status varchar DEFAULT 'Draft', license_type varchar DEFAULT 'Copyright', collection_id uuid REFERENCES collections(id) ON DELETE SET NULL, created_at timestamptz DEFAULT now());
-CREATE TABLE photos (id uuid DEFAULT gen_random_uuid() PRIMARY KEY, post_id uuid REFERENCES posts(id) ON DELETE CASCADE, image_url varchar, public_id varchar, is_cover boolean DEFAULT false, copyright_name varchar, sort_order int, bytes bigint, format varchar, original_filename varchar);
-CREATE TABLE exif_data (photo_id uuid REFERENCES photos(id) ON DELETE CASCADE, camera varchar, lens varchar, focal_length varchar, aperture varchar, iso varchar, shutter_speed varchar, date_taken timestamptz);
-CREATE TABLE post_tags (post_id uuid REFERENCES posts(id) ON DELETE CASCADE, tag_id uuid REFERENCES tags(id) ON DELETE CASCADE, PRIMARY KEY(post_id, tag_id));
+CREATE TABLE IF NOT EXISTS collections (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name VARCHAR NOT NULL,
+  description TEXT
+);
 
--- 2. INSERT DEFAULT SETTINGS (Wajib agar tidak error)
-INSERT INTO site_settings (id, site_title, author_name, hero_title) VALUES ('00000000-0000-0000-0000-000000000000', 'Galeri', 'Admin', 'Jurnal Visual');
+CREATE TABLE IF NOT EXISTS site_settings (
+  id UUID PRIMARY KEY,
+  site_title VARCHAR,
+  author_name VARCHAR,
+  hero_title VARCHAR,
+  hero_description TEXT,
+  footer_text TEXT,
+  contact_email VARCHAR,
+  social_links JSONB,
+  zenofm_station_id VARCHAR,
+  theme_config JSONB
+);
 
--- 3. AKTIFKAN FITUR KEAMANAN (RLS)
+CREATE TABLE IF NOT EXISTS tags (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS gears (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name VARCHAR NOT NULL,
+  type VARCHAR NOT NULL,
+  description TEXT,
+  image_url VARCHAR,
+  public_id VARCHAR,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS posts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title VARCHAR NOT NULL,
+  slug VARCHAR UNIQUE,
+  story TEXT,
+  location VARCHAR,
+  status VARCHAR DEFAULT 'Draft',
+  license_type VARCHAR DEFAULT 'Copyright',
+  collection_id UUID REFERENCES collections(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS photos (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
+  image_url VARCHAR NOT NULL,
+  public_id VARCHAR NOT NULL,
+  is_cover BOOLEAN DEFAULT FALSE,
+  copyright_name VARCHAR,
+  sort_order INTEGER NOT NULL,
+  bytes BIGINT,
+  format VARCHAR,
+  original_filename VARCHAR
+);
+
+CREATE TABLE IF NOT EXISTS exif_data (
+  photo_id UUID REFERENCES photos(id) ON DELETE CASCADE,
+  camera VARCHAR,
+  lens VARCHAR,
+  focal_length VARCHAR,
+  aperture VARCHAR,
+  iso VARCHAR,
+  shutter_speed VARCHAR,
+  date_taken TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS post_tags (
+  post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
+  tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,
+  PRIMARY KEY (post_id, tag_id)
+);
+
+-- 2. DATA DEFAULT WAJIB (Agar Admin Panel tidak error)
+INSERT INTO site_settings (id, site_title, author_name, hero_title)
+VALUES ('00000000-0000-0000-0000-000000000000', 'Galeri', 'Admin', 'Jurnal Visual')
+ON CONFLICT (id) DO NOTHING;
+
+-- 3. AKTIFKAN ROW LEVEL SECURITY (RLS)
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE photos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE exif_data ENABLE ROW LEVEL SECURITY;
@@ -85,31 +165,15 @@ CREATE POLICY "Publik Boleh Baca post_tags" ON post_tags FOR SELECT USING (true)
 CREATE POLICY "Publik Boleh Baca gears" ON gears FOR SELECT USING (true);
 CREATE POLICY "Publik Boleh Baca site_settings" ON site_settings FOR SELECT USING (true);
 
--- 5. ATURAN TULIS (INSERT, UPDATE, DELETE) - HANYA UNTUK ADMIN (YANG SUDAH LOGIN)
-CREATE POLICY "Admin Insert posts" ON posts FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "Admin Update posts" ON posts FOR UPDATE TO authenticated USING (true);
-CREATE POLICY "Admin Delete posts" ON posts FOR DELETE TO authenticated USING (true);
-CREATE POLICY "Admin Insert photos" ON photos FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "Admin Update photos" ON photos FOR UPDATE TO authenticated USING (true);
-CREATE POLICY "Admin Delete photos" ON photos FOR DELETE TO authenticated USING (true);
-CREATE POLICY "Admin Insert exif_data" ON exif_data FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "Admin Update exif_data" ON exif_data FOR UPDATE TO authenticated USING (true);
-CREATE POLICY "Admin Delete exif_data" ON exif_data FOR DELETE TO authenticated USING (true);
-CREATE POLICY "Admin Insert collections" ON collections FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "Admin Update collections" ON collections FOR UPDATE TO authenticated USING (true);
-CREATE POLICY "Admin Delete collections" ON collections FOR DELETE TO authenticated USING (true);
-CREATE POLICY "Admin Insert tags" ON tags FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "Admin Update tags" ON tags FOR UPDATE TO authenticated USING (true);
-CREATE POLICY "Admin Delete tags" ON tags FOR DELETE TO authenticated USING (true);
-CREATE POLICY "Admin Insert post_tags" ON post_tags FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "Admin Update post_tags" ON post_tags FOR UPDATE TO authenticated USING (true);
-CREATE POLICY "Admin Delete post_tags" ON post_tags FOR DELETE TO authenticated USING (true);
-CREATE POLICY "Admin Insert gears" ON gears FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "Admin Update gears" ON gears FOR UPDATE TO authenticated USING (true);
-CREATE POLICY "Admin Delete gears" ON gears FOR DELETE TO authenticated USING (true);
-CREATE POLICY "Admin Insert site_settings" ON site_settings FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "Admin Update site_settings" ON site_settings FOR UPDATE TO authenticated USING (true);
-CREATE POLICY "Admin Delete site_settings" ON site_settings FOR DELETE TO authenticated USING (true);
+-- 5. ATURAN TULIS - HANYA UNTUK ADMIN (Authenticated)
+CREATE POLICY "Admin full akses posts" ON posts FOR ALL TO authenticated USING (true);
+CREATE POLICY "Admin full akses photos" ON photos FOR ALL TO authenticated USING (true);
+CREATE POLICY "Admin full akses exif_data" ON exif_data FOR ALL TO authenticated USING (true);
+CREATE POLICY "Admin full akses collections" ON collections FOR ALL TO authenticated USING (true);
+CREATE POLICY "Admin full akses tags" ON tags FOR ALL TO authenticated USING (true);
+CREATE POLICY "Admin full akses post_tags" ON post_tags FOR ALL TO authenticated USING (true);
+CREATE POLICY "Admin full akses gears" ON gears FOR ALL TO authenticated USING (true);
+CREATE POLICY "Admin full akses site_settings" ON site_settings FOR ALL TO authenticated USING (true);
 ```
 
 ### Tahap 4: Buat Akun Login Admin
@@ -124,20 +188,31 @@ CREATE POLICY "Admin Delete site_settings" ON site_settings FOR DELETE TO authen
 2. Ambil `Cloud Name`, `API Key`, dan `API Secret` dari dasbor Cloudinary (ada di halaman Dashboard utama). Rahasiakan ini dengan baik.
 
 ### Tahap 6: Setup Environment Variables (.env.local)
-Ubah nama file `.env.example` menjadi `.env.local` di *root* folder proyek Anda, lalu masukkan kredensial yang sudah Anda dapatkan:
+Ubah nama file `.env.example` menjadi `.env.local` di *root* folder proyek Anda, lalu isi dengan kredensial yang sudah Anda dapatkan:
 
 ```env
-# SUPABASE
+# ==========================================
+# SUPABASE CONFIGURATION (Wajib Diisi)
+# ==========================================
+# Ambil dari: Supabase Dashboard > Project Settings > API
 NEXT_PUBLIC_SUPABASE_URL="https://[YOUR_PROJECT_ID].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key-here"
+# (Opsional, direkomendasikan untuk fungsi Admin/Backend)
+SUPABASE_SERVICE_ROLE_KEY="your-service-role-key-here"
 
-# CLOUDINARY
+# ==========================================
+# CLOUDINARY CONFIGURATION (Untuk Fitur Upload Foto)
+# ==========================================
+# Ambil dari: Cloudinary Dashboard
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
 CLOUDINARY_API_KEY="your-api-key"
 CLOUDINARY_API_SECRET="your-api-secret"
 
-# CMS DEFAULTS (Bisa diganti nanti lewat Admin Panel)
-NEXT_PUBLIC_ZENO_STATION_ID=""
+# ==========================================
+# ZENO.FM / STREAMING RADIO (Opsional)
+# ==========================================
+# Bisa juga diisi langsung lewat Admin Panel > Pengaturan
+# NEXT_PUBLIC_ZENO_STATION_ID="your-station-id"
 ```
 
 > **⚠️ PERINGATAN KEAMANAN**: Jangan pernah membagikan nilai `CLOUDINARY_API_SECRET`. Jangan commit `.env.local` ke repositori publik!
@@ -165,12 +240,12 @@ Setelah berhasil login ke `/admin`, navigasikan ke menu **Pengaturan**. Di sini 
 1. Push kode Anda ke GitHub.
 2. Buka [Vercel](https://vercel.com/) dan buat proyek baru dengan cara import repo GitHub tersebut.
 3. Di bagian konfigurasi Vercel, masuk ke **Environment Variables** dan tambahkan semua variabel yang ada di file `.env.local` Anda.
-4. Klik **Deploy** dan nikmati mahakarya Anda terbang ke internet!
+4. Klik **Deploy** dan website anda akan online dan siap diakses publik!
 
 ---
 
 ## 📄 Lisensi
-Proyek ini dilisensikan di bawah [MIT License](LICENSE). Anda bebas menggunakan, memodifikasi, dan mendistribusikannya secara personal maupun komersial, baik untuk agensi Anda maupun portfolio pribadi.
+Proyek ini dilisensikan di bawah [MIT License](LICENSE). Anda bebas menggunakan dan memodifikasinya, **dengan syarat tetap mencantumkan kredit ke repositori asal** ([galeri-web](https://github.com/SkyDreamsID/galeri-web)) dan tidak menghapus atribusi *"Designed by SkyDreamsID"* yang muncul secara otomatis di footer jika Anda mengganti nama author.
 
 ---
 *Built with logic, passion, and AI assistance by a Tech Enthusiast.*

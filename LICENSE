@@ -1,6 +1,6 @@
-MIT License
+MIT License with Attribution
 
-Copyright (c) 2026 Rifki Eka Putra
+Copyright (c) 2026 Rifki Eka Putra (SkyDreamsID)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -9,8 +9,15 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+2. ATTRIBUTION REQUIRED: Any deployment or public distribution of this Software,
+   or works derived from it, must include a visible credit to the original author.
+   The built-in "Designed by SkyDreamsID" attribution that appears automatically
+   in the footer (when the author name is changed) MUST NOT be removed or hidden.
+   Alternatively, a visible link to the original repository
+   (https://github.com/SkyDreamsID/galeri-web) must be present on the deployed site.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -21,4 +28,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ---
-*Note: This MIT License applies to the source code of the project. The actual photographs and images displayed in the gallery remain the intellectual property of the photographer and are not covered by this open-source license.*
+*Note: This license applies to the source code only. Photographs and images
+displayed in the gallery remain the intellectual property of their respective
+photographers and are NOT covered by this open-source license.*

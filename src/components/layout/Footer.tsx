@@ -50,7 +50,7 @@ export async function Footer() {
           </p>
           
           {/* EASTER EGG COPYRIGHT: Khusus buat yang fork web ini */}
-          {authorName.toLowerCase() !== 'rifki eka putra' && (
+          {!['rifki eka putra', 'skydreamsid', 'rifki 07', 'rifkiekap07'].includes(authorName.toLowerCase()) && (
             <p className="text-[10px] md:text-[11px] text-text-muted/50 font-bold mb-1 animate-pulse">
               Designed by <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="hover:text-primary-neutral transition-colors">SkyDreamsID</a>
             </p>
