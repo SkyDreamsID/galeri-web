@@ -4,7 +4,7 @@ Sebuah platform galeri foto premium dan jurnal visual, dibangun menggunakan tekn
 
 Proyek ini bukan sekadar *image viewer*, melainkan **Aplikasi Full-Stack dengan CMS (Content Management System) Internal**, ekstraksi data EXIF otomatis, *showcase* perlengkapan (Gear Management), dan integrasi radio streaming interaktif.
 
-[![Web Preview](https://[URL-DEPLOY-VERCEL-ANDA]/preview.png)](https://[URL-DEPLOY-VERCEL-ANDA])
+> 🌐 **Web Preview:** [jurnalvisual.vercel.app](https://jurnalvisual.vercel.app)
 
 ## ✨ Fitur Utama
 
