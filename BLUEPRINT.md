@@ -118,9 +118,9 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 3. Setelah *image_url* dan *public_id* dikembalikan oleh Cloudinary, web merekam ke tabel `gears` Supabase.
 4. UI memunculkan peringatan (Pop-up Toast Custom) tanpa menggunakan `alert()` bawaan peramban.
 
-### Alur View Tracking & Image Download
-- **`/api/views`**: Endpoint untuk melacak jumlah tayangan (*views*) pada sebuah post. Hanya mencatat setiap kali detail post di-*load*.
-- **`/api/download`**: Endpoint proxy (*Serverless Function*) untuk mengunduh foto dengan aman. Mengambil URL Cloudinary asli dan mengalirkan (*pipe*) filenya sebagai lampiran *download* agar *browser* tidak sekadar membuka *tab* baru.
+### Alur View Counter & Image Download
+- **`/api/views`**: Endpoint sederhana untuk menghitung *page views* per postingan (hanya *increment* angka, tidak merekam data privasi pengunjung).
+- **`/api/download`**: Endpoint *proxy* (*Serverless Function*) agar ketika pengguna mengklik "Download", file akan langsung terunduh ke perangkat mereka, bukan malah terbuka di *tab browser* baru.
 
 ### Logika Ekstraksi Hak Cipta
 Pada komponen unggah galeri (`UploadForm`), admin diberikan kotak centang (*checkbox*) untuk memilih gambar spesifik yang akan menerima `copyright_name`. Data diunggah ke `photos` secara bergilir, dan EXIF di-*parse* secara klien sebelum pengiriman HTTP.
