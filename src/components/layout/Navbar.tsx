@@ -59,10 +59,10 @@ export function Navbar({
         <div className="container mx-auto max-w-7xl flex h-16 items-center justify-between px-6 relative">
           
           <div className="flex items-center gap-2 cursor-pointer">
-            <span className="font-heading text-[23px] font-bold tracking-tight">
+            <span className="font-heading text-xl font-bold tracking-tight">
               <Link href="/" className="flex items-center gap-2">
                 {siteLogo ? (
-                  <img src={siteLogo} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
+                  <img src={siteLogo} alt={authorName} className="w-7 h-7 rounded-full object-cover" />
                 ) : null}
                 {authorName}
               </Link>

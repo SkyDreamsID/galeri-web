@@ -13,7 +13,7 @@ import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 // =========================================================================
 const LAYOUT_CONFIG = {
   maxWidth: "container max-w-7xl px-6",
-  heroTitle: "text-4xl md:text-5xl lg:text-6xl",
+  heroTitle: "text-3xl md:text-5xl lg:text-6xl",
   heroDesc: "text-sm md:text-base lg:text-lg",
   gridCols: "columns-1 sm:columns-2 lg:columns-3",
   gridGap: "gap-4 md:gap-6 space-y-4 md:space-y-6"
@@ -122,11 +122,11 @@ export function HomeClient({
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`mx-auto ${LAYOUT_CONFIG.maxWidth} py-12 md:py-20`}
+        className={`mx-auto ${LAYOUT_CONFIG.maxWidth} py-8 md:py-20`}
       >
 
         {/* Hero Section */}
-        <div className="mb-12 md:mb-20 max-w-3xl">
+        <div className="mb-8 md:mb-20 max-w-3xl">
           <motion.h1
             initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className={`${LAYOUT_CONFIG.heroTitle} font-heading font-extrabold text-text-main tracking-tighter mb-4 leading-tight`}
