@@ -142,10 +142,10 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
       <ViewTracker postId={postData.id} />
       <main className="container mx-auto max-w-7xl px-4 md:px-8 py-10 md:py-16 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
         {/* Kontainer Utama: Kolom 1 tumpuk di Mobile Portrait, 2 Kolom di Landscape & Desktop */}
-        <div className="flex flex-col landscape:grid landscape:grid-cols-5 lg:grid lg:grid-cols-5 gap-10 lg:gap-16 items-start">
+        <div className="flex flex-col max-lg:landscape:grid max-lg:landscape:grid-cols-11 lg:grid lg:grid-cols-5 max-lg:landscape:gap-6 lg:gap-16 items-start">
           
           {/* === BAGIAN KIRI: Foto (Sticky saat grid/layar besar) === */}
-          <div className="landscape:col-span-3 lg:col-span-3 order-1 w-full landscape:sticky landscape:top-24 lg:sticky lg:top-24">
+          <div className="max-lg:landscape:col-span-5 lg:col-span-3 order-1 w-full max-lg:landscape:sticky max-lg:landscape:top-24 lg:sticky lg:top-24">
             <div className="relative">
               {ambientGlowUrl && (
                 <div className="absolute inset-0 -z-10 blur-[60px] opacity-40 transform scale-95 translate-y-8 rounded-full pointer-events-none transition-all duration-1000">
@@ -158,7 +158,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
 
           {/* === BAGIAN KANAN: Detail & Cerita === */}
           {/* Di layar besar, jadi panel setinggi layar dikurangi navbar biar bisa discroll sendiri */}
-          <div className="landscape:col-span-2 lg:col-span-2 order-2 w-full landscape:sticky landscape:top-20 lg:sticky lg:top-20 landscape:h-[calc(100vh-80px)] lg:h-[calc(100vh-80px)] flex flex-col">
+          <div className="max-lg:landscape:col-span-6 lg:col-span-2 order-2 w-full max-lg:landscape:sticky max-lg:landscape:top-20 lg:sticky lg:top-20 max-lg:landscape:h-[calc(100vh-80px)] lg:h-[calc(100vh-80px)] flex flex-col">
             
             {/* ZONA ATAS: Tombol Kembali (Sticky di dalam panel saat desktop, normal di mobile) */}
             <div className="shrink-0 pb-4 border-b border-border/20 mb-6">
@@ -168,7 +168,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             </div>
 
             {/* ZONA BAWAH: Konten Utama (Scrollable area saat Desktop, normal saat Mobile) */}
-            <div className="landscape:flex-1 landscape:overflow-y-auto lg:flex-1 lg:overflow-y-auto pr-1 landscape:scrollbar-thin lg:scrollbar-thin space-y-6 md:space-y-8 pb-10">
+            <div className="max-lg:landscape:flex-1 max-lg:landscape:overflow-y-auto lg:flex-1 lg:overflow-y-auto pr-1 max-lg:landscape:scrollbar-thin lg:scrollbar-thin space-y-6 md:space-y-8 pb-10">
               
               {/* Header Area */}
               <div>

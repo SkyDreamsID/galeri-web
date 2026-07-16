@@ -132,13 +132,6 @@ export function Navbar({
           </div>
 
           <div className="flex items-center gap-3 relative z-50 shrink-0">
-            <nav className="flex items-center gap-4">
-              <Link href="/albums" className="text-sm font-medium text-text-muted hover:text-text-main transition-colors cursor-pointer select-none">Albums</Link>
-              <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-muted hover:text-text-main transition-colors cursor-pointer select-none">Source Code (Free)</a>
-              <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-muted hover:text-text-main transition-colors cursor-pointer select-none">About Me</a>
-            </nav>
-            <div className="h-4 w-px bg-border mx-1"></div>
-            
             {/* PORTAL TARGET UNTUK RADIO WIDGET DI TABLET */}
             <div id="radio-portal-tablet" className="w-[36px] h-[36px] shrink-0 relative"></div>
 
@@ -159,8 +152,18 @@ export function Navbar({
               </summary>
               <div className="absolute right-0 mt-2 w-52 rounded-xl border border-border bg-surface p-2 shadow-xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
                 <div className="space-y-1">
-                  <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
+                  <Link href="/albums" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📁 Albums</Link>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
+                  <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">👨‍💻 About Me</a>
+                  <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">💻 Source Code (Free)</a>
+                  
+                  <div className="h-px bg-border my-2"></div>
+                  <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
+                  {socialLinks.map((link, idx) => (
+                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">
+                      {link.title === 'Instagram' ? '📷 Instagram' : link.title === 'GitHub' ? '🐙 GitHub' : link.title}
+                    </a>
+                  ))}
                   {contactEmail && (
                     <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
                   )}
