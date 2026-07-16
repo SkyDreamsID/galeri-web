@@ -14,7 +14,7 @@ import { CarouselPagination } from './CarouselPagination'
 import { CarouselActions } from './CarouselActions'
 import { CarouselExifCard } from './CarouselExifCard'
 
-export function EmblaCarousel({ photos, license }: { photos: any[], license?: string }) {
+export function EmblaCarousel({ photos, postId, license }: { photos: any[], postId: string, license?: string }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
   const [showExif, setShowExif] = useState<Record<string, boolean>>({})
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -101,7 +101,7 @@ export function EmblaCarousel({ photos, license }: { photos: any[], license?: st
                   />
                   
                   <CarouselActions 
-                    photo={photo} license={photo.license_type} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
+                    photo={photo} postId={postId} license={photo.license_type} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
                   />
                   <CarouselExifCard exif={exif} cameraName={cameraName} isVisible={isExifVisible} />
                 </div>

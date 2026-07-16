@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye } from 'lucide-react'
+import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye, DownloadCloud } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
@@ -14,6 +14,7 @@ type Post = {
   location: string | null
   created_at: string
   views: number
+  downloads: number
   collections: { name: string } | null
   photos: { image_url: string }[]
 }
@@ -34,6 +35,7 @@ export default function GalleryManagement() {
           location,
           created_at,
           views,
+          downloads,
           collections (name),
           photos (image_url)
         `)
@@ -149,6 +151,9 @@ export default function GalleryManagement() {
                     </span>
                     <span className="text-xs text-text-muted font-medium flex items-center gap-1">
                       <Eye size={13} /> {post.views || 0}
+                    </span>
+                    <span className="text-xs text-text-muted font-medium flex items-center gap-1">
+                      <DownloadCloud size={13} /> {post.downloads || 0}
                     </span>
                   </div>
                   <div className="flex gap-2">

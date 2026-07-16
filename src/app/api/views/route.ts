@@ -15,24 +15,15 @@ export async function POST(request: Request) {
 
     const supabase = await createClient()
 
-    const { data: post, error: getError } = await supabase
-      .from('posts')
-      .select('views')
-      .eq('id', postId)
-      .single()
+    // Pakai RPC untuk bypass RLS (karena user publik tidak punya akses UPDATE)
+    const { error } = await supabase.rpc('increment_views', { row_id: postId })
 
-    if (getError) throw getError
+    if (error) {
+      console.error('RPC Error:', error)
+      throw error
+    }
 
-    const newViews = (post.views || 0) + 1
-
-    const { error: updateError } = await supabase
-      .from('posts')
-      .update({ views: newViews })
-      .eq('id', postId)
-
-    if (updateError) throw updateError
-
-    return NextResponse.json({ success: true, views: newViews })
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to update views:', error)
     return NextResponse.json({ error: 'Failed to update views' }, { status: 500 })

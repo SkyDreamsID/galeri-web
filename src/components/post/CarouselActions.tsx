@@ -3,12 +3,14 @@ import { Info, Download, Copyright } from 'lucide-react'
 
 export function CarouselActions({ 
   photo, 
+  postId,
   license, 
   copyrightName,
   onToggleExif, 
   hasExif 
 }: { 
   photo: any, 
+  postId: string,
   license?: string, 
   copyrightName?: string,
   onToggleExif: () => void,
@@ -16,12 +18,21 @@ export function CarouselActions({
 }) {
   const [showCopyright, setShowCopyright] = useState(false);
 
+  const handleDownload = () => {
+    fetch('/api/download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId })
+    }).catch(console.error)
+  }
+
   return (
     <div className="absolute bottom-4 right-4 flex items-center gap-2">
       {/* Download Button */}
       {license === 'Free Copyright' && (
         <a 
-          href={photo.image_url.replace('/upload/', '/upload/fl_attachment/')} 
+          href={photo.image_url.replace('/upload/', '/upload/fl_attachment/')}
+          onClick={handleDownload}
           target="_blank"
           rel="noopener noreferrer"
           className="bg-background/80 backdrop-blur border border-border p-2 rounded-full text-text-main hover:bg-surface transition-colors"

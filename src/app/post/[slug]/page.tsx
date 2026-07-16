@@ -152,7 +152,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                   <img src={ambientGlowUrl} alt="" className="w-full h-full object-cover rounded-full" />
                 </div>
               )}
-              <EmblaCarousel photos={photos} />
+              <EmblaCarousel photos={photos} postId={postData.id} />
             </div>
           </div>
 
