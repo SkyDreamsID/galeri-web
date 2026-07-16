@@ -7,7 +7,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
 
   const name = settings?.site_title || 'Galeri - Portfolio Fotografi'
   const short_name = settings?.author_name || 'Galeri'
-  const description = settings?.hero_description || 'Kumpulan momen dan cerita di balik lensa.'
+  const description = settings?.hero_description || 'Kumpulan momen dan cerita di balik karya.'
   
   // Jika user menyetel logo di pengaturan, pakai logo itu (kita minta versi 512x512 dari Cloudinary)
   // Kalau kosong, kita pakai icon bawaan di public/icon.jpg

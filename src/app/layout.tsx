@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const { data: settings } = await supabase.from('site_settings').select('*').limit(1).single()
   
   const siteTitle = settings?.site_title || "Jurnal Visual"
-  const siteDesc = settings?.hero_description || "Kumpulan momen dan cerita di balik lensa."
+  const siteDesc = settings?.hero_description || "Kumpulan momen dan cerita di balik karya."
   const siteLogo = settings?.site_logo_url || "/icon.png"
 
   return {

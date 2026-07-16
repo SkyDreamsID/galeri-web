@@ -207,7 +207,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                 
                 {/* Teks Cerita */}
                 <div>
-                  <h3 className={`${LAYOUT_CONFIG.storySubtitle} font-heading font-bold text-text-main mb-3`}>Cerita di Balik Lensa</h3>
+                  <h3 className={`${LAYOUT_CONFIG.storySubtitle} font-heading font-bold text-text-main mb-3`}>Cerita di Balik Karya</h3>
                   {postData.story ? (
                     <p className={`${LAYOUT_CONFIG.storyText} text-text-main leading-relaxed font-sans whitespace-pre-line`}>
                       {postData.story}

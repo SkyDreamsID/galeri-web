@@ -439,7 +439,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 <Label className="text-text-muted">Cerita / Deskripsi</Label>
                 <textarea 
                   value={story} onChange={(e) => setStory(e.target.value)}
-                  placeholder="Tulis cerita di balik foto ini..."
+                  placeholder="Tulis cerita di balik karya ini..."
                   className="w-full min-h-[120px] rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
                 />
               </div>
