@@ -15,6 +15,7 @@ export type SiteSettings = {
   lastfm_username?: string
   lastfm_api_key?: string
   cloudinary_cloud_name?: string
+  contact_email?: string
 }
 
 const SiteSettingsContext = createContext<SiteSettings>({})

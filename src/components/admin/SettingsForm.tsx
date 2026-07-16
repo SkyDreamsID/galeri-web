@@ -22,6 +22,7 @@ export function SettingsForm() {
     lastfm_username: '',
     lastfm_api_key: '',
     cloudinary_cloud_name: '',
+    contact_email: '',
     social_links: [] as { title: string, url: string, icon_url?: string }[],
     theme_config: { dark_bg: '', light_bg: '', primary_color: '' }
   })
@@ -48,6 +49,7 @@ export function SettingsForm() {
         lastfm_username: data.lastfm_username || '',
         lastfm_api_key: data.lastfm_api_key || '',
         cloudinary_cloud_name: data.cloudinary_cloud_name || '',
+        contact_email: data.contact_email || '',
         social_links: data.social_links || [],
         theme_config: data.theme_config || { dark_bg: '', light_bg: '', primary_color: '' }
       })
@@ -211,6 +213,7 @@ export function SettingsForm() {
         lastfm_username: settings.lastfm_username,
         lastfm_api_key: settings.lastfm_api_key,
         cloudinary_cloud_name: settings.cloudinary_cloud_name,
+        contact_email: settings.contact_email,
         social_links: settings.social_links,
         theme_config: settings.theme_config
       }
@@ -253,7 +256,7 @@ export function SettingsForm() {
         </h2>
         
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-text-muted">Nama Author / Pemilik Web</label>
               <input 
@@ -272,6 +275,17 @@ export function SettingsForm() {
                 onChange={handleInputChange}
                 className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
                 placeholder="Ex: Galeriku"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-muted">Email Kontak</label>
+              <input 
+                name="contact_email"
+                type="email"
+                value={settings.contact_email}
+                onChange={handleInputChange}
+                className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
+                placeholder="hello@domain.com"
               />
             </div>
           </div>

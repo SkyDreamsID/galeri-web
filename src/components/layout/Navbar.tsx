@@ -10,12 +10,14 @@ interface NavbarProps {
   authorName?: string
   siteLogo?: string
   socialLinks?: { title: string; url: string }[]
+  contactEmail?: string
 }
 
 export function Navbar({ 
   authorName = 'Rifki Eka Putra', 
   siteLogo = '', 
-  socialLinks = [] 
+  socialLinks = [],
+  contactEmail = ''
 }: NavbarProps) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -101,7 +103,9 @@ export function Navbar({
                       {link.title === 'Instagram' ? '📷 Instagram' : link.title === 'GitHub' ? '🐙 GitHub' : link.title}
                     </a>
                   ))}
-                  <a href="mailto:arunikaframes2025@gmail.com" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">✉️ Hubungi Saya (Email)</a>
+                  {contactEmail && (
+                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">✉️ Hubungi Saya (Email)</a>
+                  )}
                 </div>
               </div>
             </details>
@@ -157,7 +161,9 @@ export function Navbar({
                 <div className="space-y-1">
                   <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
-                  <a href="mailto:arunikaframes2025@gmail.com" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
+                  {contactEmail && (
+                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
+                  )}
                 </div>
               </div>
             </details>
@@ -208,7 +214,9 @@ export function Navbar({
                 <div className="space-y-1">
                   <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
-                  <a href="mailto:arunikaframes2025@gmail.com" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
+                  {contactEmail && (
+                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
+                  )}
                 </div>
               </div>
             </details>

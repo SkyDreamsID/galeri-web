@@ -101,6 +101,7 @@ export default async function RootLayout({
                 authorName={settings?.author_name} 
                 siteLogo={settings?.site_logo_url} 
                 socialLinks={settings?.social_links} 
+                contactEmail={settings?.contact_email}
               />
             </ConditionalWrapper>
             
