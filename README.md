@@ -4,7 +4,7 @@ Sebuah platform galeri foto premium dan jurnal visual, dibangun menggunakan tekn
 
 Proyek ini bukan sekadar *image viewer*, melainkan **Aplikasi Full-Stack dengan CMS (Content Management System) Internal**, ekstraksi data EXIF otomatis, *showcase* perlengkapan (Gear Management), dan integrasi radio streaming interaktif.
 
-![Web Preview](public/preview.png) *(Silakan ganti dengan screenshot web Anda)*
+[![Web Preview](https://[URL-DEPLOY-VERCEL-ANDA]/preview.png)](https://[URL-DEPLOY-VERCEL-ANDA])
 
 ## ✨ Fitur Utama
 
@@ -40,7 +40,7 @@ Pastikan Anda sudah menginstal **Node.js** dan **Git** di komputer Anda. Anda ju
 
 ### Tahap 2: Clone & Instalasi Dependencies
 ```bash
-git clone https://github.com/USERNAME_ANDA/galeri-web.git
+git clone https://github.com/SkyDreamsID/galeri-web.git
 cd galeri-web
 npm install
 ```
@@ -112,9 +112,11 @@ CREATE POLICY "Admin Delete site_settings" ON site_settings FOR DELETE TO authen
 ```
 
 ### Tahap 4: Buat Akun Login Admin
-1. Di dasbor Supabase, masuk ke menu **Authentication > Users**.
-2. Klik **Add User** > **Create new user**.
-3. Masukkan Email dan Password. Ini akan menjadi akun mutlak Anda untuk masuk ke Panel Admin web ini.
+1. Di dasbor Supabase, masuk ke menu **Authentication > Providers > Email**.
+2. **MATIKAN (Disable)** opsi `Confirm email` agar Anda tidak perlu repot verifikasi email. Klik Save.
+3. Masuk ke menu **Authentication > Users**, lalu klik **Add User** > **Create new user**.
+4. Masukkan Email dan Password. **Catatan:** Email boleh ngasal/fiktif (contoh: `admin@galeri.com`), yang penting Anda ingat karena ini dipakai mutlak untuk masuk ke Panel Admin web ini.
+5. Ceklis kotak `Auto Confirm User?` (jika muncul), lalu klik **Create User**.
 
 ### Tahap 5: Konfigurasi Cloudinary (Penyimpanan Foto)
 1. Buat akun di [Cloudinary](https://cloudinary.com/).
