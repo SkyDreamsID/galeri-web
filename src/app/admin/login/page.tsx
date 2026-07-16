@@ -4,18 +4,18 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { error?: string }
+export default async function LoginPage(props: {
+  searchParams: Promise<{ error?: string }>
 }) {
+  const searchParams = await props.searchParams
+
   return (
     <div className="flex h-screen w-full items-center justify-center bg-zinc-950 px-4">
       <Card className="w-full max-w-sm bg-zinc-900 border-zinc-800 text-white shadow-2xl">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold tracking-tight">Hayo mau ngapain?</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">Hayoo mau ngapain?</CardTitle>
           <CardDescription className="text-zinc-400">
-            Buat akun di Supabase dulu coi 🫵😂
+            Buat akun di Supabase dulu coi :D
           </CardDescription>
         </CardHeader>
         <form action={login}>
@@ -49,7 +49,7 @@ export default function LoginPage({
           </CardContent>
           <CardFooter>
             <Button type="submit" className="w-full bg-white text-black hover:bg-zinc-200">
-              Masuk ke Sarang
+              Login
             </Button>
           </CardFooter>
         </form>

@@ -16,7 +16,7 @@ export function TagInput({ tags, setTags, availableTags = [], placeholder }: Tag
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   const addTag = (tagToAdd?: string) => {
-    const newTag = (tagToAdd || inputValue).trim().replace(/^,+|,+$/g, '')
+    const newTag = (tagToAdd || inputValue).trim().toLowerCase().replace(/^,+|,+$/g, '')
     if (newTag && !tags.includes(newTag)) {
       setTags([...tags, newTag])
     }

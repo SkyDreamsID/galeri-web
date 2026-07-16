@@ -23,9 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createClient()
   const { data: settings } = await supabase.from('site_settings').select('*').limit(1).single()
   
-  const siteTitle = settings?.site_title || "Galeri - Portfolio Fotografi"
+  const siteTitle = settings?.site_title || "Jurnal Visual"
   const siteDesc = settings?.hero_description || "Kumpulan momen dan cerita di balik lensa."
-  const siteLogo = settings?.site_logo_url || "/icon.jpg"
+  const siteLogo = settings?.site_logo_url || "/icon.png"
 
   return {
     title: siteTitle,
@@ -55,6 +55,7 @@ import { GalleryRadio } from "@/components/layout/GalleryRadio";
 import { Footer } from "@/components/layout/Footer";
 import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { Toaster } from "sonner";
+import { ConditionalWrapper } from "@/components/layout/ConditionalWrapper";
 
 export default async function RootLayout({
   children,
@@ -70,6 +71,22 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
     >
+      <head>
+        {settings?.theme_config && (
+          <style suppressHydrationWarning>
+            {`
+              :root {
+                ${settings.theme_config.light_bg ? `--background: ${settings.theme_config.light_bg};` : ''}
+                ${settings.theme_config.primary_color ? `--primary-neutral: ${settings.theme_config.primary_color};` : ''}
+              }
+              .dark {
+                ${settings.theme_config.dark_bg ? `--background: ${settings.theme_config.dark_bg};` : ''}
+                ${settings.theme_config.primary_color ? `--primary-neutral: ${settings.theme_config.primary_color};` : ''}
+              }
+            `}
+          </style>
+        )}
+      </head>
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-text-main transition-colors duration-300">
         <ThemeProvider
           attribute="class"
@@ -79,14 +96,20 @@ export default async function RootLayout({
         >
           <SiteSettingsProvider settings={settings}>
             {/* Global Navbar */}
-            <Navbar 
-              authorName={settings?.author_name} 
-              siteLogo={settings?.site_logo_url} 
-              socialLinks={settings?.social_links} 
-            />
+            <ConditionalWrapper>
+              <Navbar 
+                authorName={settings?.author_name} 
+                siteLogo={settings?.site_logo_url} 
+                socialLinks={settings?.social_links} 
+              />
+            </ConditionalWrapper>
+            
             {children}
+            
             {/* Global Footer */}
-            <Footer />
+            <ConditionalWrapper>
+              <Footer />
+            </ConditionalWrapper>
             {/* Global Floating Radio */}
             <GalleryRadio />
             {/* Global Toast Notifications */}

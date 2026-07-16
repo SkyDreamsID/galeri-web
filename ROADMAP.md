@@ -54,13 +54,17 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 - [x] Fetching Data Detail Post (Join antara `posts`, `photos`, `exif_data`)
 - [x] Toast Notification (Pesan Sukses/Gagal beranimasi) tanpa menggunakan alert bawaan.
 
-### Phase 5: Polishing, SEO, & Deployment (Sedang Berjalan)
-*Fokus: Optimasi performa, fitur tambahan, dan Go-Live.*
-- [x] **Gallery Radio**: Integrasi Zeno.fm dan Last.fm API untuk cover art. (Selesai)
-- [x] **Web CMS (Settings)**: Fitur Pengaturan Website dinamis di Admin untuk edit identitas, medsos, footer, dan integrasi API (*fallback logic*).
-- [x] **Next.js SEO Tags** (Title, Meta Description, Open Graph) & Image Alt Automation.
+### Phase 5: Polishing, Customization, & Deployment (Tahap Akhir 95%)
+*Fokus: Kustomisasi UI tingkat lanjut, optimasi UX, stabilisasi, dan persiapan Go-Live.*
+- [x] **Gallery Radio**: Integrasi Widget Streaming Radio (Zeno.fm, Icecast, dll).
+- [x] **Web CMS (Settings)**: Fitur Pengaturan Website dinamis di Admin untuk edit identitas, medsos, footer, dan streaming radio.
+- [x] **Kustomisasi Tema Dinamis**: Pengaturan warna antarmuka (Primary, Light Background, Dark Background) yang disimpan di database dan di-*inject* secara runtime.
+- [x] **Logo Sosial Media Kustom**: Mendukung unggahan ikon (gambar) kustom untuk tautan sosial media di footer.
+- [x] **Penyempurnaan Gear & Admin UX**: Fitur *Edit Gear* dan optimasi tata letak Admin di *mobile* (isolasi layout dari navbar global, optimasi tombol tanpa *hover*).
+- [x] **Penyempurnaan Tag & Form**: Sinkronisasi tag cerdas (autocomplete) untuk halaman Upload dan Edit, dengan pemaksaan format huruf kecil (lowercase) otomatis.
+- [x] **Stabilisasi Sistem**: Resolusi kompatibilitas *searchParams* Promise pada Next.js 15/14+ dan penanganan error gracefully.
+- [x] **Next.js SEO Tags** & Image Alt Automation.
 - [x] **PWA Support** (Progressive Web App) agar web bisa diinstal selayaknya aplikasi.
-- [x] **Sinkronisasi Tag Cerdas**: Dropdown otomatis (datalist) saat menambah tag di form Upload.
 - [ ] Deployment Frontend + Admin ke Vercel/Netlify.
 - [ ] Peluncuran Versi 1.0 (Live).
 
@@ -70,5 +74,5 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 
 1. **Client Booking/Hiring Page**: Formulir *booking* langsung untuk klien yang ingin menyewa jasa fotografi.
 2. **Timeline Photography**: *View mode* kronologis (*Timeline Slider*) berdasarkan metadata tanggal jepretan EXIF.
-3. **Watermark Otomatis**: Melampirkan *watermark* dinamis dengan nama `copyright_name` menggunakan transformasi *on-the-fly* Cloudinary.
-4. **Advanced Analytics**: Integrasi Google Analytics / Vercel Web Analytics untuk *tracking views* tiap postingan galeri.
+3. **Advanced Analytics**: Integrasi Google Analytics / Vercel Web Analytics untuk *tracking views* tiap postingan galeri.
+4. **Free Footage Distribution**: Sistem bagi-bagi video resolusi tinggi (B-Roll/Footage) menggunakan *Embed* YouTube untuk *preview* dan link *Google Drive/Mega* untuk unduhan agar bandwidth Cloudinary/Vercel tetap aman. 

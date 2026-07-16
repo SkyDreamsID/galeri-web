@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, X, Camera, Trash2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Loader2, UploadCloud, X, Camera, Trash2, CheckCircle2, AlertCircle, Edit } from 'lucide-react'
 
 type Gear = {
   id: string
@@ -35,6 +35,9 @@ export default function GearManagement() {
   const [description, setDescription] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  
+  const [editingGearId, setEditingGearId] = useState<string | null>(null)
+  const [editingPublicId, setEditingPublicId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchGears()
@@ -80,14 +83,34 @@ export default function GearManagement() {
     setImagePreview(null)
   }
 
+  const startEditing = (gear: Gear) => {
+    setEditingGearId(gear.id)
+    setName(gear.name)
+    setType(gear.type)
+    setDescription(gear.description || '')
+    setImagePreview(gear.image_url || null)
+    setEditingPublicId(gear.public_id || null)
+    setImageFile(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const cancelEditing = () => {
+    setEditingGearId(null)
+    setName('')
+    setType('Kamera')
+    setDescription('')
+    removeImage()
+    setEditingPublicId(null)
+  }
+
   const handleAddGear = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return showToast('Nama gear harus diisi!', 'error')
     
     setIsUploading(true)
     try {
-      let imageUrl = null
-      let publicId = null
+      let imageUrl = editingGearId ? imagePreview : null
+      let publicId = editingGearId ? editingPublicId : null
 
       if (imageFile) {
         const timestamp = Math.round(new Date().getTime() / 1000)
@@ -117,28 +140,38 @@ export default function GearManagement() {
         publicId = cloudData.public_id
       }
 
-      const { error } = await supabase
-        .from('gears')
-        .insert({
-          name: name.trim(),
-          type,
-          description: description.trim() || null,
-          image_url: imageUrl,
-          public_id: publicId
-        })
+      if (editingGearId) {
+        const { error } = await supabase
+          .from('gears')
+          .update({
+            name: name.trim(),
+            type,
+            description: description.trim() || null,
+            image_url: imageUrl,
+            public_id: publicId
+          })
+          .eq('id', editingGearId)
+        if (error) throw error
+        showToast('Berhasil mengedit gear!', 'success')
+      } else {
+        const { error } = await supabase
+          .from('gears')
+          .insert({
+            name: name.trim(),
+            type,
+            description: description.trim() || null,
+            image_url: imageUrl,
+            public_id: publicId
+          })
+        if (error) throw error
+        showToast('Berhasil menambahkan gear!', 'success')
+      }
 
-      if (error) throw error
-
-      showToast('Berhasil menambahkan gear!', 'success')
-      
-      setName('')
-      setType('Kamera')
-      setDescription('')
-      removeImage()
+      cancelEditing()
       fetchGears()
     } catch (err) {
       console.error(err)
-      showToast('Gagal menambahkan gear.', 'error')
+      showToast('Gagal menyimpan gear.', 'error')
     } finally {
       setIsUploading(false)
     }
@@ -195,7 +228,7 @@ export default function GearManagement() {
             <CardHeader>
               <CardTitle className="text-text-main font-heading flex items-center gap-2">
                 <Camera size={20} className="text-primary-neutral" />
-                Tambah Gear Baru
+                {editingGearId ? 'Edit Gear' : 'Tambah Gear Baru'}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -255,17 +288,31 @@ export default function GearManagement() {
                   )}
                 </div>
 
-                <Button 
-                  type="submit" 
-                  disabled={isUploading || !name.trim()} 
-                  className="w-full bg-primary-neutral hover:bg-primary-neutral/90 text-surface h-10 text-sm shadow-md mt-2"
-                >
-                  {isUploading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Menyimpan...</>
-                  ) : (
-                    'Simpan Gear'
+                <div className="flex gap-2 mt-2">
+                  <Button 
+                    type="submit" 
+                    disabled={isUploading || !name.trim()} 
+                    className="flex-1 bg-primary-neutral hover:bg-primary-neutral/90 text-surface h-10 text-sm shadow-md"
+                  >
+                    {isUploading ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Menyimpan...</>
+                    ) : editingGearId ? (
+                      'Update Gear'
+                    ) : (
+                      'Simpan Gear'
+                    )}
+                  </Button>
+                  {editingGearId && (
+                    <Button 
+                      type="button" 
+                      onClick={cancelEditing}
+                      variant="outline"
+                      className="h-10 text-sm border-border/50 text-text-main hover:bg-background bg-surface shadow-sm"
+                    >
+                      Batal
+                    </Button>
                   )}
-                </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
@@ -293,13 +340,22 @@ export default function GearManagement() {
                     ) : (
                       <Camera className="w-10 h-10 text-text-muted/30" />
                     )}
-                    <button 
-                      onClick={() => handleDelete(gear.id, gear.public_id)}
-                      className="absolute top-2 right-2 bg-red-500/90 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 shadow-sm"
-                      title="Hapus Gear"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="absolute top-2 right-2 flex gap-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => startEditing(gear)}
+                        className="bg-background/90 backdrop-blur-sm text-text-main p-2 rounded-lg hover:bg-background shadow-sm border border-border/50"
+                        title="Edit Gear"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(gear.id, gear.public_id)}
+                        className="bg-red-500/90 backdrop-blur-sm text-white p-2 rounded-lg hover:bg-red-500 shadow-sm"
+                        title="Hapus Gear"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                     <div className="absolute bottom-2 left-2 px-2 py-1 bg-background/80 backdrop-blur rounded-md text-[10px] font-bold tracking-wider uppercase text-text-main border border-border/50">
                       {gear.type}
                     </div>

@@ -6,7 +6,7 @@ export default function AdminPage() {
       <div>
         <h2 className="text-3xl font-heading font-bold tracking-tight text-text-main">Upload Momen Baru</h2>
         <p className="text-text-muted mt-1 font-sans">
-          Satu momen (post) bisa berisi banyak foto sekaligus. Data EXIF kamera akan diekstrak otomatis.
+          Kamu bisa mengupload banyak foto sekaligus. Data EXIF kamera akan diekstrak otomatis.
         </p>
       </div>
       

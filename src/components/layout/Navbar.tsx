@@ -118,7 +118,12 @@ export function Navbar({
           
           <div className="flex items-center gap-2 cursor-pointer">
             <span className="font-heading text-lg font-bold tracking-tight">
-              <Link href="/">Rifki Eka Putra</Link>
+              <Link href="/" className="flex items-center gap-2">
+                {siteLogo ? (
+                  <img src={siteLogo} alt={authorName} className="w-7 h-7 rounded-full object-cover" />
+                ) : null}
+                {authorName}
+              </Link>
             </span>
           </div>
 
@@ -169,7 +174,12 @@ export function Navbar({
           
           <div className="flex items-center gap-2 cursor-pointer">
             <span className="font-heading text-xl font-bold tracking-tight">
-              <Link href="/">Rifki Eka Putra</Link>
+              <Link href="/" className="flex items-center gap-2">
+                {siteLogo ? (
+                  <img src={siteLogo} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
+                ) : null}
+                {authorName}
+              </Link>
             </span>
           </div>
 

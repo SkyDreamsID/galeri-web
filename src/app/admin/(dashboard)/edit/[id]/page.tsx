@@ -48,6 +48,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [location, setLocation] = useState('')
   const [album, setAlbum] = useState('')
   const [tags, setTags] = useState<string[]>([])
+  const [allTags, setAllTags] = useState<string[]>([])
   const [availableCollections, setAvailableCollections] = useState<{id: string, name: string}[]>([])
   const [images, setImages] = useState<FileWithExif[]>([])
   const [isDragging, setIsDragging] = useState(false)
@@ -97,6 +98,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         if (postTags) {
           const loadedTags = postTags.map((pt: any) => pt.tags?.name).filter(Boolean)
           setTags(loadedTags)
+        }
+
+        // 3. Fetch All Tags for suggestions
+        const { data: allTagsData } = await supabase.from('tags').select('name').order('name')
+        if (allTagsData) {
+          setAllTags(allTagsData.map(t => t.name))
         }
 
         // 3. Map Photos
@@ -425,8 +432,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 </select>
               </div>
               <div className="space-y-2">
-                <Label className="text-text-muted">Tags</Label>
-                <TagInput tags={tags} setTags={setTags} placeholder="Ketik tag & enter" />
+                <Label className="mb-2 block">Tags</Label>
+                <TagInput tags={tags} setTags={setTags} availableTags={allTags} placeholder="Ketik tag & enter" />
               </div>
               <div className="space-y-2">
                 <Label className="text-text-muted">Cerita / Deskripsi</Label>

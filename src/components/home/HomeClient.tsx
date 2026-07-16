@@ -151,20 +151,6 @@ export function HomeClient({
               Semua Foto
             </Link>
 
-            {collections.map(c => (
-              <Link
-                key={`col-${c.id}`}
-                href={`/collection/${c.id}`}
-                className="shrink-0 snap-start px-4 py-1.5 rounded-full bg-surface/50 border border-border/20 text-text-main hover:bg-surface/80 hover:border-border/40 transition-all duration-300 text-sm font-medium whitespace-nowrap flex items-center gap-1.5 backdrop-blur-sm"
-              >
-                📁 {c.name}
-              </Link>
-            ))}
-
-            {collections.length > 0 && tags.length > 0 && (
-              <div className="shrink-0 w-px h-6 bg-border mx-2"></div>
-            )}
-
             {tags.map(t => (
               <Link
                 key={`tag-${t.id}`}

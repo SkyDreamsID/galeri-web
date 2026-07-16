@@ -78,10 +78,9 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 | `hero_title` | VARCHAR | Nullable | Judul besar di halaman utama |
 | `hero_description` | TEXT | Nullable | Deskripsi halaman utama |
 | `footer_text` | TEXT | Nullable | Teks pada bagian footer |
-| `social_links` | JSONB | Nullable | Daftar tautan sosial media |
-| `zenofm_station_id`| VARCHAR | Nullable | ID stream stasiun ZenoFM |
-| `lastfm_username` | VARCHAR | Nullable | (Segera Hadir) Last.fm Username |
-| `lastfm_api_key` | VARCHAR | Nullable | (Segera Hadir) Last.fm API |
+| `social_links` | JSONB | Nullable | Tautan sosmed beserta URL gambar ikon khusus |
+| `zenofm_station_id`| VARCHAR | Nullable | URL Penuh atau ID stream Radio |
+| `theme_config` | JSONB | Nullable | Konfigurasi custom warna tema web (Hex Codes) |
 
 *(Tabel `collections`, `tags`, dan `post_tags` berlanjut seperti sebelumnya).*
 

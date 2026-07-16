@@ -9,13 +9,20 @@ import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 export function GalleryRadio() {
   const settings = useSiteSettings()
   let rawZenoId = settings?.zenofm_station_id || process.env.NEXT_PUBLIC_ZENO_STATION_ID
-  let zenoId = rawZenoId?.trim()
-  if (zenoId && zenoId.includes('/')) {
-    const parts = zenoId.split('/').filter(Boolean)
-    zenoId = parts[parts.length - 1]
+  let streamUrl = rawZenoId?.trim()
+  let zenoId: string | null = null
+  
+  if (streamUrl) {
+    if (!streamUrl.startsWith('http')) {
+      zenoId = streamUrl
+      streamUrl = `https://stream.zeno.fm/${streamUrl}`
+    } else if (streamUrl.includes('stream.zeno.fm/')) {
+      const parts = streamUrl.split('/').filter(Boolean)
+      zenoId = parts[parts.length - 1]
+    }
   }
 
-  if (!zenoId) return null
+  if (!streamUrl) return null
   const [isPlaying, setIsPlaying] = useState(false)
   
   // State untuk data radio
@@ -23,7 +30,7 @@ export function GalleryRadio() {
     title: "Menunggu last.fm API...",
     artist: "SkyDreamsID",
     coverUrl: "", 
-    streamUrl: `https://stream.zeno.fm/${zenoId}`
+    streamUrl: streamUrl
   })
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -43,7 +50,7 @@ export function GalleryRadio() {
         }
         setIsPlaying(false)
       } else {
-        audioRef.current.src = `https://stream.zeno.fm/${zenoId}`
+        audioRef.current.src = streamUrl
         audioRef.current.load()
         const playPromise = audioRef.current.play()
         playPromiseRef.current = playPromise
@@ -59,6 +66,11 @@ export function GalleryRadio() {
 
   // Effect untuk Zeno.fm dan deteksi Portal Target
   useEffect(() => {
+    if (!zenoId) {
+      setTrackInfo(prev => ({ ...prev, title: "Streaming Audio", artist: "Live" }))
+      return
+    }
+
     // 1. Zeno.fm Fetch
     const eventSource = new EventSource(`https://api.zeno.fm/mounts/metadata/subscribe/${zenoId}`)
 
@@ -105,7 +117,7 @@ export function GalleryRadio() {
     return () => {
       eventSource.close()
     }
-  }, [])
+  }, [zenoId])
 
   // Responsive logic & Portal Target Detection
   const [isMobile, setIsMobile] = useState(false)
@@ -299,7 +311,7 @@ export function GalleryRadio() {
     </AnimatePresence>
   )
 
-  if (!zenoId) return null;
+  if (!streamUrl) return null;
 
   return (
     <>

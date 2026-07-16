@@ -30,7 +30,7 @@ export function Sidebar() {
     <>
       <div className="p-4 md:p-6 border-b border-border/40 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-heading font-bold tracking-tight text-text-main">Admin<span className="text-primary-neutral">.</span></h1>
+          <h1 className="text-xl font-heading font-bold tracking-tight text-text-main">Admin Dashboard</h1>
           <p className="text-xs text-text-muted mt-1 font-sans">Galeri Control Panel</p>
         </div>
         {/* Tombol X untuk tutup menu di HP */}

@@ -22,7 +22,8 @@ export function SettingsForm() {
     lastfm_username: '',
     lastfm_api_key: '',
     cloudinary_cloud_name: '',
-    social_links: [] as { title: string, url: string }[]
+    social_links: [] as { title: string, url: string, icon_url?: string }[],
+    theme_config: { dark_bg: '', light_bg: '', primary_color: '' }
   })
 
   const supabase = createClient()
@@ -47,7 +48,8 @@ export function SettingsForm() {
         lastfm_username: data.lastfm_username || '',
         lastfm_api_key: data.lastfm_api_key || '',
         cloudinary_cloud_name: data.cloudinary_cloud_name || '',
-        social_links: data.social_links || []
+        social_links: data.social_links || [],
+        theme_config: data.theme_config || { dark_bg: '', light_bg: '', primary_color: '' }
       })
     }
     if (error && error.code !== 'PGRST116') {
@@ -68,12 +70,86 @@ export function SettingsForm() {
     }))
   }
 
-  const handleSocialLinkChange = (index: number, field: 'title' | 'url', value: string) => {
+  const handleSocialLinkChange = (index: number, field: 'title' | 'url' | 'icon_url', value: string) => {
     setSettings(prev => {
       const newLinks = [...prev.social_links]
       newLinks[index][field] = value
       return { ...prev, social_links: newLinks }
     })
+  }
+
+  const handleSocialIconUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return
+    const file = e.target.files[0]
+    setIsUploading(true)
+
+    try {
+      const signRes = await fetch('/api/cloudinary/sign?folder=galeri_settings')
+      const signData = await signRes.json()
+      if (!signData.signature) throw new Error('Gagal mendapatkan signature Cloudinary')
+
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('api_key', signData.apiKey)
+      formData.append('timestamp', signData.timestamp)
+      formData.append('signature', signData.signature)
+      formData.append('folder', 'galeri_settings')
+
+      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${signData.cloudName}/image/upload`, {
+        method: 'POST',
+        body: formData
+      })
+      const uploadData = await uploadRes.json()
+      
+      if (uploadData.secure_url) {
+        handleSocialLinkChange(index, 'icon_url', uploadData.secure_url)
+        toast.success('Icon berhasil diunggah')
+      } else {
+        throw new Error('Gagal upload icon')
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Terjadi kesalahan saat upload icon')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleThemeChange = (field: 'dark_bg' | 'light_bg' | 'primary_color', value: string) => {
+    setSettings(prev => ({
+      ...prev,
+      theme_config: { ...prev.theme_config, [field]: value }
+    }))
+  }
+
+  const resetTheme = () => {
+    if (confirm('Yakin ingin mereset tema ke warna bawaan asli (Legendary UI)?')) {
+      setSettings(prev => ({
+        ...prev,
+        theme_config: { dark_bg: '', light_bg: '', primary_color: '' }
+      }))
+      toast.success('Warna tema dikembalikan ke default')
+    }
+  }
+
+  const isLightColor = (hex: string) => {
+    const color = hex.charAt(0) === '#' ? hex.substring(1, 7) : hex
+    if (color.length !== 6) return true
+    const r = parseInt(color.substring(0, 2), 16)
+    const g = parseInt(color.substring(2, 4), 16)
+    const b = parseInt(color.substring(4, 6), 16)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    return luminance > 0.5
+  }
+
+  const handleThemeBlur = (field: 'dark_bg' | 'light_bg', value: string) => {
+    if (!value || value.length < 7) return
+    const isLight = isLightColor(value)
+    if (field === 'dark_bg' && isLight) {
+      toast.error('Dark Background harus menggunakan warna gelap!')
+    } else if (field === 'light_bg' && !isLight) {
+      toast.error('Light Background harus menggunakan warna terang!')
+    }
   }
 
   const handleRemoveSocialLink = (index: number) => {
@@ -135,7 +211,8 @@ export function SettingsForm() {
         lastfm_username: settings.lastfm_username,
         lastfm_api_key: settings.lastfm_api_key,
         cloudinary_cloud_name: settings.cloudinary_cloud_name,
-        social_links: settings.social_links
+        social_links: settings.social_links,
+        theme_config: settings.theme_config
       }
 
       // Jika belum ada ID, berarti tabel kosong, pakai insert. Kalau udah ada ID, update.
@@ -184,7 +261,7 @@ export function SettingsForm() {
                 value={settings.author_name}
                 onChange={handleInputChange}
                 className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
-                placeholder="Rifki Eka Putra"
+                placeholder="Masukkan Nama"
               />
             </div>
             <div className="space-y-2">
@@ -194,31 +271,31 @@ export function SettingsForm() {
                 value={settings.site_title}
                 onChange={handleInputChange}
                 className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
-                placeholder="Galeri Rifki"
+                placeholder="Ex: Galeriku"
               />
             </div>
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-muted">Judul Hero (Halaman Utama)</label>
+            <label className="text-sm font-medium text-text-muted">Header Halaman Utama</label>
             <input 
               name="hero_title"
               value={settings.hero_title}
               onChange={handleInputChange}
               className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none font-bold text-lg" 
-              placeholder="Jurnal Visual"
+              placeholder="Ex: Jurnal Visual"
             />
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-muted">Deskripsi Hero</label>
+            <label className="text-sm font-medium text-text-muted">Slogan / Deskripsi</label>
             <textarea 
               name="hero_description"
               value={settings.hero_description}
               onChange={handleInputChange}
               rows={3}
               className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none resize-none" 
-              placeholder="Ruang untuk menyimpan momen..."
+              placeholder="Ex: Ruang untuk menyimpan momen..."
             />
           </div>
           
@@ -230,7 +307,7 @@ export function SettingsForm() {
               onChange={handleInputChange}
               rows={2}
               className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none resize-none" 
-              placeholder="Teks penjelasan singkat di area footer..."
+              placeholder="Teks singkat di area footer..."
             />
           </div>
         </div>
@@ -298,6 +375,23 @@ export function SettingsForm() {
         <div className="space-y-4">
           {settings.social_links.map((link, idx) => (
             <div key={idx} className="flex flex-col sm:flex-row items-center gap-3 bg-background border border-border/50 p-3 rounded-xl relative group">
+              {/* Icon Upload / Display */}
+              <div className="shrink-0 relative group/icon cursor-pointer">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => handleSocialIconUpload(idx, e)} 
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <div className="w-10 h-10 rounded-lg bg-surface border border-border/50 flex items-center justify-center overflow-hidden">
+                  {link.icon_url ? (
+                    <img src={link.icon_url} alt="icon" className="w-6 h-6 object-contain" />
+                  ) : (
+                    <Upload className="w-4 h-4 text-text-muted" />
+                  )}
+                </div>
+              </div>
+
               <div className="w-full sm:w-1/3">
                 <input 
                   value={link.title}
@@ -336,52 +430,114 @@ export function SettingsForm() {
         </div>
       </div>
 
+      {/* Kustomisasi Tema */}
+      <div className="bg-surface border border-border/50 rounded-2xl p-6 md:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">4</span>
+            Kustomisasi Tema
+          </h2>
+          <button 
+            onClick={resetTheme}
+            type="button"
+            className="text-sm font-medium text-red-500 hover:text-red-600 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" /> Reset ke Default
+          </button>
+        </div>
+        
+        <p className="text-sm text-text-muted mb-6">
+          Ubah Theme Color utama web. Kosongkan nilai untuk kembali menggunakan warna asli (Legendary UI).
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-text-muted">Primary Color (Aksen)</label>
+            <div className="flex gap-2">
+              <input 
+                type="color"
+                name="primary_color"
+                value={settings.theme_config.primary_color || '#00ADB5'}
+                onChange={(e) => handleThemeChange('primary_color', e.target.value)}
+                className="w-12 h-12 rounded-xl cursor-pointer bg-background border border-border/50 p-1 shrink-0" 
+              />
+              <input 
+                type="text"
+                value={settings.theme_config.primary_color || ''}
+                onChange={(e) => handleThemeChange('primary_color', e.target.value)}
+                className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
+                placeholder="#00ADB5"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-text-muted">Dark Mode Background</label>
+            <div className="flex gap-2">
+              <input 
+                type="color"
+                name="dark_bg"
+                value={settings.theme_config.dark_bg || '#222831'}
+                onChange={(e) => handleThemeChange('dark_bg', e.target.value)}
+                onBlur={(e) => handleThemeBlur('dark_bg', e.target.value)}
+                className="w-12 h-12 rounded-xl cursor-pointer bg-background border border-border/50 p-1 shrink-0" 
+              />
+              <input 
+                type="text"
+                value={settings.theme_config.dark_bg || ''}
+                onChange={(e) => handleThemeChange('dark_bg', e.target.value)}
+                onBlur={(e) => handleThemeBlur('dark_bg', e.target.value)}
+                className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
+                placeholder="#222831"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-text-muted">Light Mode Background</label>
+            <div className="flex gap-2">
+              <input 
+                type="color"
+                name="light_bg"
+                value={settings.theme_config.light_bg || '#EEEEEE'}
+                onChange={(e) => handleThemeChange('light_bg', e.target.value)}
+                onBlur={(e) => handleThemeBlur('light_bg', e.target.value)}
+                className="w-12 h-12 rounded-xl cursor-pointer bg-background border border-border/50 p-1 shrink-0" 
+              />
+              <input 
+                type="text"
+                value={settings.theme_config.light_bg || ''}
+                onChange={(e) => handleThemeChange('light_bg', e.target.value)}
+                onBlur={(e) => handleThemeBlur('light_bg', e.target.value)}
+                className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
+                placeholder="#EEEEEE"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Pengaturan API & Integrasi */}
       <div className="bg-surface border border-border/50 rounded-2xl p-6 md:p-8 shadow-sm">
         <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">4</span>
-          API & Integrasi Eksternal
+          <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">5</span>
+          Pengaturan Streaming Radio
         </h2>
         <p className="text-sm text-text-muted mb-6">
-          Kosongkan kolom ini jika ingin menggunakan file <code className="bg-background px-1 py-0.5 rounded text-primary-neutral font-mono text-xs">.env.local</code> bawaan. Berguna bagi pengguna yang mem-fork template ini.
+          Kosongkan kolom ini jika tidak ingin menampilkan widget radio, atau isi dengan link streaming radio (bebas).
         </p>
         
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-muted">Zeno.fm Station ID</label>
+            <label className="text-sm font-medium text-text-muted">Link Radio Streaming (Zeno.fm / Icecast / Shoutcast)</label>
             <input 
               name="zenofm_station_id"
               value={settings.zenofm_station_id}
               onChange={handleInputChange}
               className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
-              placeholder="Misal: cnho9wgxkkovv"
+              placeholder="https://stream.zeno.fm/cnho9wgxkkovv"
             />
-            <p className="text-xs text-text-muted">Kumpulan kode acak yang ada di akhir URL stream Zeno.fm.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-50">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-text-muted">Last.fm Username (Segera Hadir)</label>
-              <input 
-                name="lastfm_username"
-                value={settings.lastfm_username}
-                onChange={handleInputChange}
-                disabled
-                className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
-                placeholder="Username"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-text-muted">Last.fm API Key (Segera Hadir)</label>
-              <input 
-                name="lastfm_api_key"
-                value={settings.lastfm_api_key}
-                onChange={handleInputChange}
-                disabled
-                className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
-                placeholder="API Key"
-              />
-            </div>
+            <p className="text-xs text-text-muted">Masukkan URL streaming radio, atau ID Zeno.fm nya saja.</p>
           </div>
         </div>
       </div>

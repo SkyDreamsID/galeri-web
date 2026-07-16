@@ -146,13 +146,13 @@ export default function TagsPage() {
                 <div className="flex items-center">
                   <button 
                     onClick={() => handleEdit(t)} 
-                    className="p-1.5 text-text-muted hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all"
+                    className="p-1.5 text-text-muted hover:text-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all"
                   >
                     <Edit className="w-3.5 h-3.5" />
                   </button>
                   <button 
                     onClick={() => handleDelete(t.id)} 
-                    className="p-1.5 text-text-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                    className="p-1.5 text-text-muted hover:text-red-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

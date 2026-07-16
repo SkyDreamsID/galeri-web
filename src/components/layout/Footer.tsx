@@ -6,7 +6,7 @@ export async function Footer() {
   const { data: settings } = await supabase.from('site_settings').select('*').limit(1).single()
   
   const authorName = settings?.author_name || 'Rifki Eka Putra'
-  const socialLinks: {title: string, url: string}[] = settings?.social_links || []
+  const socialLinks: {title: string, url: string, icon_url?: string}[] = settings?.social_links || []
   const footerText = settings?.footer_text || 'Ruang digital untuk menyimpan momen, merangkai cerita, dan mendokumentasikan perjalanan melalui lensa.'
   return (
     <footer className="border-t border-border/10 bg-background mt-auto relative overflow-hidden">
@@ -32,9 +32,12 @@ export async function Footer() {
                 href={link.url} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="text-[11px] md:text-xs font-bold uppercase tracking-widest text-text-muted hover:text-text-main transition-colors"
+                className="text-[11px] md:text-xs font-bold uppercase tracking-widest text-text-muted hover:text-text-main transition-colors flex items-center gap-1.5 group"
               >
-                {link.title}
+                {link.icon_url ? (
+                  <img src={link.icon_url} alt={link.title} className="w-5 h-5 object-contain opacity-70 group-hover:opacity-100 transition-opacity" />
+                ) : null}
+                <span>{link.title}</span>
               </a>
             ))}
           </div>

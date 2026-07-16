@@ -14,8 +14,8 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
-    // You could return the error here to show in the UI, but for simplicity we'll redirect back with a param
-    redirect('/admin/login?error=Invalid+credentials')
+    console.error('Supabase Auth Error:', error.message)
+    redirect(`/admin/login?error=${encodeURIComponent(error.message)}`)
   }
 
   redirect('/admin')
