@@ -90,7 +90,7 @@ export default async function RootLayout({
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-text-main transition-colors duration-300">
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
