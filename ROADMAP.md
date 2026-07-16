@@ -54,7 +54,7 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 - [x] Fetching Data Detail Post (Join antara `posts`, `photos`, `exif_data`)
 - [x] Toast Notification (Pesan Sukses/Gagal beranimasi) tanpa menggunakan alert bawaan.
 
-### Phase 5: Polishing, Customization, & Deployment (Tahap Akhir 95%)
+### Phase 5: Polishing, Customization, & Deployment (Selesai 100%)
 *Fokus: Kustomisasi UI tingkat lanjut, optimasi UX, stabilisasi, dan persiapan Go-Live.*
 - [x] **Gallery Radio**: Integrasi Widget Streaming Radio (Zeno.fm, Icecast, dll).
 - [x] **Web CMS (Settings)**: Fitur Pengaturan Website dinamis di Admin untuk edit identitas, medsos, footer, dan streaming radio.
@@ -65,8 +65,9 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 - [x] **Stabilisasi Sistem**: Resolusi kompatibilitas *searchParams* Promise pada Next.js 15/14+ dan penanganan error gracefully.
 - [x] **Next.js SEO Tags** & Image Alt Automation.
 - [x] **PWA Support** (Progressive Web App) agar web bisa diinstal selayaknya aplikasi.
-- [ ] Deployment Frontend + Admin ke Vercel/Netlify.
-- [ ] Peluncuran Versi 1.0 (Live).
+- [x] **Fluid Responsive UI**: Optimasi *grid* khusus *mobile landscape* (rasio 45:55), modifikasi Custom Dropdown (menggantikan elemen native OS), dan Custom 404 Page *Dark Mode*.
+- [x] Deployment Frontend + Admin ke Vercel/Netlify.
+- [x] Peluncuran Versi 1.0 (Live).
 
 ---
 

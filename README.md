@@ -16,6 +16,7 @@ Proyek ini bukan sekadar *image viewer*, melainkan **Aplikasi Full-Stack dengan 
 - 🎒 **Gear Showcase**: Integrasi komponen yang memamerkan inventaris kamera & lensa yang digunakan.
 - 📻 **Gallery Radio**: Widget pemutar musik *real-time* (mendukung link ZenoFM, Icecast, Shoutcast).
 - ⚡ **Optimasi Kecepatan & SEO**: Menggunakan *Infinite Scroll*, Server Actions (Next.js 14+), PWA Support, dan SEO Tags cerdas.
+- 📱 **Fluid Responsive & Pixel-Perfect**: Tata letak yang dioptimalkan untuk segala skenario orientasi perangkat (seperti *grid 45:55* khusus *Mobile Landscape*) lengkap dengan *Custom Components* (menggantikan UI *native* OS yang kaku).
 - 🔒 **Admin Dashboard**: Panel kontrol terisolasi yang dilindungi Middleware untuk mengunggah foto, manajemen galeri, dan pengaturan situs (Mobile Friendly!).
 
 ---

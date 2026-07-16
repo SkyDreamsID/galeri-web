@@ -5,9 +5,10 @@ Dokumen ini memuat detail teknis, arsitektur sistem, alur kerja, dan desain data
 ## 1. Arsitektur Inti & Teknologi Spesifik
 
 *   **Framework Utama:** **Next.js 14+ (App Router)**.
-*   **UI/UX Stack:** 
+*   **UI/UX Stack & Principles:** 
     *   **Tailwind CSS** (Styling utama).
     *   **shadcn/ui** (Komponen dasar UI seperti Button, Input, Modal, Dropdown).
+    *   **Headless Custom UI** (Penolakan terhadap elemen *native* OS bawaan HTML seperti `<select>` demi menjaga konsistensi tema *dark mode* dan *glassmorphism* di seluruh peramban).
     *   **Embla Carousel** (Library bawaan shadcn/ui untuk fitur *Swipe/Next/Previous* foto yang sangat mulus di Mobile & Desktop).
     *   **Framer Motion** (Untuk transisi antar halaman dan mikro-animasi).
     *   **Lucide React** (Untuk Iconografi seperti tombol `(i)`, panah next/prev, dll).
