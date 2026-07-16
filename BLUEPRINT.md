@@ -4,14 +4,15 @@ Dokumen ini memuat detail teknis, arsitektur sistem, alur kerja, dan desain data
 
 ## 1. Arsitektur Inti & Teknologi Spesifik
 
-*   **Framework Utama:** **Next.js 14+ (App Router)**.
+*   **Framework Utama:** **Next.js 16 (App Router)** + React 19.
 *   **UI/UX Stack & Principles:** 
-    *   **Tailwind CSS** (Styling utama).
+    *   **Tailwind CSS v4** (Styling utama).
     *   **shadcn/ui** (Komponen dasar UI seperti Button, Input, Modal, Dropdown).
     *   **Headless Custom UI** (Penolakan terhadap elemen *native* OS bawaan HTML seperti `<select>` demi menjaga konsistensi tema *dark mode* dan *glassmorphism* di seluruh peramban).
     *   **Embla Carousel** (Library bawaan shadcn/ui untuk fitur *Swipe/Next/Previous* foto yang sangat mulus di Mobile & Desktop).
     *   **Framer Motion** (Untuk transisi antar halaman dan mikro-animasi).
     *   **Lucide React** (Untuk Iconografi seperti tombol `(i)`, panah next/prev, dll).
+    *   **Utility & Core**: `next-pwa` (PWA Support), `next-themes` (Dark/Light mode), `sonner` (Toast), `react-zoom-pan-pinch` (Zoom foto), `exifr` (Ekstraksi EXIF).
 *   **Database & Auth:** **Supabase (PostgreSQL)**. HANYA menyimpan data teks relasional.
 *   **Image Storage:** **Cloudinary** sebagai CDN dan penyimpanan aset media.
 *   **Keamanan Ekstra (Middleware):** Akses rute `/admin` dilindungi oleh **Next.js Middleware**. Jika tidak ada token sesi *Supabase Auth*, otomatis dialihkan ke `/admin/login`.
@@ -29,6 +30,7 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 | :--- | :--- | :--- | :--- |
 | `id` | UUID | Primary Key, Auto | Unique identifier |
 | `title` | VARCHAR | Not Null | Judul momen/post |
+| `slug` | VARCHAR | Unique | URL ramah SEO untuk post |
 | `story` | TEXT | Nullable | Cerita utama momen tersebut |
 | `location` | VARCHAR | Nullable | Nama lokasi pemotretan |
 | `collection_id`| UUID | Foreign Key | Relasi ke tabel `collections` |
@@ -46,6 +48,9 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 | `is_cover` | BOOLEAN | Default FALSE | Penanda gambar ini adalah cover utama. |
 | `copyright_name` | VARCHAR | Nullable | Nama pemilik foto (Fitur Per-Foto Copyright) |
 | `sort_order`| INTEGER | Not Null | Urutan gambar |
+| `bytes` | BIGINT | Nullable | Ukuran file dalam bytes |
+| `format` | VARCHAR | Nullable | Ekstensi file (jpg, png, webp, dll) |
+| `original_filename`| VARCHAR | Nullable | Nama file asli sebelum diupload |
 
 ### Table: `exif_data` (Data Kamera per Foto)
 | Column | Type | Constraints | Description |
@@ -79,9 +84,11 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 | `hero_title` | VARCHAR | Nullable | Judul besar di halaman utama |
 | `hero_description` | TEXT | Nullable | Deskripsi halaman utama |
 | `footer_text` | TEXT | Nullable | Teks pada bagian footer |
+| `contact_email`| VARCHAR | Nullable | Email kontak |
 | `social_links` | JSONB | Nullable | Tautan sosmed beserta URL gambar ikon khusus |
 | `zenofm_station_id`| VARCHAR | Nullable | URL Penuh atau ID stream Radio |
 | `theme_config` | JSONB | Nullable | Konfigurasi custom warna tema web (Hex Codes) |
+| `site_logo_url`| VARCHAR | Nullable | URL untuk logo situs kustom |
 
 *(Tabel `collections`, `tags`, dan `post_tags` berlanjut seperti sebelumnya).*
 
@@ -93,9 +100,15 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 2. **Post Detail (`/post/[slug]`)**: 
    - **Area Foto (Atas)**: Menggunakan **Embla Carousel** (Swipe/Next/Prev). Tombol `(i) EXIF` melayang memicu *Popover/Modal* untuk menunjukkan Exif *lens*, *camera*, dll.
    - Hak Cipta Per-Foto ditampilkan dinamis mengikuti nilai `copyright_name` pada tabel `photos`, atau mundur (*fallback*) ke "SkyDreamsID".
-3. **Gear Showcase Modal**:
-   - Memicu klik dari `PlaygroundNavbar` (Lainnya -> My Gear).
+   - View tracking otomatis mencatat view setiap kali post dibuka (`/api/views`).
+3. **Eksplorasi (`/albums`, `/collection/[id]`, `/tag/[tag]`)**:
+   - Menampilkan daftar koleksi (album) dan memungkinkan pengguna melihat galeri berdasarkan koleksi atau tag tertentu.
+4. **Gear Showcase Modal**:
+   - Memicu klik dari `Navbar` (Lainnya -> My Gear).
    - Menampilkan modal responsif terpusat yang memetakan isi tabel `gears` ke dalam kategori (Kamera, Lensa).
+
+## 4.5 Fitur Perlindungan & Attribution
+- **Watermark Attribution:** Built-in attribution "Designed by SkyDreamsID" yang terpasang pada Footer. Akan otomatis muncul jika nilai `author_name` pada `site_settings` diubah ke nilai selain author asli (Rifki Eka Putra, SkyDreamsID, dll).
 
 ## 5. Flowchart API & Manajamen Logika Baru
 
@@ -104,6 +117,10 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 2. Web mengunggah ke rute Cloudinary (memakai `/api/cloudinary/sign`) dengan parameter folder khusus `galeri_gears`.
 3. Setelah *image_url* dan *public_id* dikembalikan oleh Cloudinary, web merekam ke tabel `gears` Supabase.
 4. UI memunculkan peringatan (Pop-up Toast Custom) tanpa menggunakan `alert()` bawaan peramban.
+
+### Alur View Tracking & Image Download
+- **`/api/views`**: Endpoint untuk melacak jumlah tayangan (*views*) pada sebuah post. Hanya mencatat setiap kali detail post di-*load*.
+- **`/api/download`**: Endpoint proxy (*Serverless Function*) untuk mengunduh foto dengan aman. Mengambil URL Cloudinary asli dan mengalirkan (*pipe*) filenya sebagai lampiran *download* agar *browser* tidak sekadar membuka *tab* baru.
 
 ### Logika Ekstraksi Hak Cipta
 Pada komponen unggah galeri (`UploadForm`), admin diberikan kotak centang (*checkbox*) untuk memilih gambar spesifik yang akan menerima `copyright_name`. Data diunggah ke `photos` secara bergilir, dan EXIF di-*parse* secara klien sebelum pengiriman HTTP.

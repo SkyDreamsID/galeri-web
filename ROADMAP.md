@@ -23,6 +23,8 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 - [x] Pembuatan Layout Admin (Sidebar, Navigation)
 - [x] Pembuatan Endpoint API `/api/cloudinary/sign`
 - [x] Pembuatan Endpoint API `/api/post/delete`
+- [x] Pembuatan Endpoint API `/api/views` (View tracking)
+- [x] Pembuatan Endpoint API `/api/download` (Aman unduh foto)
 - [x] Integrasi Library `exifr` untuk ekstraksi EXIF dari beberapa file sekaligus
 - [x] Pembuatan Form "New Post" (Multi File, Auto EXIF)
 - [x] Logika penyimpanan beruntun dengan validasi backend
@@ -34,8 +36,10 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 - [x] Setup Tema dengan Tailwind dan variabel warna premium (Glassmorphism & Nature tones)
 - [x] Halaman `Home` (Menampilkan cover foto, grid masonry, Infinite Scroll skeleton)
 - [x] Halaman `Post Detail` (Header, Lokasi, Carousel Foto, EXIF per foto, Story, Download Button)
+- [x] Fitur Eksplorasi: Halaman `/albums`, `/collection/[id]`, dan `/tag/[tag]` untuk navigasi galeri
 - [x] Integrasi **Embla Carousel** untuk pengalaman *swipe* foto yang mulus di Mobile & PC
 - [x] Modal/Overlay dinamis untuk memunculkan EXIF masing-masing foto di dalam carousel
+- [x] Komponen UI Canggih: `ProgressiveImage` (blur-to-sharp) dan `ViewTracker`
 - [x] **My Gear Modal**: Integrasi modal pameran alat fotografi di `Navbar`
 - [x] **Per-Photo Copyright**: Memungkinkan hak cipta dinamis untuk tiap foto yang dirender dalam satu album (*agency ready*).
 - [x] Dark Mode Enhancement: Toggle tema Gelap/Terang.
@@ -52,6 +56,7 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 *Fokus: Menghubungkan UI publik dengan Supabase dan optimasi performa.*
 - [x] Fetching Data Post di Halaman Depan dengan **Pagination / Infinite Scroll** via tombol "Muat Lebih Banyak".
 - [x] Fetching Data Detail Post (Join antara `posts`, `photos`, `exif_data`)
+- [x] Manajemen Konten Admin Tambahan: Edit Post (`/admin/edit/[id]`), Manajemen Tag (`/admin/tags`), Manajemen Koleksi (`/admin/collections`)
 - [x] Toast Notification (Pesan Sukses/Gagal beranimasi) tanpa menggunakan alert bawaan.
 
 ### Phase 5: Polishing, Customization, & Deployment (Selesai 100%)
@@ -66,6 +71,7 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 - [x] **Next.js SEO Tags** & Image Alt Automation.
 - [x] **PWA Support** (Progressive Web App) agar web bisa diinstal selayaknya aplikasi.
 - [x] **Fluid Responsive UI**: Optimasi *grid* khusus *mobile landscape* (rasio 45:55), modifikasi Custom Dropdown (menggantikan elemen native OS), dan Custom 404 Page *Dark Mode*.
+- [x] **Legal & Attribution**: Sistem Watermark Attribution otomatis di footer (jika author diganti) & penerapan lisensi MIT with Attribution.
 - [x] Deployment Frontend + Admin ke Vercel/Netlify.
 - [x] Peluncuran Versi 1.0 (Live).
 
