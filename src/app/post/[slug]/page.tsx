@@ -14,11 +14,11 @@ import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 // =========================================================================
 const LAYOUT_CONFIG = {
   // Ukuran Judul Postingan
-  postTitle: "text-3xl md:text-5xl lg:text-5xl",
+  postTitle: "text-3xl md:text-5xl lg:text-5xl max-lg:landscape:text-3xl",
   // Ukuran Teks Sub-Judul Cerita
-  storySubtitle: "text-lg md:text-xl lg:text-2xl",
+  storySubtitle: "text-lg md:text-xl lg:text-2xl max-lg:landscape:text-lg",
   // Ukuran Teks Cerita
-  storyText: "text-sm md:text-base lg:text-base",
+  storyText: "text-sm md:text-base lg:text-base max-lg:landscape:text-sm",
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

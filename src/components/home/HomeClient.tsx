@@ -13,8 +13,8 @@ import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 // =========================================================================
 const LAYOUT_CONFIG = {
   maxWidth: "container max-w-7xl px-6",
-  heroTitle: "text-3xl md:text-5xl lg:text-6xl",
-  heroDesc: "text-sm md:text-base lg:text-lg",
+  heroTitle: "text-3xl md:text-5xl lg:text-6xl max-lg:landscape:text-3xl",
+  heroDesc: "text-sm md:text-base lg:text-lg max-lg:landscape:text-sm",
   gridCols: "columns-1 sm:columns-2 lg:columns-3",
   gridGap: "gap-4 md:gap-6 space-y-4 md:space-y-6"
 }
@@ -65,10 +65,19 @@ export function HomeClient({
     setHasMore(initialHasMore)
   }, [initialPosts, initialHasMore])
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value
+  const handleSortChange = (val: string, e: React.MouseEvent) => {
     router.push(`/?sort=${val}`)
+    const details = (e.target as Element).closest('details')
+    if (details) details.removeAttribute('open')
   }
+
+  const sortOptions = [
+    { value: 'newest', label: 'Terbaru' },
+    { value: 'oldest', label: 'Terlama' },
+    { value: 'az', label: 'Nama (A-Z)' },
+    { value: 'za', label: 'Nama (Z-A)' },
+  ]
+  const currentSortLabel = sortOptions.find(o => o.value === (currentSort || 'newest'))?.label || 'Terbaru'
 
   const loadMore = useCallback(async () => {
     setIsLoadingMore(true)
@@ -122,11 +131,11 @@ export function HomeClient({
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`mx-auto ${LAYOUT_CONFIG.maxWidth} py-8 md:py-20`}
+        className={`mx-auto ${LAYOUT_CONFIG.maxWidth} py-8 md:py-20 max-lg:landscape:py-6`}
       >
 
         {/* Hero Section */}
-        <div className="mb-8 md:mb-20 max-w-3xl">
+        <div className="mb-8 md:mb-20 max-lg:landscape:mb-6 max-w-3xl">
           <motion.h1
             initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className={`${LAYOUT_CONFIG.heroTitle} font-heading font-extrabold text-text-main tracking-tighter mb-4 leading-tight`}
@@ -162,18 +171,30 @@ export function HomeClient({
             ))}
           </div>
 
-          <div className="shrink-0">
-            <select
-              value={currentSort}
-              onChange={handleSortChange}
-              className="appearance-none bg-surface border border-border/50 text-text-main text-sm font-medium rounded-full px-4 py-2 pr-8 focus:outline-none focus:border-primary-neutral cursor-pointer hover:bg-surface/80 transition-colors"
-              style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a1a1aa%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.7rem top 50%', backgroundSize: '0.65rem auto' }}
-            >
-              <option value="newest">Terbaru</option>
-              <option value="oldest">Terlama</option>
-              <option value="az">Nama (A-Z)</option>
-              <option value="za">Nama (Z-A)</option>
-            </select>
+          <div className="shrink-0 self-start md:self-auto">
+            <details className="relative group">
+              <summary className="flex items-center gap-2 bg-surface border border-border/50 text-text-main text-sm font-medium rounded-full px-4 py-2 cursor-pointer hover:bg-surface/80 hover:border-border transition-colors list-none [&::-webkit-details-marker]:hidden select-none">
+                {currentSortLabel}
+                <svg className="w-4 h-4 text-text-muted group-open:rotate-180 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </summary>
+              <div className="absolute left-0 md:left-auto md:right-0 mt-2 w-48 rounded-2xl border border-border bg-surface/90 backdrop-blur-xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-50">
+                <div className="space-y-1">
+                  {sortOptions.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={(e) => handleSortChange(opt.value, e)}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-xl transition-all cursor-pointer select-none ${
+                        currentSort === opt.value 
+                          ? 'bg-text-main text-background font-bold shadow-sm' 
+                          : 'text-text-main hover:bg-surface-hover hover:text-text-main'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </details>
           </div>
         </div>
 

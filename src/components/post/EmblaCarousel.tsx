@@ -107,7 +107,7 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
                 {/* ======================================================= */}
                 {/* 📸 KONTENER FOTO RESPONSIVE 📸 */}
                 {/* ======================================================= */}
-                <div className="flex w-full items-center justify-center aspect-square md:aspect-auto md:h-[65vh] lg:h-[80vh] max-lg:landscape:h-[85vh] lg:landscape:h-[80vh]">
+                <div className="flex w-full items-center justify-center aspect-square md:aspect-auto max-lg:landscape:aspect-[4/3] md:h-[65vh] max-lg:landscape:h-auto lg:h-[80vh] lg:landscape:h-[80vh]">
                   <Image 
                     src={displayUrl} 
                     alt="Photo View" 
