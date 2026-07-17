@@ -241,7 +241,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                 <div>
                   <h3 className={`${LAYOUT_CONFIG.storySubtitle} font-heading font-bold text-text-main mb-3`}>Cerita di Balik Karya</h3>
                   {postData.story ? (
-                    <div className={`prose dark:prose-invert max-w-none prose-p:text-text-main prose-headings:text-text-main prose-a:text-primary-neutral hover:prose-a:text-primary-neutral/80 prose-strong:text-text-main prose-li:text-text-main font-sans leading-relaxed ${LAYOUT_CONFIG.storyText}`}>
+                    <div className={`prose dark:prose-invert max-w-none prose-p:text-text-main prose-headings:text-text-main prose-a:text-primary-neutral hover:prose-a:text-primary-neutral/80 prose-strong:text-text-main prose-li:text-text-main font-sans leading-relaxed break-words overflow-hidden ${LAYOUT_CONFIG.storyText}`}>
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {postData.story}
                       </ReactMarkdown>

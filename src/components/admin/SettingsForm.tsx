@@ -549,7 +549,7 @@ export function SettingsForm() {
               value={settings.zenofm_station_id}
               onChange={handleInputChange}
               className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
-              placeholder="https://stream.zeno.fm/cnho9wgxkkovv"
+              placeholder="Masukkan link radio (Zeno.fm/Icecast/Shoutcast)"
             />
             <p className="text-xs text-text-muted">Masukkan URL streaming radio, atau ID Zeno.fm nya saja.</p>
           </div>

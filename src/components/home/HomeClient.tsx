@@ -177,7 +177,7 @@ export function HomeClient({
                 {currentSortLabel}
                 <svg className="w-4 h-4 text-text-muted group-open:rotate-180 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </summary>
-              <div className="absolute left-0 md:left-auto md:right-0 mt-2 w-48 rounded-2xl border border-border bg-surface/90 backdrop-blur-xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-50">
+              <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-border bg-surface/90 backdrop-blur-xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-50">
                 <div className="space-y-1">
                   {sortOptions.map(opt => (
                     <button

@@ -144,3 +144,14 @@
   */
   animation: marquee 15s linear infinite;
 }
+
+/* =====================================================================
+   FIX RESPONSIVITAS LAYAR SANGAT KECIL / LOW DPI (< 380px)
+   Mencegah halaman kebablasan (horizontal scroll) pada HP lama/kecil
+====================================================================== */
+@media screen and (max-width: 380px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+}

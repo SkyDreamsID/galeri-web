@@ -87,7 +87,7 @@ export default async function RootLayout({
           </style>
         )}
       </head>
-      <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-text-main transition-colors duration-300">
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-text-main transition-colors duration-300 overflow-x-hidden w-full max-w-[100vw]">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -116,9 +116,10 @@ export default async function RootLayout({
             {/* Global Toast Notifications */}
 
           <Toaster
-            position="bottom-right"
+            position="top-center"
             richColors
             closeButton
+            duration={1500}
             toastOptions={{
               classNames: {
                 toast: 'font-sans',

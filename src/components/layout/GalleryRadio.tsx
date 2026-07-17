@@ -122,27 +122,39 @@ export function GalleryRadio() {
   // Responsive logic & Portal Target Detection
   const [isMobile, setIsMobile] = useState(false)
   const [portalTarget, setPortalTarget] = useState<Element | null>(null)
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
     const checkPortal = () => {
-      const width = window.innerWidth
-      setIsMobile(width < 1024) // Sekarang mencakup layar Tablet dan Mobile Landscape (lg = 1024px)
+      const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1023px)').matches
+      const isDesktop = window.matchMedia('(min-width: 1024px)').matches
       
-      let targetId = 'radio-portal-mobile'
-      if (width >= 768 && width < 1024) {
-        targetId = 'radio-portal-tablet'
-      }
+      setIsMobile(!isDesktop)
       
+      let targetId = isTablet ? 'radio-portal-tablet' : 'radio-portal-mobile'
       const targetNode = document.getElementById(targetId)
+      
       setPortalTarget(prev => prev !== targetNode ? targetNode : prev)
+      return targetNode
     }
     
-    // Initial check (use timeout to ensure Navbar is rendered on first mount)
-    setTimeout(checkPortal, 100)
+    setIsMounted(true)
+    checkPortal()
+
+    // Polling untuk memastikan target portal ditemukan meskipun ada delay rendering (misal hydration)
+    let retryCount = 0
+    const pollInterval = setInterval(() => {
+      const found = checkPortal()
+      retryCount++
+      if (found || retryCount > 20) {
+        clearInterval(pollInterval)
+      }
+    }, 150)
     
     window.addEventListener('resize', checkPortal)
     
     return () => {
+      clearInterval(pollInterval)
       window.removeEventListener('resize', checkPortal)
     }
   }, [])
@@ -160,9 +172,9 @@ export function GalleryRadio() {
       transition={{ type: "spring", damping: 22, stiffness: 200 }}
       
       className={`
-        fixed bottom-8 right-8
+        hidden lg:flex fixed bottom-8 right-8
         bg-black/70 border border-white/20 text-white shadow-2xl backdrop-blur-xl hover:bg-black/80 hover:border-white/40
-        flex items-center overflow-hidden pointer-events-auto cursor-pointer z-[9999] transition-all duration-300
+        items-center overflow-hidden pointer-events-auto cursor-pointer z-[9999] transition-all duration-300
       `}
       
       onClick={!isPlaying ? togglePlay : undefined}
@@ -247,7 +259,7 @@ export function GalleryRadio() {
     <button
       type="button"
       onClick={togglePlay}
-      className={`w-11 h-11 relative flex items-center justify-center rounded-xl transition-all border shadow-sm touch-manipulation ${
+      className={`real-radio-btn w-11 h-11 relative flex items-center justify-center rounded-xl transition-all border shadow-sm touch-manipulation z-10 ${
         isPlaying 
           ? 'bg-surface text-primary-neutral border-primary-neutral/30' 
           : 'bg-surface/80 hover:bg-surface active:scale-90 text-text-main border-border/50'
@@ -311,7 +323,7 @@ export function GalleryRadio() {
     </AnimatePresence>
   )
 
-  if (!streamUrl) return null;
+  if (!streamUrl || !isMounted) return null;
 
   return (
     <>

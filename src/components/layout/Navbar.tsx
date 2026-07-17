@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Sun, Moon, Menu, X, Camera } from 'lucide-react'
+import { Sun, Moon, Menu, X, Camera, Music } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { GearModal } from './GearModal'
 import { useTheme } from 'next-themes'
+import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
 interface NavbarProps {
   authorName?: string
@@ -24,6 +25,10 @@ export function Navbar({
   const [mounted, setMounted] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isGearModalOpen, setIsGearModalOpen] = useState(false)
+
+  const settings = useSiteSettings()
+  const rawZenoId = settings?.zenofm_station_id || process.env.NEXT_PUBLIC_ZENO_STATION_ID
+  const hasRadioConfigured = Boolean(rawZenoId?.trim())
 
   // Avoid hydration mismatch by waiting for mount
   useEffect(() => {
@@ -80,16 +85,22 @@ export function Navbar({
 
           <div className="flex items-center gap-3 ml-auto relative">
             {/* PORTAL TARGET UNTUK RADIO WIDGET DI HP */}
-            <div id="radio-portal-mobile" className="w-11 h-11 shrink-0 relative"></div>
+            <div id="radio-portal-mobile" className="w-11 h-11 shrink-0 relative group empty:hidden">
+              {hasRadioConfigured && (
+                <div className="dummy-radio absolute inset-0 w-11 h-11 flex items-center justify-center rounded-xl bg-surface/80 text-text-main border border-border/50 shadow-sm opacity-100 group-has-[.real-radio-btn]:hidden">
+                  <Music size={18} />
+                </div>
+              )}
+            </div>
 
             <button
               type="button"
-              onClick={toggleDarkMode}
+              onClick={() => setTheme(theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'light' : 'dark')}
               className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface/80 hover:bg-surface active:scale-90 transition-all text-text-main border border-border/50 shadow-sm touch-manipulation"
-              aria-label={isDark ? "Mode Terang" : "Mode Gelap"}
               title="Ganti Tema"
             >
-              {isDark ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} />}
+              <Sun size={20} className="hidden dark:block text-yellow-500" />
+              <Moon size={20} className="block dark:hidden" />
             </button>
 
             <details className="relative group">
@@ -145,42 +156,49 @@ export function Navbar({
 
           <div className="flex items-center gap-3 relative z-50 shrink-0">
             {/* PORTAL TARGET UNTUK RADIO WIDGET DI TABLET */}
-            <div id="radio-portal-tablet" className="w-11 h-11 shrink-0 relative flex items-center justify-center"></div>
+            <div id="radio-portal-tablet" className="w-11 h-11 shrink-0 relative flex items-center justify-center group empty:hidden">
+              {hasRadioConfigured && (
+                <div className="dummy-radio absolute inset-0 w-11 h-11 flex items-center justify-center rounded-xl bg-surface/80 text-text-main border border-border/50 shadow-sm opacity-100 group-has-[.real-radio-btn]:hidden">
+                  <Music size={18} />
+                </div>
+              )}
+            </div>
 
             <button
               type="button"
-              onClick={toggleDarkMode}
-              className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface/80 hover:bg-surface active:scale-90 transition-all text-text-main border border-border/50 shadow-sm touch-manipulation shrink-0"
-              aria-label={isDark ? "Mode Terang" : "Mode Gelap"}
+              onClick={() => setTheme(theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'light' : 'dark')}
+              className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface/80 hover:bg-surface active:scale-90 transition-all text-text-main border border-border/50 shadow-sm"
               title="Ganti Tema"
             >
-              {isDark ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} className="text-text-main" />}
+              <Sun size={20} className="hidden dark:block text-yellow-500" />
+              <Moon size={20} className="block dark:hidden text-text-main" />
             </button>
 
             <details className="relative group shrink-0">
-              <summary className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface/80 hover:bg-surface active:scale-90 transition-all text-text-main border border-border/50 shadow-sm cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+              <summary className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface/80 hover:bg-surface active:scale-90 transition-all text-text-main border border-border/50 shadow-sm cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden relative z-[10000]">
                 <Menu size={22} className="block group-open:hidden" />
                 <X size={22} className="hidden group-open:block" />
               </summary>
-              <div className="absolute right-0 mt-2 w-52 rounded-xl border border-border bg-surface p-2 shadow-xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
+              
+              <div className="absolute right-0 mt-2 w-[240px] max-h-[70vh] overflow-y-auto overscroll-contain scrollbar-thin rounded-2xl border border-border bg-surface/95 backdrop-blur-xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[9999] hidden group-open:block">
                 <div className="space-y-1">
-                  <Link href="/albums" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📁 Albums</Link>
-                  <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
-                  <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">👨‍💻 About Me</a>
-                  <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">💻 Source Code (Free)</a>
+                  <Link href="/albums" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📁 Albums</Link>
+                  <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
+                  <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">👨‍💻 About Me</a>
+                  <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">💻 Source Code (Free)</a>
                   
-                  <div className="h-px bg-border my-2"></div>
-                  <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
+                  <div className="h-px bg-border/50 my-2 mx-2"></div>
+                  <span className="block px-3 py-1.5 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
                   {socialLinks.map((link, idx) => (
-                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">
+                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">
                       {link.title === 'Instagram' ? '📷 Instagram' : link.title === 'GitHub' ? '🐙 GitHub' : link.title}
                     </a>
                   ))}
                   {contactEmail && (
-                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
+                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
                   )}
                   {isAdmin && (
-                    <Link href="/admin/gallery" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-lg bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 transition-colors cursor-pointer select-none mt-1">⚙️ Dashboard Admin</Link>
+                    <Link href="/admin/gallery" className="block w-full text-left px-3 py-2 text-sm font-bold rounded-xl bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 transition-colors cursor-pointer select-none mt-1.5">⚙️ Dashboard Admin</Link>
                   )}
                 </div>
               </div>
@@ -228,7 +246,7 @@ export function Navbar({
                 <X size={16} className="hidden group-open:block" />
                 <span>Menu</span>
               </summary>
-              <div className="absolute right-0 mt-2 w-52 rounded-xl border border-border bg-surface p-2 shadow-xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
+              <div className="absolute right-0 mt-2 w-52 max-h-[70vh] overflow-y-auto overscroll-contain scrollbar-thin rounded-xl border border-border bg-surface p-2 shadow-xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
                 <div className="space-y-1">
                   <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
