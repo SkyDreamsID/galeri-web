@@ -12,11 +12,11 @@ import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 // 🛠️ PAPAN KONTROL UKURAN (Tinggal ganti di sini biar gampang utak-atik)
 // =========================================================================
 const LAYOUT_CONFIG = {
-  maxWidth: "container max-w-7xl px-6",
-  heroTitle: "text-3xl md:text-5xl lg:text-6xl max-lg:landscape:text-3xl",
+  maxWidth: "container max-w-7xl px-4 md:px-6",
+  heroTitle: "text-2xl md:text-5xl lg:text-6xl max-lg:landscape:text-3xl",
   heroDesc: "text-sm md:text-base lg:text-lg max-lg:landscape:text-sm",
-  gridCols: "columns-1 sm:columns-2 lg:columns-3",
-  gridGap: "gap-4 md:gap-6 space-y-4 md:space-y-6"
+  gridCols: "columns-2 lg:columns-3",
+  gridGap: "gap-3 md:gap-6 space-y-3 md:space-y-6"
 }
 
 const POSTS_PER_PAGE = 9
@@ -131,11 +131,11 @@ export function HomeClient({
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`mx-auto ${LAYOUT_CONFIG.maxWidth} py-8 md:py-20 max-lg:landscape:py-6`}
+        className={`mx-auto ${LAYOUT_CONFIG.maxWidth} py-6 md:py-20 max-lg:landscape:py-6`}
       >
 
         {/* Hero Section */}
-        <div className="mb-8 md:mb-20 max-lg:landscape:mb-6 max-w-3xl">
+        <div className="mb-6 md:mb-20 max-lg:landscape:mb-6 max-w-3xl">
           <motion.h1
             initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className={`${LAYOUT_CONFIG.heroTitle} font-heading font-extrabold text-text-main tracking-tighter mb-4 leading-tight`}
@@ -151,7 +151,7 @@ export function HomeClient({
         </div>
 
         {/* Filter Pills & Sort */}
-        <div className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="mb-6 md:mb-12 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x flex-1">
             <Link
               href="/"
@@ -238,18 +238,22 @@ export function HomeClient({
                   <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-500 lg:backdrop-blur-[2px]"></div>
 
                   {/* Info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6 translate-y-0 opacity-100 lg:translate-y-8 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 ease-out">
-                    <div className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-primary-neutral mb-1 md:mb-2 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-75">
+                  <div className="absolute bottom-0 left-0 right-0 p-2.5 md:p-6 translate-y-0 opacity-100 lg:translate-y-8 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 ease-out">
+                    {/* 👇 UKURAN TEKS: KATEGORI / KOLEKSI */}
+                    <div className="text-[7px] md:text-[10px] font-bold uppercase tracking-widest text-primary-neutral mb-0.5 md:mb-2 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-75 line-clamp-1">
                       {post.collections?.name || 'Uncategorized'}
                     </div>
-                    <h3 className="font-heading text-sm md:text-xl font-bold text-text-main mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2">
+                    {/* 👇 UKURAN TEKS: JUDUL FOTO */}
+                    <h3 className="font-heading text-[11px] md:text-xl font-bold text-text-main mb-0.5 md:mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2 leading-snug">
                       {post.title}
                     </h3>
-                    <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150">
-                      <p className="text-[9px] md:text-xs text-text-muted line-clamp-1">
+                    <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150 gap-1">
+                      {/* 👇 UKURAN TEKS: LOKASI */}
+                      <p className="text-[8px] md:text-xs text-text-muted line-clamp-1">
                         {post.location || 'Unknown Location'}
                       </p>
-                      <p className="text-[8px] md:text-[10px] text-text-muted/70 font-medium">
+                      {/* 👇 UKURAN TEKS: TANGGAL */}
+                      <p className="text-[7px] md:text-[10px] text-text-muted/70 font-medium whitespace-nowrap">
                         {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>

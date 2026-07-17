@@ -130,18 +130,22 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
                       
                       <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-500 lg:backdrop-blur-[2px]"></div>
                       
-                      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6 translate-y-0 opacity-100 lg:translate-y-8 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 ease-out">
-                        <div className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-primary-neutral mb-1 md:mb-2 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-75">
+                      <div className="absolute bottom-0 left-0 right-0 p-2.5 md:p-6 translate-y-0 opacity-100 lg:translate-y-8 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 ease-out">
+                        {/* 👇 UKURAN TEKS: KATEGORI / KOLEKSI */}
+                        <div className="text-[7px] md:text-[10px] font-bold uppercase tracking-widest text-primary-neutral mb-0.5 md:mb-2 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-75 line-clamp-1">
                           {post.collections?.name || 'Uncategorized'}
                         </div>
-                        <h3 className="font-heading text-sm md:text-xl font-bold text-text-main mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2">
+                        {/* 👇 UKURAN TEKS: JUDUL FOTO */}
+                        <h3 className="font-heading text-[11px] md:text-xl font-bold text-text-main mb-0.5 md:mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2 leading-snug">
                           {post.title}
                         </h3>
-                        <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150">
-                          <p className="text-[9px] md:text-xs text-text-muted line-clamp-1">
+                        <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150 gap-1">
+                          {/* 👇 UKURAN TEKS: LOKASI */}
+                          <p className="text-[8px] md:text-xs text-text-muted line-clamp-1">
                             {post.location || 'Unknown Location'}
                           </p>
-                          <p className="text-[8px] md:text-[10px] text-text-muted/70 font-medium">
+                          {/* 👇 UKURAN TEKS: TANGGAL */}
+                          <p className="text-[7px] md:text-[10px] text-text-muted/70 font-medium whitespace-nowrap">
                             {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
                         </div>
