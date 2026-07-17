@@ -1,6 +1,6 @@
-# 🏛️ Blueprint Arsitektur & Spesifikasi Teknis: Gallery (ULTRA-DETAIL V2)
+# 🏛️ Blueprint Arsitektur & Spesifikasi Teknis: Jurnal Visual
 
-Dokumen ini memuat detail teknis, arsitektur sistem, alur kerja, dan desain database tingkat lanjut yang **FINAL & BULLETPROOF**. Mencakup fitur-fitur lengkap termasuk Per-Photo Copyright, Watermark Dinamis, Gear Management, dan Web CMS.
+Dokumen ini memuat detail teknis, arsitektur sistem, alur kerja, dan desain database proyek Jurnal Visual. Mencakup dokumentasi fitur seperti Per-Photo Copyright, Watermark, Inventaris Alat, dan CMS ringan.
 
 ## 1. Arsitektur Inti & Teknologi Spesifik
 
@@ -8,7 +8,7 @@ Dokumen ini memuat detail teknis, arsitektur sistem, alur kerja, dan desain data
 *   **UI/UX Stack & Principles:**
     *   **Tailwind CSS v4** (Styling utama).
     *   **shadcn/ui** (Komponen dasar UI seperti Button, Input, Modal, Dropdown).
-    *   **Headless Custom UI** (Penolakan terhadap elemen *native* OS bawaan HTML seperti `<select>` demi menjaga konsistensi tema *dark mode* dan *glassmorphism* di seluruh peramban).
+    *   **Headless Custom UI** (Menggunakan komponen custom untuk konsistensi tema *dark mode* dan estetika visual di berbagai perangkat).
     *   **Embla Carousel** (Library bawaan shadcn/ui untuk fitur *Swipe/Next/Previous* foto yang sangat mulus di Mobile & Desktop).
     *   **Framer Motion** (Untuk transisi antar halaman dan mikro-animasi).
     *   **Lucide React** (Untuk Iconografi seperti tombol `(i)`, panah next/prev, dll).

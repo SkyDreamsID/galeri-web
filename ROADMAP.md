@@ -1,10 +1,10 @@
-# 🗺️ Master Roadmap & Expansion Plan: Gallery (ULTRA-DETAIL V2)
+# 🗺️ Roadmap & Development Plan: Jurnal Visual
 
-Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **Next.js**, UI **Tailwind CSS + shadcn/ui**, serta dukungan sistem **Nesting Photo (Multi-upload)**. Alur ini telah disesuaikan agar sejalan dengan Blueprint V2 (Keamanan, Validasi, dan Optimasi Database).
+Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framework **Next.js**, UI **Tailwind CSS + shadcn/ui**, serta dukungan sistem **Multi-upload**. Alur ini telah disesuaikan agar sejalan dengan arsitektur utama.
 
 ## 🏆 Development Milestones
 
-### Phase 1: Foundation & Bulletproof Planning (Selesai)
+### Phase 1: Foundation & Architecture Planning (Selesai)
 *Fokus: Struktur, Keamanan, dan Arsitektur Multi-Upload*
 - [x] Pembuatan Spesifikasi Teknis yang diperketat (Roadmap & Blueprint V2)
 - [x] Desain Skema Database Nesting (`posts`, `photos`, `exif_data`, `collections`, `tags`, `post_tags`, `gears`)
@@ -41,7 +41,7 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 - [x] Modal/Overlay dinamis untuk memunculkan EXIF masing-masing foto di dalam carousel
 - [x] Komponen UI Canggih: `ProgressiveImage` (blur-to-sharp) dan `ViewTracker`
 - [x] **My Gear Modal**: Integrasi modal pameran alat fotografi di `Navbar`
-- [x] **Per-Photo Copyright**: Memungkinkan hak cipta dinamis untuk tiap foto yang dirender dalam satu album (*agency ready*).
+- [x] **Per-Photo Copyright**: Memungkinkan personalisasi hak cipta dinamis untuk tiap foto yang dirender dalam satu album.
 - [x] Dark Mode Enhancement: Toggle tema Gelap/Terang.
 - [x] Transisi Framer Motion & Tipografi Plus Jakarta Sans.
 
