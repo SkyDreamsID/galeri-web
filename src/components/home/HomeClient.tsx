@@ -155,7 +155,7 @@ export function HomeClient({
           <div className="flex items-center gap-3 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x flex-1">
             <Link
               href="/"
-              className="shrink-0 snap-start px-4 py-1.5 rounded-full bg-text-main text-background hover:opacity-90 transition-opacity text-sm font-semibold whitespace-nowrap shadow-sm"
+              className="shrink-0 snap-start px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-text-main text-background hover:opacity-90 transition-opacity text-xs md:text-sm font-semibold whitespace-nowrap shadow-sm"
             >
               Semua Foto
             </Link>
@@ -164,16 +164,16 @@ export function HomeClient({
               <Link
                 key={`tag-${t.id}`}
                 href={`/tag/${t.name}`}
-                className="shrink-0 snap-start px-4 py-1.5 rounded-full bg-surface/50 border border-border/20 text-text-main hover:bg-surface/80 hover:border-border/40 transition-all duration-300 text-sm font-medium whitespace-nowrap backdrop-blur-sm"
+                className="shrink-0 snap-start px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-surface/50 border border-border/20 text-text-main hover:bg-surface/80 hover:border-border/40 transition-all duration-300 text-xs md:text-sm font-medium whitespace-nowrap backdrop-blur-sm"
               >
                 #{t.name}
               </Link>
             ))}
           </div>
 
-          <div className="shrink-0 self-start md:self-auto">
+          <div className="shrink-0 self-end md:self-auto">
             <details className="relative group">
-              <summary className="flex items-center gap-2 bg-surface border border-border/50 text-text-main text-sm font-medium rounded-full px-4 py-2 cursor-pointer hover:bg-surface/80 hover:border-border transition-colors list-none [&::-webkit-details-marker]:hidden select-none">
+              <summary className="flex items-center gap-2 bg-surface border border-border/50 text-text-main text-xs md:text-sm font-medium rounded-full px-3 py-1 md:px-4 md:py-2 cursor-pointer hover:bg-surface/80 hover:border-border transition-colors list-none [&::-webkit-details-marker]:hidden select-none">
                 {currentSortLabel}
                 <svg className="w-4 h-4 text-text-muted group-open:rotate-180 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </summary>
