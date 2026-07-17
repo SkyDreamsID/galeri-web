@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye, DownloadCloud } from 'lucide-react'
+import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye, DownloadCloud, Search } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
@@ -15,13 +16,16 @@ type Post = {
   created_at: string
   views: number
   downloads: number
+  status: string
   collections: { name: string } | null
   photos: { image_url: string }[]
+  post_tags?: { tags: { name: string } }[]
 }
 
 export default function GalleryManagement() {
   const supabase = createClient()
   const [posts, setPosts] = useState<Post[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -36,8 +40,10 @@ export default function GalleryManagement() {
           created_at,
           views,
           downloads,
+          status,
           collections (name),
-          photos (image_url)
+          photos (image_url),
+          post_tags ( tags (name) )
         `)
         .order('created_at', { ascending: false })
 
@@ -86,20 +92,49 @@ export default function GalleryManagement() {
     )
   }
 
+  const filteredPosts = posts.filter(post => {
+    if (!searchTerm) return true
+    const term = searchTerm.toLowerCase()
+    if (post.title.toLowerCase().includes(term)) return true
+    const dateStr = new Date(post.created_at).toLocaleDateString('id-ID', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    }).toLowerCase()
+    if (dateStr.includes(term)) return true
+    if (post.post_tags?.some((pt: any) => pt.tags?.name?.toLowerCase().includes(term))) return true
+    if (post.collections?.name?.toLowerCase().includes(term)) return true
+    return false
+  })
+
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20 md:pb-12">
-      <div>
-        <h2 className="text-3xl font-heading font-bold tracking-tight text-text-main">Kelola Galeri</h2>
-        <p className="text-text-muted mt-1 font-sans">Daftar momen yang telah dipublikasikan di galeri Anda.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-heading font-bold tracking-tight text-text-main">Kelola Galeri</h2>
+          <p className="text-text-muted mt-1 font-sans">Daftar momen yang telah dipublikasikan di galeri Anda.</p>
+        </div>
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted/50 w-4 h-4" />
+          <Input 
+            type="text" 
+            placeholder="Cari judul, tag, atau tanggal..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 bg-background border-border/50 text-text-main focus:border-primary-neutral h-10 w-full"
+          />
+        </div>
       </div>
 
       {posts.length === 0 ? (
         <Card className="bg-surface border-border/40 p-8 text-center text-text-muted shadow-sm">
           Belum ada momen yang diunggah. Silakan upload momen baru terlebih dahulu.
         </Card>
+      ) : filteredPosts.length === 0 ? (
+        <Card className="bg-surface border-border/40 p-8 text-center text-text-muted shadow-sm">
+          Pencarian untuk "{searchTerm}" tidak ditemukan.
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map((post) => {
+          {filteredPosts.map((post) => {
             const coverImage = post.photos?.[0]?.image_url
             return (
               <Card key={post.id} className="bg-surface border-border/40 overflow-hidden flex flex-col shadow-sm">
@@ -120,6 +155,13 @@ export default function GalleryManagement() {
                       📁 {post.collections.name}
                     </span>
                   )}
+                  <span className={`absolute top-2 right-2 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md shadow-sm backdrop-blur-md border ${
+                    post.status === 'Published' 
+                      ? 'bg-black/60 text-white border-white/20'
+                      : 'bg-red-500/80 text-white border-red-500/20'
+                  }`}>
+                    {post.status === 'Published' ? '🌍 Publik' : '🔒 Pribadi'}
+                  </span>
                 </div>
 
                 <CardHeader className="p-4 flex-1">

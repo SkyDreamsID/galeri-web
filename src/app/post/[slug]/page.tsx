@@ -8,6 +8,8 @@ import { getOptimizedImageUrl } from '@/lib/utils'
 import { ViewTracker } from '@/components/post/ViewTracker'
 import { CarouselActions } from '@/components/post/CarouselActions'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 // =========================================================================
 // 🛠️ PAPAN KONTROL UKURAN (Tinggal ganti di sini biar gampang utak-atik)
@@ -28,17 +30,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   let post = null
   const { data } = await supabase
     .from('posts')
-    .select('title, story, photos (image_url, is_cover)')
+    .select('title, story, status, photos (image_url, is_cover)')
     .eq('slug', slug)
     .single()
   
   if (data) post = data
   if (!post) {
-    const { data: byId } = await supabase.from('posts').select('title, story, photos (image_url, is_cover)').eq('id', slug).single()
+    const { data: byId } = await supabase.from('posts').select('title, story, status, photos (image_url, is_cover)').eq('id', slug).single()
     if (byId) post = byId
   }
 
-  if (!post) return {}
+  if (!post || post.status !== 'Published') {
+    return {
+      title: 'Postingan Tidak Tersedia | Galeri',
+      description: 'Postingan ini telah dihapus atau bersifat pribadi.',
+    }
+  }
 
   const coverPhoto = post.photos?.find((p: any) => p.is_cover) || post.photos?.[0]
   const imageUrl = coverPhoto ? getOptimizedImageUrl(coverPhoto.image_url, 1200) : ''
@@ -69,7 +76,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   const { data: post, error } = await supabase
     .from('posts')
     .select(`
-      id, title, story, location, created_at, license_type, slug,
+      id, title, story, location, created_at, license_type, slug, status,
       collections (name),
       post_tags ( tags (name) ),
       photos (
@@ -86,7 +93,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     const { data: postById, error: errById } = await supabase
       .from('posts')
       .select(`
-        id, title, story, location, created_at, license_type, slug,
+        id, title, story, location, created_at, license_type, slug, status,
         collections (name),
         post_tags ( tags (name) ),
         photos (
@@ -103,8 +110,24 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     finalPost = postById
   }
 
-  if (!finalPost) {
-    notFound()
+  if (!finalPost || finalPost.status !== 'Published') {
+    return (
+      <main className="container mx-auto max-w-7xl px-4 md:px-8 py-20 flex flex-col items-center justify-center min-h-[60vh] text-center animate-in fade-in zoom-in-95 duration-500">
+        <div className="bg-surface border border-border/40 p-8 md:p-12 rounded-2xl shadow-sm max-w-md w-full mx-auto mt-10">
+          <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-3xl">🔒</span>
+          </div>
+          <h2 className="text-2xl font-heading font-bold text-text-main mb-3">Akses Ditolak</h2>
+          <p className="text-text-muted mb-8">Postingan Tidak Tersedia (dihapus/pribadi)</p>
+          <Link 
+            href="/" 
+            className="inline-flex items-center justify-center px-6 py-2.5 bg-primary-neutral hover:bg-primary-neutral/90 text-surface font-medium rounded-lg transition-all shadow-sm"
+          >
+            Kembali ke Beranda
+          </Link>
+        </div>
+      </main>
+    )
   }
 
   const postData = finalPost
@@ -209,9 +232,11 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                 <div>
                   <h3 className={`${LAYOUT_CONFIG.storySubtitle} font-heading font-bold text-text-main mb-3`}>Cerita di Balik Karya</h3>
                   {postData.story ? (
-                    <p className={`${LAYOUT_CONFIG.storyText} text-text-main leading-relaxed font-sans whitespace-pre-line`}>
-                      {postData.story}
-                    </p>
+                    <div className={`prose dark:prose-invert max-w-none prose-p:text-text-main prose-headings:text-text-main prose-a:text-primary-neutral hover:prose-a:text-primary-neutral/80 prose-strong:text-text-main prose-li:text-text-main font-sans leading-relaxed ${LAYOUT_CONFIG.storyText}`}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {postData.story}
+                      </ReactMarkdown>
+                    </div>
                   ) : (
                     <p className={`${LAYOUT_CONFIG.storyText} text-text-muted italic`}>Tidak ada cerita yang dilampirkan untuk momen ini.</p>
                   )}

@@ -283,7 +283,7 @@ export default function GearManagement() {
                       >
                         <X size={14} className="text-white" />
                       </button>
-                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      <img src={imagePreview} alt="Preview" className="w-full h-full object-contain p-2 drop-shadow-md bg-background/50" />
                     </div>
                   )}
                 </div>
@@ -336,7 +336,7 @@ export default function GearManagement() {
                 <div key={gear.id} className="bg-surface border border-border/40 rounded-xl overflow-hidden shadow-sm flex flex-col group">
                   <div className="h-40 w-full relative bg-background/50 flex items-center justify-center border-b border-border/40">
                     {gear.image_url ? (
-                      <img src={gear.image_url} alt={gear.name} className="w-full h-full object-cover" />
+                      <img src={gear.image_url} alt={gear.name} className="w-full h-full object-contain p-2 drop-shadow-md" />
                     ) : (
                       <Camera className="w-10 h-10 text-text-muted/30" />
                     )}

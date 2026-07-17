@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ImagePlus, Images, LogOut, Settings, Menu, X, Camera, Folder, Tag } from 'lucide-react'
+import { ImagePlus, Images, LogOut, Settings, Menu, X, Camera, Folder, Tag, Globe } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export function Sidebar() {
@@ -61,7 +61,14 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-border/40 font-sans">
+      <div className="p-4 border-t border-border/40 font-sans flex flex-col gap-2">
+        <Link 
+          href="/"
+          className="flex w-full items-center gap-3 px-4 py-3 text-text-muted hover:text-text-main hover:bg-surface rounded-xl transition-colors font-medium border border-transparent"
+        >
+          <Globe size={20} />
+          <span>Lihat Website</span>
+        </Link>
         <button 
           onClick={handleLogout}
           className="flex w-full items-center gap-3 px-4 py-3 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors font-medium border border-transparent"
@@ -69,6 +76,9 @@ export function Sidebar() {
           <LogOut size={20} />
           <span>Keluar</span>
         </button>
+        <div className="text-[10px] text-center text-text-muted/40 font-mono mt-1 select-none">
+          v1.0.0
+        </div>
       </div>
     </>
   )

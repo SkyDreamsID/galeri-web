@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import exifr from 'exifr'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, X } from 'lucide-react'
+import { Loader2, UploadCloud, X, FileText, CheckCircle2, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -35,13 +35,18 @@ export function UploadForm() {
   const settings = useSiteSettings()
   const cloudName = settings?.cloudinary_cloud_name || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
   
-  const [isUploading, setIsUploading] = useState(false)
+  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
+  const [uploadErrorMsg, setUploadErrorMsg] = useState('')
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  
   const [title, setTitle] = useState('')
   const [story, setStory] = useState('')
   const [location, setLocation] = useState('')
   const [album, setAlbum] = useState('')
+  const [status, setStatus] = useState('Published')
   const [tags, setTags] = useState<string[]>([])
-  const [bulkCopyrightName, setBulkCopyrightName] = useState('Rifki Eka Putra')
+  const [bulkCopyrightName, setBulkCopyrightName] = useState('')
   const [bulkLicense, setBulkLicense] = useState('Copyright')
   const [availableCollections, setAvailableCollections] = useState<{id: string, name: string}[]>([])
   const [availableTags, setAvailableTags] = useState<string[]>([])
@@ -62,6 +67,17 @@ export function UploadForm() {
     }
     fetchData()
   }, [])
+
+  // Auto-resize textarea when story changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+      }
+    }, 10)
+    return () => clearTimeout(timer)
+  }, [story])
 
   const processFiles = async (files: File[]) => {
     // Validasi ukuran file sebelum dikirim ke Cloudinary
@@ -100,12 +116,7 @@ export function UploadForm() {
           console.warn('Could not parse EXIF for', file.name)
         }
 
-        return { 
-          file, 
-          preview: URL.createObjectURL(file), 
-          license_type: 'Copyright',
-          exif: { ...exifData, copyright_name: 'Rifki Eka Putra' } 
-        }
+        return { file, preview: URL.createObjectURL(file), license_type: 'Copyright', exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
       })
     )
     setImages((prev) => [...prev, ...newImages])
@@ -150,8 +161,12 @@ export function UploadForm() {
     e.preventDefault()
     if (images.length === 0) return toast.warning('Pilih foto dulu sebelum publish!')
     if (!title.trim()) return toast.warning('Judul momen tidak boleh kosong!')
-    setIsUploading(true)
     
+    setUploadState('uploading')
+    setUploadErrorMsg('')
+    abortControllerRef.current = new AbortController()
+    const signal = abortControllerRef.current.signal
+
     // Tracking public_id yang berhasil diupload ke Cloudinary (untuk rollback)
     const uploadedPublicIds: string[] = []
 
@@ -161,8 +176,10 @@ export function UploadForm() {
       const sigRes = await fetch('/api/cloudinary/sign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paramsToSign: { timestamp } })
+        body: JSON.stringify({ paramsToSign: { timestamp } }),
+        signal
       })
+      if (!sigRes.ok) throw new Error('Gagal memproses otorisasi upload')
       const { signature, apiKey } = await sigRes.json()
 
       // 2. Upload tiap foto ke Cloudinary (satu per satu + progress)
@@ -179,7 +196,7 @@ export function UploadForm() {
 
         const cloudRes = await fetch(
           `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          { method: 'POST', body: formData }
+          { method: 'POST', body: formData, signal }
         )
         
         if (!cloudRes.ok) {
@@ -200,6 +217,7 @@ export function UploadForm() {
         })
       }
       setUploadProgress('Menyimpan data ke database...')
+      if (signal.aborted) throw new Error('Dibatalkan oleh pengguna')
 
       // 3. Handle Album (Collections) - Langsung pakai ID yang dipilih
       let collectionId = album || null
@@ -214,12 +232,13 @@ export function UploadForm() {
           story,
           location,
           collection_id: collectionId,
-          status: 'Published'
+          status
         })
         .select('id')
         .single()
 
       if (postError || !postData) throw postError
+      if (signal.aborted) throw new Error('Dibatalkan oleh pengguna')
 
       // 5. Handle Tags
       for (const tagName of tags) {
@@ -261,7 +280,7 @@ export function UploadForm() {
             license_type: photo.license_type,
             is_cover: i === 0,
             sort_order: i,
-            copyright_name: photo.exif.copyright_name || 'Rifki Eka Putra'
+            copyright_name: photo.exif.copyright_name || ''
           })
           .select('id')
           .single()
@@ -278,17 +297,23 @@ export function UploadForm() {
         }
       }
 
-      toast.success('Upload sukses! Momen berhasil di-publish 🎉')
-      setUploadProgress('')
-      
-      // Arahkan ke halaman kelola galeri
-      router.push('/admin/gallery')
+      setUploadState('success')
     } catch (err: any) {
       console.error('Upload error:', err)
       
+      if (err.name === 'AbortError' || err.message === 'Dibatalkan oleh pengguna') {
+        toast.info('Upload dibatalkan.')
+        setUploadState('idle')
+      } else {
+        const message = err?.message?.includes('10MB') || err?.message?.includes('File size')
+          ? 'Foto terlalu besar! Maksimal 10MB per foto.'
+          : err?.message || 'Gagal upload. Coba lagi.'
+        setUploadErrorMsg(message)
+        setUploadState('error')
+      }
+      
       // Rollback: hapus foto yang udah telanjur naik ke Cloudinary
       if (uploadedPublicIds.length > 0) {
-        toast.error(`Upload gagal. Membersihkan ${uploadedPublicIds.length} foto dari Cloudinary...`)
         try {
           await fetch('/api/cloudinary/delete', {
             method: 'POST',
@@ -299,21 +324,13 @@ export function UploadForm() {
           console.error('Rollback Cloudinary gagal:', cleanupErr)
         }
       }
-      
-      // Tunjukkin error yang spesifik ke user
-      const message = err?.message?.includes('10MB') || err?.message?.includes('File size')
-        ? 'Foto terlalu besar! Maksimal 10MB per foto.'
-        : err?.message || 'Gagal upload. Coba lagi.'
-      toast.error(message)
-      setUploadProgress('')
-    } finally {
-      setIsUploading(false)
     }
   }
 
   return (
-    <form onSubmit={handleUpload} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Kolom Kiri: Meta Data Post */}
+    <>
+      <form onSubmit={handleUpload} className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
+        {/* Kolom Kiri: Meta Data Post */}
       <div className="lg:col-span-1 space-y-6">
         <Card className="bg-surface border-border/40 shadow-sm">
           <CardHeader>
@@ -365,19 +382,53 @@ export function UploadForm() {
               </select>
             </div>
             <div className="space-y-2">
-              <Label className="text-text-muted">Tags</Label>
-                  <TagInput 
-                    tags={tags} 
-                    setTags={setTags} 
-                    availableTags={availableTags} 
-                  />
+              <Label className="text-text-muted">Status Tayang</Label>
+              <select 
+                value={status} onChange={(e) => setStatus(e.target.value)}
+                className="w-full rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral appearance-none"
+              >
+                <option value="Published">Publik</option>
+                <option value="Draft">Pribadi / Draft</option>
+              </select>
             </div>
             <div className="space-y-2">
-              <Label className="text-text-muted">Cerita / Deskripsi</Label>
+              <Label className="text-text-muted">Tags</Label>
+              <TagInput 
+                tags={tags} 
+                setTags={setTags} 
+                availableTags={availableTags} 
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-text-muted">Cerita / Deskripsi</Label>
+                <label className="cursor-pointer text-xs flex items-center gap-1.5 text-primary-neutral hover:text-primary-neutral/80 transition-colors bg-primary-neutral/10 px-2 py-1 rounded-md border border-primary-neutral/20">
+                  <FileText size={14} />
+                  <span>Import .txt / .md</span>
+                  <input 
+                    type="file" 
+                    accept=".txt,.md" 
+                    className="hidden" 
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const reader = new FileReader()
+                      reader.onload = (event) => {
+                        setStory(event.target?.result as string)
+                        if (!title) setTitle(file.name.replace(/\.[^/.]+$/, ""))
+                        toast.success('Cerita berhasil diimpor!')
+                      }
+                      reader.readAsText(file)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+              </div>
               <textarea 
+                ref={textareaRef}
                 value={story} onChange={(e) => setStory(e.target.value)}
                 placeholder="Tulis cerita di balik karya ini..."
-                className="w-full min-h-[120px] rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
+                className="w-full min-h-[120px] resize-none overflow-hidden rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
               />
             </div>
           </CardContent>
@@ -531,20 +582,73 @@ export function UploadForm() {
         <div className="flex justify-end pt-4 pb-12 md:pb-4">
           <Button 
             type="submit" 
-            disabled={isUploading || images.length === 0} 
+            disabled={uploadState !== 'idle' || images.length === 0} 
             className="w-full sm:w-auto bg-primary-neutral hover:bg-primary-neutral/90 text-surface h-12 md:h-10 text-base md:text-sm shadow-md"
           >
-            {isUploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {uploadProgress || 'Memproses...'}
-              </>
-            ) : (
-              'Publish Momen'
-            )}
+            Publish Momen
           </Button>
         </div>
       </div>
     </form>
+
+    {/* OVERLAY LOADING BESAR */}
+    {uploadState !== 'idle' && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+        <Card className="w-full max-w-md bg-surface border-border/40 shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <CardContent className="p-8 flex flex-col items-center text-center space-y-6">
+            {uploadState === 'uploading' && (
+              <>
+                <Loader2 className="w-16 h-16 animate-spin text-primary-neutral" />
+                <div>
+                  <h3 className="text-xl font-heading font-bold text-text-main mb-2">Memproses Upload</h3>
+                  <p className="text-sm text-text-muted">{uploadProgress || 'Mohon tunggu sebentar...'}</p>
+                </div>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={() => abortControllerRef.current?.abort()}
+                  className="mt-4 border-danger/50 text-danger hover:bg-danger/10 hover:text-danger w-full max-w-[200px]"
+                >
+                  Batal
+                </Button>
+              </>
+            )}
+            {uploadState === 'success' && (
+              <>
+                <CheckCircle2 className="w-16 h-16 text-success" />
+                <div>
+                  <h3 className="text-xl font-heading font-bold text-text-main mb-2">Upload Sukses!</h3>
+                  <p className="text-sm text-text-muted">Momen berhasil disimpan dan dipublikasikan.</p>
+                </div>
+                <Button 
+                  type="button"
+                  onClick={() => router.push('/admin/gallery')}
+                  className="mt-4 bg-primary-neutral hover:bg-primary-neutral/90 text-surface px-8 w-full max-w-[200px]"
+                >
+                  Oke
+                </Button>
+              </>
+            )}
+            {uploadState === 'error' && (
+              <>
+                <AlertCircle className="w-16 h-16 text-danger" />
+                <div>
+                  <h3 className="text-xl font-heading font-bold text-text-main mb-2">Upload Gagal</h3>
+                  <p className="text-sm text-text-muted">{uploadErrorMsg}</p>
+                </div>
+                <Button 
+                  type="button"
+                  onClick={() => setUploadState('idle')}
+                  className="mt-4 bg-surface border border-border/50 text-text-main hover:bg-hover-bg px-8 w-full max-w-[200px]"
+                >
+                  Tutup
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    )}
+    </>
   )
 }

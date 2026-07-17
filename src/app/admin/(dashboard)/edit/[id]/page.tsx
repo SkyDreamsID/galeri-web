@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
+import { useEffect, useState, use, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import exifr from 'exifr'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, X, ArrowLeft } from 'lucide-react'
+import { Loader2, UploadCloud, X, ArrowLeft, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { TagInput } from '@/components/admin/TagInput'
 import { toast } from 'sonner'
@@ -47,15 +47,17 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [story, setStory] = useState('')
   const [location, setLocation] = useState('')
   const [album, setAlbum] = useState('')
+  const [status, setStatus] = useState('Published')
   const [tags, setTags] = useState<string[]>([])
   const [allTags, setAllTags] = useState<string[]>([])
   const [availableCollections, setAvailableCollections] = useState<{id: string, name: string}[]>([])
   const [images, setImages] = useState<FileWithExif[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Bulk Edit States
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
-  const [bulkCopyrightName, setBulkCopyrightName] = useState('Rifki Eka Putra')
+  const [bulkCopyrightName, setBulkCopyrightName] = useState('')
   const [bulkLicense, setBulkLicense] = useState('Copyright')
 
   // Track deleted existing photos
@@ -68,7 +70,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         const { data: post, error: postErr } = await supabase
           .from('posts')
           .select(`
-            id, title, story, location, license_type, collection_id,
+            id, title, story, location, license_type, collection_id, status,
             photos (
               id, image_url, public_id, sort_order, bytes, format, original_filename, license_type, copyright_name,
               exif_data (camera, lens, focal_length, aperture, iso, shutter_speed, date_taken)
@@ -83,7 +85,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         setStory(post.story || '')
         setLocation(post.location || '')
         setAlbum(post.collection_id || '')
-        setAlbum(post.collection_id || '')
+        setStatus(post.status || 'Published')
 
         // Fetch collections
         const { data: cols } = await supabase.from('collections').select('id, name').order('name', { ascending: true })
@@ -124,7 +126,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 iso: exif.iso || undefined,
                 shutter_speed: exif.shutter_speed || undefined,
                 date_taken: exif.date_taken || undefined,
-                copyright_name: p.copyright_name || 'Rifki Eka Putra'
+                copyright_name: p.copyright_name || ''
               }
             }
           })
@@ -141,6 +143,17 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
     loadPostData()
   }, [postId])
+
+  // Auto-resize textarea when story changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+      }
+    }, 10)
+    return () => clearTimeout(timer)
+  }, [story, loading])
 
   const processFiles = async (files: File[]) => {
     const newImages = await Promise.all(
@@ -163,7 +176,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           console.warn('Could not parse EXIF for', file.name)
         }
 
-        return { file, preview: URL.createObjectURL(file), license_type: 'Copyright', exif: { ...exifData, copyright_name: 'Rifki Eka Putra' } }
+        return { file, preview: URL.createObjectURL(file), license_type: 'Copyright', exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
       })
     )
     setImages((prev) => [...prev, ...newImages])
@@ -275,6 +288,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           story,
           location,
           collection_id: collectionId,
+          status,
         })
         .eq('id', postId)
 
@@ -322,7 +336,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             license_type: photo.license_type || 'Copyright',
             is_cover: remainingExistingCount === 0 && i === 0, // Cover jika tidak ada foto lama tersisa
             sort_order: remainingExistingCount + i,
-            copyright_name: photo.exif.copyright_name || 'Rifki Eka Putra'
+            copyright_name: photo.exif.copyright_name || ''
           })
           .select('id')
           .single()
@@ -344,7 +358,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       for (const img of existingPhotos) {
         await supabase.from('photos').update({ 
           license_type: img.license_type,
-          copyright_name: img.exif.copyright_name || 'Rifki Eka Putra'
+          copyright_name: img.exif.copyright_name || ''
         }).eq('id', img.id)
         
         const { copyright_name, ...exifToInsert } = img.exif
@@ -432,15 +446,49 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 </select>
               </div>
               <div className="space-y-2">
+                <Label className="text-text-muted">Status Tayang</Label>
+                <select 
+                  value={status} onChange={(e) => setStatus(e.target.value)}
+                  className="w-full rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral appearance-none"
+                >
+                  <option value="Published">Publik</option>
+                  <option value="Draft">Pribadi / Draft</option>
+                </select>
+              </div>
+              <div className="space-y-2">
                 <Label className="mb-2 block">Tags</Label>
                 <TagInput tags={tags} setTags={setTags} availableTags={allTags} placeholder="Ketik tag & enter" />
               </div>
               <div className="space-y-2">
-                <Label className="text-text-muted">Cerita / Deskripsi</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-text-muted">Cerita / Deskripsi</Label>
+                  <label className="cursor-pointer text-xs flex items-center gap-1.5 text-primary-neutral hover:text-primary-neutral/80 transition-colors bg-primary-neutral/10 px-2 py-1 rounded-md border border-primary-neutral/20">
+                    <FileText size={14} />
+                    <span>Import .txt / .md</span>
+                    <input 
+                      type="file" 
+                      accept=".txt,.md" 
+                      className="hidden" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        const reader = new FileReader()
+                        reader.onload = (event) => {
+                          setStory(event.target?.result as string)
+                          if (!title) setTitle(file.name.replace(/\.[^/.]+$/, ""))
+                          toast.success('Cerita berhasil diimpor!')
+                        }
+                        reader.readAsText(file)
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
+                </div>
                 <textarea 
+                  ref={textareaRef}
                   value={story} onChange={(e) => setStory(e.target.value)}
                   placeholder="Tulis cerita di balik karya ini..."
-                  className="w-full min-h-[120px] rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
+                  className="w-full min-h-[120px] resize-none overflow-hidden rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
                 />
               </div>
             </CardContent>
@@ -494,7 +542,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                   <Input 
                     value={bulkCopyrightName} 
                     onChange={(e) => setBulkCopyrightName(e.target.value)}
-                    placeholder="Misal: Tina"
+                    placeholder="Masukkan Nama"
                     className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-32 text-sm"
                   />
                   <select 

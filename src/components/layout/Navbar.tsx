@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Sun, Moon, Menu, X, Camera } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { GearModal } from './GearModal'
 import { useTheme } from 'next-themes'
 
@@ -21,11 +22,19 @@ export function Navbar({
 }: NavbarProps) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [isGearModalOpen, setIsGearModalOpen] = useState(false)
 
   // Avoid hydration mismatch by waiting for mount
   useEffect(() => {
     setMounted(true)
+
+    const checkAuth = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) setIsAdmin(true)
+    }
+    checkAuth()
 
     // Handle click outside to close details menus
     const handleClickOutside = (e: MouseEvent) => {
@@ -106,6 +115,9 @@ export function Navbar({
                   {contactEmail && (
                     <a href={`mailto:${contactEmail}`} className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">✉️ Hubungi Saya (Email)</a>
                   )}
+                  {isAdmin && (
+                    <Link href="/admin/gallery" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 active:bg-primary-neutral/30 transition-colors mt-2">⚙️ Dashboard Admin</Link>
+                  )}
                 </div>
               </div>
             </details>
@@ -133,22 +145,22 @@ export function Navbar({
 
           <div className="flex items-center gap-3 relative z-50 shrink-0">
             {/* PORTAL TARGET UNTUK RADIO WIDGET DI TABLET */}
-            <div id="radio-portal-tablet" className="w-[36px] h-[36px] shrink-0 relative"></div>
+            <div id="radio-portal-tablet" className="w-11 h-11 shrink-0 relative flex items-center justify-center"></div>
 
             <button
               type="button"
               onClick={toggleDarkMode}
-              className="relative rounded-lg p-2 hover:bg-surface transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center text-text-main cursor-pointer select-none touch-manipulation"
+              className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface/80 hover:bg-surface active:scale-90 transition-all text-text-main border border-border/50 shadow-sm touch-manipulation shrink-0"
               aria-label={isDark ? "Mode Terang" : "Mode Gelap"}
               title="Ganti Tema"
             >
-              {isDark ? <Sun className="h-5 w-5 text-yellow-500" /> : <Moon className="h-5 w-5 text-text-main" />}
+              {isDark ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} className="text-text-main" />}
             </button>
 
-            <details className="relative group">
-              <summary className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium bg-surface/50 hover:bg-surface hover:text-text-main transition-colors min-h-[40px] cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
-                <Menu size={18} className="block group-open:hidden" />
-                <X size={18} className="hidden group-open:block" />
+            <details className="relative group shrink-0">
+              <summary className="w-11 h-11 flex items-center justify-center rounded-xl bg-surface/80 hover:bg-surface active:scale-90 transition-all text-text-main border border-border/50 shadow-sm cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+                <Menu size={22} className="block group-open:hidden" />
+                <X size={22} className="hidden group-open:block" />
               </summary>
               <div className="absolute right-0 mt-2 w-52 rounded-xl border border-border bg-surface p-2 shadow-xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
                 <div className="space-y-1">
@@ -166,6 +178,9 @@ export function Navbar({
                   ))}
                   {contactEmail && (
                     <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
+                  )}
+                  {isAdmin && (
+                    <Link href="/admin/gallery" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-lg bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 transition-colors cursor-pointer select-none mt-1">⚙️ Dashboard Admin</Link>
                   )}
                 </div>
               </div>
@@ -219,6 +234,9 @@ export function Navbar({
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
                   {contactEmail && (
                     <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
+                  )}
+                  {isAdmin && (
+                    <Link href="/admin/gallery" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-lg bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 transition-colors cursor-pointer select-none mt-1">⚙️ Dashboard Admin</Link>
                   )}
                 </div>
               </div>
