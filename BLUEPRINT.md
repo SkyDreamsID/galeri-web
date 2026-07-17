@@ -122,6 +122,11 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
    - Memicu klik dari `Navbar` (Lainnya -> My Gear).
    - Menampilkan modal responsif terpusat yang memetakan isi tabel `gears` ke dalam kategori (Kamera, Lensa).
 
+## 4.1 Standar UI/UX Admin Dashboard
+- **Mobile First Admin Layout**: Komponen kontrol krusial seperti *Search Bar* dibuat *sticky* secara spesifik pada mode mobile (tanpa merusak flow normal desktop).
+- **Glassmorphism UI**: Memanfaatkan *backdrop-blur* dan warna tembus pandang (`bg-background/60`) pada *header* pencarian agar layar tidak terkesan sempit saat di-scroll.
+- **Scroll Container Architecture**: Menghindari penggunaan `overflow-y-auto` pada container anak (`<main>`) yang sering kali menjebak CSS *position: sticky*. *Scrolling* diserahkan langsung pada root window browser.
+
 ## 4.5 Fitur Perlindungan & Attribution
 - **Watermark Attribution:** Built-in attribution "Designed by SkyDreamsID" yang terpasang pada Footer. Akan otomatis muncul jika nilai `author_name` pada `site_settings` diubah ke nilai selain author asli (Rifki Eka Putra, SkyDreamsID, dll).
 - **Per-Photo Watermark**: Watermark hak cipta dinamis yang diproses oleh Cloudinary on-the-fly. Dapat diaktifkan/dinonaktifkan per-foto dari Admin Panel tanpa menyentuh file asli.

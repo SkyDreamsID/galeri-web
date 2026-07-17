@@ -107,12 +107,14 @@ export default function GalleryManagement() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20 md:pb-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-heading font-bold tracking-tight text-text-main">Kelola Galeri</h2>
           <p className="text-text-muted mt-1 font-sans">Daftar momen yang telah dipublikasikan di galeri Anda.</p>
         </div>
-        <div className="relative w-full sm:w-72">
+
+        {/* Search Bar Desktop (Sembunyi di Mobile) */}
+        <div className="hidden sm:block relative w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted/50 w-4 h-4" />
           <Input 
             type="text" 
@@ -124,6 +126,24 @@ export default function GalleryManagement() {
         </div>
       </div>
 
+      {/* ===== MOBILE STICKY SEARCH START ===== */}
+      {/* Search Bar Mobile (Sembunyi di Desktop).
+          Dikeluarkan dari flex parent agar posisi sticky bisa bekerja melintasi seluruh halaman.
+          top-14 (56px) agar nempel persis di bawah navbar mobile. */}
+      <div className="block sm:hidden sticky top-14 z-20 bg-background/60 backdrop-blur-xl py-3 border-b border-border/40 shadow-sm -mx-4 px-4">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted/50 w-4 h-4" />
+          <Input 
+            type="text" 
+            placeholder="Cari judul, tag, atau tanggal..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 bg-surface/60 backdrop-blur-md border-border/50 text-text-main focus:border-primary-neutral h-10 w-full"
+          />
+        </div>
+      </div>
+      {/* ===== MOBILE STICKY SEARCH END ===== */}
+
       {posts.length === 0 ? (
         <Card className="bg-surface border-border/40 p-8 text-center text-text-muted shadow-sm">
           Belum ada momen yang diunggah. Silakan upload momen baru terlebih dahulu.
@@ -133,12 +153,14 @@ export default function GalleryManagement() {
           Pencarian untuk "{searchTerm}" tidak ditemukan.
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <>
+          {/* ===== MOBILE GRID START ===== */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
           {filteredPosts.map((post) => {
             const coverImage = post.photos?.[0]?.image_url
             return (
               <Card key={post.id} className="bg-surface border-border/40 overflow-hidden flex flex-col shadow-sm">
-                <div className="h-48 w-full relative bg-background">
+                <div className="h-28 md:h-48 w-full relative bg-background">
                   {coverImage ? (
                     <img 
                       src={coverImage} 
@@ -146,16 +168,16 @@ export default function GalleryManagement() {
                       className="absolute inset-0 w-full h-full object-cover" 
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-text-muted/50 text-xs">
+                    <div className="absolute inset-0 flex items-center justify-center text-text-muted/50 text-[10px] md:text-xs">
                       Tidak ada foto
                     </div>
                   )}
                   {post.collections?.name && (
-                    <span className="absolute top-2 left-2 bg-primary-neutral/90 text-surface text-xs px-2.5 py-1 rounded-md font-semibold shadow-sm">
+                    <span className="absolute top-1.5 md:top-2 left-1.5 md:left-2 bg-primary-neutral/90 text-surface text-[9px] md:text-xs px-1.5 md:px-2.5 py-0.5 md:py-1 rounded md:rounded-md font-semibold shadow-sm truncate max-w-[80%]">
                       📁 {post.collections.name}
                     </span>
                   )}
-                  <span className={`absolute top-2 right-2 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md shadow-sm backdrop-blur-md border ${
+                  <span className={`absolute top-1.5 md:top-2 right-1.5 md:right-2 text-[8px] md:text-[10px] uppercase font-bold tracking-wider px-1.5 md:px-2 py-0.5 md:py-1 rounded md:rounded-md shadow-sm backdrop-blur-md border ${
                     post.status === 'Published' 
                       ? 'bg-black/60 text-white border-white/20'
                       : 'bg-red-500/80 text-white border-red-500/20'
@@ -164,21 +186,21 @@ export default function GalleryManagement() {
                   </span>
                 </div>
 
-                <CardHeader className="p-4 flex-1">
-                  <CardTitle className="text-text-main text-lg font-bold font-heading truncate">{post.title}</CardTitle>
-                  <div className="flex flex-col gap-1.5 text-text-muted text-xs mt-2 font-sans">
+                <CardHeader className="p-2.5 md:p-4 flex-1">
+                  <CardTitle className="text-text-main text-sm md:text-lg font-bold font-heading truncate">{post.title}</CardTitle>
+                  <div className="flex flex-col gap-1 md:gap-1.5 text-text-muted text-[10px] md:text-xs mt-1 md:mt-2 font-sans">
                     {post.location && (
                       <div className="flex items-center gap-1">
-                        <MapPin size={14} className="text-text-muted/80" />
-                        <span>{post.location}</span>
+                        <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 text-text-muted/80 shrink-0" />
+                        <span className="truncate">{post.location}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-1">
-                      <Calendar size={14} className="text-text-muted/80" />
-                      <span>
+                      <Calendar className="w-3 h-3 md:w-3.5 md:h-3.5 text-text-muted/80 shrink-0" />
+                      <span className="truncate">
                         {new Date(post.created_at).toLocaleDateString('id-ID', {
                           day: 'numeric',
-                          month: 'long',
+                          month: 'short',
                           year: 'numeric'
                         })}
                       </span>
@@ -186,26 +208,26 @@ export default function GalleryManagement() {
                   </div>
                 </CardHeader>
 
-                <CardContent className="p-4 pt-0 border-t border-border/20 bg-background/30 flex justify-between items-center mt-auto">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-text-muted font-medium">
+                <CardContent className="p-2.5 md:p-4 pt-0 border-t border-border/20 bg-background/30 flex flex-col xl:flex-row justify-between items-start xl:items-center mt-auto gap-2 xl:gap-0">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <span className="text-[10px] md:text-xs text-text-muted font-medium">
                       {post.photos?.length || 0} Foto
                     </span>
-                    <span className="text-xs text-text-muted font-medium flex items-center gap-1">
-                      <Eye size={13} /> {post.views || 0}
+                    <span className="text-[10px] md:text-xs text-text-muted font-medium flex items-center gap-0.5 md:gap-1">
+                      <Eye className="w-3 h-3 md:w-3.5 md:h-3.5" /> {post.views || 0}
                     </span>
-                    <span className="text-xs text-text-muted font-medium flex items-center gap-1">
-                      <DownloadCloud size={13} /> {post.downloads || 0}
+                    <span className="text-[10px] md:text-xs text-text-muted font-medium flex items-center gap-0.5 md:gap-1">
+                      <DownloadCloud className="w-3 h-3 md:w-3.5 md:h-3.5" /> {post.downloads || 0}
                     </span>
                   </div>
-                  <div className="flex gap-2">
-                    <Link href={`/admin/edit/${post.id}`}>
+                  <div className="flex gap-1.5 md:gap-2 w-full xl:w-auto">
+                    <Link href={`/admin/edit/${post.id}`} className="flex-1 xl:flex-none">
                       <Button 
                         variant="outline"
                         size="sm"
-                        className="bg-background hover:bg-surface text-text-main border-border/50 transition-colors"
+                        className="w-full h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs bg-background hover:bg-surface text-text-main border-border/50 transition-colors"
                       >
-                        <Pencil size={15} className="mr-1.5" />
+                        <Pencil className="w-3 h-3 mr-1 md:w-3.5 md:h-3.5 md:mr-1.5" />
                         Edit
                       </Button>
                     </Link>
@@ -214,13 +236,13 @@ export default function GalleryManagement() {
                       size="sm"
                       disabled={deletingId === post.id}
                       onClick={() => handleDelete(post.id)}
-                      className="bg-red-500/90 hover:bg-red-500 text-white transition-colors"
+                      className="flex-1 xl:flex-none h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs bg-red-500/90 hover:bg-red-500 text-white transition-colors"
                     >
                       {deletingId === post.id ? (
-                        <Loader2 size={16} className="animate-spin" />
+                        <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin" />
                       ) : (
                         <>
-                          <Trash2 size={16} className="mr-1.5" />
+                          <Trash2 className="w-3 h-3 mr-1 md:w-4 md:h-4 md:mr-1.5" />
                           Hapus
                         </>
                       )}
@@ -230,7 +252,9 @@ export default function GalleryManagement() {
               </Card>
             )
           })}
-        </div>
+          </div>
+          {/* ===== MOBILE GRID END ===== */}
+        </>
       )}
     </div>
   )
