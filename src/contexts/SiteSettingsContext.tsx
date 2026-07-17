@@ -16,6 +16,12 @@ export type SiteSettings = {
   lastfm_api_key?: string
   cloudinary_cloud_name?: string
   contact_email?: string
+  theme_config?: {
+    dark_bg?: string
+    light_bg?: string
+    primary_color?: string
+    enable_watermark?: boolean
+  }
 }
 
 const SiteSettingsContext = createContext<SiteSettings>({})

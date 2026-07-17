@@ -29,7 +29,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     .select(`
       id, title, slug, location, created_at,
       collections (name),
-      photos (image_url, is_cover)
+      photos (image_url, is_cover, copyright_name, show_watermark)
     `, { count: 'exact' })
     .eq('status', 'Published')
     .order(orderColumn, { ascending: isAscending })

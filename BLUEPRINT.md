@@ -1,11 +1,11 @@
 # 🏛️ Blueprint Arsitektur & Spesifikasi Teknis: Gallery (ULTRA-DETAIL V2)
 
-Dokumen ini memuat detail teknis, arsitektur sistem, alur kerja, dan desain database tingkat lanjut yang **FINAL & BULLETPROOF**. Telah disempurnakan mencakup fitur-fitur baru seperti Manajemen Hak Cipta Per-Foto dan Inventaris Perlengkapan Fotografi (Gears).
+Dokumen ini memuat detail teknis, arsitektur sistem, alur kerja, dan desain database tingkat lanjut yang **FINAL & BULLETPROOF**. Mencakup fitur-fitur lengkap termasuk Per-Photo Copyright, Watermark Dinamis, Gear Management, dan Web CMS.
 
 ## 1. Arsitektur Inti & Teknologi Spesifik
 
 *   **Framework Utama:** **Next.js 16 (App Router)** + React 19.
-*   **UI/UX Stack & Principles:** 
+*   **UI/UX Stack & Principles:**
     *   **Tailwind CSS v4** (Styling utama).
     *   **shadcn/ui** (Komponen dasar UI seperti Button, Input, Modal, Dropdown).
     *   **Headless Custom UI** (Penolakan terhadap elemen *native* OS bawaan HTML seperti `<select>` demi menjaga konsistensi tema *dark mode* dan *glassmorphism* di seluruh peramban).
@@ -14,7 +14,7 @@ Dokumen ini memuat detail teknis, arsitektur sistem, alur kerja, dan desain data
     *   **Lucide React** (Untuk Iconografi seperti tombol `(i)`, panah next/prev, dll).
     *   **Utility & Core**: `next-pwa` (PWA Support), `next-themes` (Dark/Light mode), `sonner` (Toast), `react-zoom-pan-pinch` (Zoom foto), `exifr` (Ekstraksi EXIF).
 *   **Database & Auth:** **Supabase (PostgreSQL)**. HANYA menyimpan data teks relasional.
-*   **Image Storage:** **Cloudinary** sebagai CDN dan penyimpanan aset media.
+*   **Image Storage:** **Cloudinary** sebagai CDN dan penyimpanan aset media. Transformasi URL (resize, watermark, optimasi format) dilakukan secara *on-the-fly* tanpa merusak file asli.
 *   **Keamanan Ekstra (Middleware):** Akses rute `/admin` dilindungi oleh **Next.js Middleware**. Jika tidak ada token sesi *Supabase Auth*, otomatis dialihkan ke `/admin/login`.
 
 ## 2. Keamanan Database (Row Level Security / RLS)
@@ -34,9 +34,9 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 | `story` | TEXT | Nullable | Cerita utama momen tersebut |
 | `location` | VARCHAR | Nullable | Nama lokasi pemotretan |
 | `collection_id`| UUID | Foreign Key | Relasi ke tabel `collections` |
-| `license_type` | VARCHAR | Default 'Copyright' | Status hak cipta ('Free Copyright' / 'Copyright') secara *default/fallback* |
+| `license_type` | VARCHAR | Default 'Copyright' | Status hak cipta *default/fallback* post |
 | `status` | VARCHAR | Default 'Draft' | Visibilitas post ('Published' / 'Draft') |
-| `created_at` | TIMESTAMPZ | Default NOW() | Tanggal posting |
+| `created_at` | TIMESTAMPTZ | Default NOW() | Tanggal posting |
 
 ### Table: `photos` (Gambar, Copyright Spesifik & Metadata Cloudinary)
 | Column | Type | Constraints | Description |
@@ -45,8 +45,10 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 | `post_id` | UUID | Foreign Key | Relasi ke tabel `posts` ON DELETE CASCADE |
 | `image_url` | VARCHAR | Not Null | Link gambar resolusi asli dari Cloudinary |
 | `public_id` | VARCHAR | Not Null | ID Cloudinary (wajib untuk hapus gambar fisik) |
-| `is_cover` | BOOLEAN | Default FALSE | Penanda gambar ini adalah cover utama. |
+| `is_cover` | BOOLEAN | Default FALSE | Penanda gambar ini adalah cover utama |
 | `copyright_name` | VARCHAR | Nullable | Nama pemilik foto (Fitur Per-Foto Copyright) |
+| `license_type` | VARCHAR | Default 'Copyright' | Lisensi foto ('Copyright' / 'Free Copyright') |
+| `show_watermark` | BOOLEAN | Default TRUE | Toggle watermark per-foto. Jika TRUE, nama copyright di-render sebagai watermark via Cloudinary URL |
 | `sort_order`| INTEGER | Not Null | Urutan gambar |
 | `bytes` | BIGINT | Nullable | Ukuran file dalam bytes |
 | `format` | VARCHAR | Nullable | Ekstensi file (jpg, png, webp, dll) |
@@ -62,7 +64,7 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 | `aperture` | VARCHAR | Nullable | Nilai aperture |
 | `iso` | VARCHAR | Nullable | Nilai ISO |
 | `shutter_speed`| VARCHAR | Nullable | Kecepatan rana |
-| `date_taken` | TIMESTAMPZ| Nullable | Waktu & tanggal asli jepretan dari EXIF |
+| `date_taken` | TIMESTAMPTZ | Nullable | Waktu & tanggal asli jepretan dari EXIF |
 
 ### Table: `gears` (Inventaris Perlengkapan Fotografi)
 | Column | Type | Constraints | Description |
@@ -73,12 +75,12 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 | `description` | TEXT | Nullable | Spesifikasi atau catatan kaki |
 | `image_url` | VARCHAR | Nullable | Link gambar alat di Cloudinary |
 | `public_id` | VARCHAR | Nullable | ID gambar Cloudinary |
-| `created_at` | TIMESTAMPZ | Default NOW() | Tanggal pembuatan record |
+| `created_at` | TIMESTAMPTZ | Default NOW() | Tanggal pembuatan record |
 
 ### Table: `site_settings` (Global Configuration & CMS)
 | Column | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
-| `id` | UUID | Primary Key | Identifier unik (selalu sama) |
+| `id` | UUID | Primary Key | Identifier unik (selalu sama: `00000000-...`) |
 | `site_title` | VARCHAR | Nullable | Judul website global |
 | `author_name` | VARCHAR | Nullable | Nama pemilik / Author |
 | `hero_title` | VARCHAR | Nullable | Judul besar di halaman utama |
@@ -87,19 +89,32 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 | `contact_email`| VARCHAR | Nullable | Email kontak |
 | `social_links` | JSONB | Nullable | Tautan sosmed beserta URL gambar ikon khusus |
 | `zenofm_station_id`| VARCHAR | Nullable | URL Penuh atau ID stream Radio |
-| `theme_config` | JSONB | Nullable | Konfigurasi custom warna tema web (Hex Codes) |
+| `lastfm_username` | VARCHAR | Nullable | Username Last.fm (opsional, untuk integrasi) |
+| `lastfm_api_key` | VARCHAR | Nullable | API Key Last.fm |
+| `cloudinary_cloud_name`| VARCHAR | Nullable | Cloud Name Cloudinary (alternatif .env) |
 | `site_logo_url`| VARCHAR | Nullable | URL untuk logo situs kustom |
+| `theme_config` | JSONB | Nullable | Konfigurasi warna tema (`dark_bg`, `light_bg`, `primary_color`) |
 
-*(Tabel `collections`, `tags`, dan `post_tags` berlanjut seperti sebelumnya).*
+### Table: `collections` (Album / Koleksi)
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | UUID | Primary Key, Auto | Unique identifier |
+| `name` | VARCHAR | Not Null | Nama koleksi/album |
+| `description` | TEXT | Nullable | Deskripsi koleksi |
+
+### Table: `tags` & `post_tags` (Sistem Tag)
+- `tags`: `id`, `name` (Unique)
+- `post_tags`: `post_id` + `tag_id` (Composite Primary Key) — tabel pivot many-to-many antara posts dan tags
 
 ## 4. UI Flow Publik & Navigasi
 
-1. **Home (`/`)**: 
+1. **Home (`/`)**:
    - **Pagination / Infinite Scroll**: Membatasi query (`LIMIT 9 OFFSET 0`) yang dimuat via tombol "Muat Lebih Banyak".
    - Tampilan Grid Masonry CSS menggunakan properti *break-inside-avoid* dan efek sorotan (*glassmorphism hover*).
-2. **Post Detail (`/post/[slug]`)**: 
+2. **Post Detail (`/post/[slug]`)**:
    - **Area Foto (Atas)**: Menggunakan **Embla Carousel** (Swipe/Next/Prev). Tombol `(i) EXIF` melayang memicu *Popover/Modal* untuk menunjukkan Exif *lens*, *camera*, dll.
-   - Hak Cipta Per-Foto ditampilkan dinamis mengikuti nilai `copyright_name` pada tabel `photos`, atau mundur (*fallback*) ke "SkyDreamsID".
+   - Hak Cipta Per-Foto ditampilkan dinamis mengikuti nilai `copyright_name` pada tabel `photos`.
+   - Watermark dinamis via Cloudinary URL (`l_text:` transformation) — di-toggle per-foto via `show_watermark`.
    - View tracking otomatis mencatat view setiap kali post dibuka (`/api/views`).
 3. **Eksplorasi (`/albums`, `/collection/[id]`, `/tag/[tag]`)**:
    - Menampilkan daftar koleksi (album) dan memungkinkan pengguna melihat galeri berdasarkan koleksi atau tag tertentu.
@@ -109,8 +124,21 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 
 ## 4.5 Fitur Perlindungan & Attribution
 - **Watermark Attribution:** Built-in attribution "Designed by SkyDreamsID" yang terpasang pada Footer. Akan otomatis muncul jika nilai `author_name` pada `site_settings` diubah ke nilai selain author asli (Rifki Eka Putra, SkyDreamsID, dll).
+- **Per-Photo Watermark**: Watermark hak cipta dinamis yang diproses oleh Cloudinary on-the-fly. Dapat diaktifkan/dinonaktifkan per-foto dari Admin Panel tanpa menyentuh file asli.
 
-## 5. Flowchart API & Manajamen Logika Baru
+## 5. Flowchart API & Manajemen Logika
+
+### Alur Upload Foto (UploadForm)
+1. Admin memilih file dan mengatur metadata (copyright_name, license_type, show_watermark) per-foto.
+2. EXIF diekstrak di sisi klien via `exifr` sebelum upload.
+3. Web meminta tanda tangan upload ke `/api/cloudinary/sign`.
+4. File diupload langsung dari browser ke Cloudinary.
+5. URL, public_id, dan metadata disimpan ke tabel `photos` di Supabase.
+
+### Alur Watermark Dinamis
+- Watermark **tidak** mengubah file asli di Cloudinary.
+- URL gambar dimodifikasi secara programatik: `getOptimizedImageUrl(url, width, copyrightName, showWatermark)` menambahkan parameter transformasi Cloudinary (`l_text:Arial_18_bold_opacity_50:...`) jika `show_watermark = true` dan `copyright_name` ada.
+- Nilai `show_watermark` disimpan per-foto di kolom `photos.show_watermark`.
 
 ### Alur Tambah / Hapus Gear di Dashboard (`/admin/gear`)
 1. Admin memasukkan nama perlengkapan dan (opsional) mengunggah foto fisik alat.
@@ -121,9 +149,6 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 ### Alur View Counter & Image Download
 - **`/api/views`**: Endpoint sederhana untuk menghitung *page views* per postingan (hanya *increment* angka, tidak merekam data privasi pengunjung).
 - **`/api/download`**: Endpoint *proxy* (*Serverless Function*) agar ketika pengguna mengklik "Download", file akan langsung terunduh ke perangkat mereka, bukan malah terbuka di *tab browser* baru.
-
-### Logika Ekstraksi Hak Cipta
-Pada komponen unggah galeri (`UploadForm`), admin diberikan kotak centang (*checkbox*) untuk memilih gambar spesifik yang akan menerima `copyright_name`. Data diunggah ke `photos` secara bergilir, dan EXIF di-*parse* secara klien sebelum pengiriman HTTP.
 
 ### Sistem CMS & Fallback Konfigurasi (SiteSettings)
 Untuk mendukung *forkability* dan kemudahan pengaturan:

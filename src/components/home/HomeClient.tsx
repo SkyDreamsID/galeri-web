@@ -28,7 +28,7 @@ type Post = {
   location: string | null
   created_at: string
   collections: { name: string } | null
-  photos: { image_url: string; is_cover: boolean }[]
+  photos: { image_url: string; is_cover: boolean; copyright_name?: string; show_watermark?: boolean }[]
 }
 
 type Filter = { id: string; name: string }
@@ -103,7 +103,7 @@ export function HomeClient({
         .select(`
           id, title, slug, location, created_at,
           collections (name),
-          photos (image_url, is_cover)
+          photos (image_url, is_cover, copyright_name, show_watermark)
         `, { count: 'exact' })
         .eq('status', 'Published')
         .order(orderColumn, { ascending: isAscending })
@@ -201,8 +201,11 @@ export function HomeClient({
         {/* Masonry Grid */}
         <div className={`${LAYOUT_CONFIG.gridCols} ${LAYOUT_CONFIG.gridGap}`}>
           {posts.map((post) => {
-            const rawCoverImage = post.photos?.find((p) => p.is_cover)?.image_url || post.photos?.[0]?.image_url
-            const coverImage = rawCoverImage ? getOptimizedImageUrl(rawCoverImage, 800) : null
+            const coverPhoto = post.photos?.find((p) => p.is_cover) || post.photos?.[0]
+            const rawCoverImage = coverPhoto?.image_url
+            const copyrightName = coverPhoto?.copyright_name
+            const showWatermark = coverPhoto?.show_watermark !== false
+            const coverImage = rawCoverImage ? getOptimizedImageUrl(rawCoverImage, 800, copyrightName, showWatermark) : null
 
             return (
               <motion.div
@@ -221,6 +224,8 @@ export function HomeClient({
                     <ProgressiveImage
                       src={rawCoverImage!}
                       alt={post.title}
+                      watermarkText={copyrightName}
+                      enableWatermark={showWatermark}
                       className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
                     />
                   ) : (

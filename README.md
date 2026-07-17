@@ -1,6 +1,6 @@
 # 📸 Galeri - Premium Visual Journal & CMS
 
-Sebuah platform galeri foto premium dan jurnal visual, dibangun menggunakan teknologi modern untuk fotografer yang ingin memamerkan mahakaryanya dengan elegan. 
+Sebuah platform galeri foto premium dan jurnal visual, dibangun menggunakan teknologi modern untuk fotografer yang ingin memamerkan mahakaryanya dengan elegan.
 
 Proyek ini bukan sekadar *image viewer*, melainkan **Aplikasi Full-Stack dengan CMS (Content Management System) Internal**, ekstraksi data EXIF otomatis, *showcase* perlengkapan (Gear Management), dan integrasi radio streaming interaktif.
 
@@ -9,14 +9,14 @@ Proyek ini bukan sekadar *image viewer*, melainkan **Aplikasi Full-Stack dengan 
 ## ✨ Fitur Utama
 
 - 🎨 **Kustomisasi Tema Dinamis**: Ubah skema warna web (Primary, Light Bg, Dark Bg) langsung dari Dasbor Admin tanpa menyentuh kode!
-- ⚙️ **Web CMS (Pengaturan Dinamis)**: Ubah nama website, teks footer, dan logo tautan media sosial secara instan.
+- ⚙️ **Web CMS (Pengaturan Dinamis)**: Ubah nama website, teks footer, logo, dan tautan media sosial secara instan.
 - 🖼️ **Masonry Grid & Smart Crop**: Menampilkan foto dalam *grid* rapi dengan pengoptimalan orientasi cerdas (integrasi Cloudinary).
 - 📸 **Auto-EXIF Extraction**: Mengunggah foto secara otomatis mengekstrak metadata kamera (Kamera, Lensa, Focal Length, Aperture, ISO, Shutter Speed).
-- ©️ **Per-Photo Copyright**: Hak cipta per-foto dinamis (cocok untuk *agency* yang menaungi banyak fotografer). 
+- ©️ **Per-Photo Copyright & Watermark Dinamis**: Hak cipta per-foto dinamis. Watermark nama copyright di-*render* langsung via Cloudinary URL (tanpa merusak gambar asli) dan dapat dikontrol per-foto dari Admin.
 - 🎒 **Gear Showcase**: Integrasi komponen yang memamerkan inventaris kamera & lensa yang digunakan.
 - 📻 **Gallery Radio**: Widget pemutar musik *real-time* (mendukung link ZenoFM, Icecast, Shoutcast).
 - ⚡ **Optimasi Kecepatan & SEO**: Menggunakan *Infinite Scroll*, Server Actions (Next.js 14+), PWA Support, dan SEO Tags cerdas.
-- 📱 **Fluid Responsive & Pixel-Perfect**: Tata letak yang dioptimalkan untuk segala skenario orientasi perangkat (seperti *grid 45:55* khusus *Mobile Landscape*) lengkap dengan *Custom Components* (menggantikan UI *native* OS yang kaku).
+- 📱 **Fluid Responsive & Pixel-Perfect**: Tata letak yang dioptimalkan untuk segala skenario orientasi perangkat lengkap dengan *Custom Components*.
 - 🔒 **Admin Dashboard**: Panel kontrol terisolasi yang dilindungi Middleware untuk mengunggah foto, manajemen galeri, dan pengaturan situs (Mobile Friendly!).
 
 ---
@@ -80,6 +80,10 @@ CREATE TABLE IF NOT EXISTS site_settings (
   contact_email VARCHAR,
   social_links JSONB,
   zenofm_station_id VARCHAR,
+  lastfm_username VARCHAR,
+  lastfm_api_key VARCHAR,
+  cloudinary_cloud_name VARCHAR,
+  site_logo_url VARCHAR,
   theme_config JSONB
 );
 
@@ -117,6 +121,8 @@ CREATE TABLE IF NOT EXISTS photos (
   public_id VARCHAR NOT NULL,
   is_cover BOOLEAN DEFAULT FALSE,
   copyright_name VARCHAR,
+  license_type VARCHAR DEFAULT 'Copyright',
+  show_watermark BOOLEAN DEFAULT TRUE,
   sort_order INTEGER NOT NULL,
   bytes BIGINT,
   format VARCHAR,
@@ -197,8 +203,6 @@ Ubah nama file `.env.example` menjadi `.env.local` di *root* folder proyek Anda,
 # Ambil dari: Supabase Dashboard > Project Settings > API
 NEXT_PUBLIC_SUPABASE_URL="https://[YOUR_PROJECT_ID].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key-here"
-# (Opsional, direkomendasikan untuk fungsi Admin/Backend)
-SUPABASE_SERVICE_ROLE_KEY="your-service-role-key-here"
 
 # ==========================================
 # CLOUDINARY CONFIGURATION (Untuk Fitur Upload Foto)
@@ -207,15 +211,11 @@ SUPABASE_SERVICE_ROLE_KEY="your-service-role-key-here"
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
 CLOUDINARY_API_KEY="your-api-key"
 CLOUDINARY_API_SECRET="your-api-secret"
-
-# ==========================================
-# ZENO.FM / STREAMING RADIO (Opsional)
-# ==========================================
-# Bisa juga diisi langsung lewat Admin Panel > Pengaturan
-# NEXT_PUBLIC_ZENO_STATION_ID="your-station-id"
 ```
 
 > **⚠️ PERINGATAN KEAMANAN**: Jangan pernah membagikan nilai `CLOUDINARY_API_SECRET`. Jangan commit `.env.local` ke repositori publik!
+
+> **💡 Tips**: `Cloud Name` dan konfigurasi tambahan lainnya (seperti URL radio) juga bisa diatur langsung dari **Admin Panel → Pengaturan** setelah aplikasi berjalan.
 
 ### Tahap 7: Jalankan Aplikasi
 ```bash
@@ -229,9 +229,13 @@ Buka `http://localhost:3000` untuk melihat web publik Anda, dan buka `http://loc
 
 Setelah berhasil login ke `/admin`, navigasikan ke menu **Pengaturan**. Di sini Anda bisa:
 - **Kustomisasi Tema**: Ubah warna *Primary*, warna Latar Belakang (Dark & Light) menggunakan kode Hex tanpa perlu membuka editor kode.
-- **Identitas Web**: Mengubah Nama Author, Judul Hero, Teks Footer.
+- **Identitas Web**: Mengubah Nama Author, Judul Hero, Teks Footer, Logo Situs.
 - **Logo Media Sosial**: Anda dapat mengunggah ikon logo (gambar PNG/SVG) kustom untuk setiap tautan media sosial yang ditambahkan.
 - **Widget Radio Streaming**: Masukkan URL *streaming* langsung (contoh: Icecast URL atau ZenoFM URL) untuk memunculkan pemutar musik *chill/lo-fi* di web Anda.
+- **Pengaturan Cloudinary**: Masukkan Cloud Name dari akun Cloudinary Anda (alternatif dari `.env.local`).
+
+### Mengelola Watermark Per-Foto
+Saat upload atau mengedit foto, tersedia checkbox **"Tampilkan watermark"** di bawah opsi lisensi tiap foto. Jika dicentang, nama copyright akan ditampilkan sebagai watermark transparan di pojok kanan bawah foto (diproses via Cloudinary, tanpa merusak file asli).
 
 ---
 

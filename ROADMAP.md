@@ -75,6 +75,13 @@ Dokumen ini mendefinisikan fase pengembangan proyek Gallery dengan framework **N
 - [x] Deployment Frontend + Admin ke Vercel/Netlify.
 - [x] Peluncuran Versi 1.0 (Live).
 
+### Phase 6: Advanced Gallery Features (In Progress)
+*Fokus: Kustomisasi tingkat lanjut dan interaksi pengunjung.*
+- [x] **Dynamic Watermark (Cloudinary)**: Menerapkan watermark dinamis (nama copyright) pada URL gambar secara on-the-fly via Cloudinary text layer transform. Dapat dikontrol **per-foto** (bukan global) dari Admin Panel saat Upload maupun Edit — nilai disimpan di kolom `photos.show_watermark`. Tanpa merusak file asli.
+- [ ] **Per-Photo Analytics**: Mencatat dan menampilkan jumlah *views* (kunjungan) secara spesifik untuk masing-masing foto, bukan hanya per post.
+- [ ] **Color Palette Extractor**: Mengekstrak warna dominan tiap foto saat diupload dan menampilkannya di halaman web untuk referensi estetika.
+- [ ] **Share to IG Stories**: Menambahkan dukungan Web Share API untuk langsung membagikan foto ke Instagram Stories di mobile.
+
 ---
 
 ## 🚀 Future Expansion Plan (Ide Baru Post v1.0)

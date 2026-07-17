@@ -28,17 +28,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const supabase = await createClient()
 
   let post = null
+  let enableWatermark = true
   const { data } = await supabase
     .from('posts')
-    .select('title, story, status, photos (image_url, is_cover)')
+    .select('title, story, status, photos (image_url, is_cover, copyright_name)')
     .eq('slug', slug)
     .single()
   
-  if (data) post = data
+  if (data) {
+    post = data
+  }
   if (!post) {
-    const { data: byId } = await supabase.from('posts').select('title, story, status, photos (image_url, is_cover)').eq('id', slug).single()
+    const { data: byId } = await supabase.from('posts').select('title, story, status, photos (image_url, is_cover, copyright_name)').eq('id', slug).single()
     if (byId) post = byId
   }
+
+  const { data: settings } = await supabase.from('site_settings').select('theme_config').limit(1).single()
+  enableWatermark = settings?.theme_config?.enable_watermark !== false
 
   if (!post || post.status !== 'Published') {
     return {
@@ -48,7 +54,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const coverPhoto = post.photos?.find((p: any) => p.is_cover) || post.photos?.[0]
-  const imageUrl = coverPhoto ? getOptimizedImageUrl(coverPhoto.image_url, 1200) : ''
+  const imageUrl = coverPhoto ? getOptimizedImageUrl(coverPhoto.image_url, 1200, coverPhoto.copyright_name, enableWatermark) : ''
   const desc = post.story ? post.story.substring(0, 160) + '...' : 'Sebuah momen tertangkap kamera.'
 
   return {
@@ -80,7 +86,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
       collections (name),
       post_tags ( tags (name) ),
       photos (
-        id, image_url, sort_order, bytes, format, original_filename, license_type, copyright_name,
+        id, image_url, sort_order, bytes, format, original_filename, license_type, copyright_name, show_watermark,
         exif_data (camera, lens, focal_length, aperture, iso, shutter_speed, date_taken)
       )
     `)
@@ -97,7 +103,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
         collections (name),
         post_tags ( tags (name) ),
         photos (
-          id, image_url, sort_order, bytes, format, original_filename, license_type, copyright_name,
+          id, image_url, sort_order, bytes, format, original_filename, license_type, copyright_name, show_watermark,
           exif_data (camera, lens, focal_length, aperture, iso, shutter_speed, date_taken)
         )
       `)
@@ -109,6 +115,9 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     }
     finalPost = postById
   }
+
+  const { data: settings } = await supabase.from('site_settings').select('theme_config').limit(1).single()
+  const enableWatermark = settings?.theme_config?.enable_watermark !== false
 
   if (!finalPost || finalPost.status !== 'Published') {
     return (
@@ -135,9 +144,9 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   // Sortir foto berdasarkan sort_order
   const photos = postData.photos?.sort((a: any, b: any) => a.sort_order - b.sort_order) || []
 
-  // Buat Ambient Glow dari gambar cover
+  // Buat Ambient Glow dari gambar cover (tanpa watermark untuk performa)
   const ambientCover = photos.find((p: any) => p.is_cover) || photos[0]
-  const ambientGlowUrl = ambientCover ? getOptimizedImageUrl(ambientCover.image_url, 400) : null
+  const ambientGlowUrl = ambientCover ? getOptimizedImageUrl(ambientCover.image_url, 400, null, false) : null
 
   // Cari tanggal diambil dari EXIF foto pertama, fallback ke created_at
   const firstExifDate = photos[0]?.exif_data?.[0]?.date_taken

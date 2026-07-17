@@ -24,7 +24,7 @@ export function SettingsForm() {
     cloudinary_cloud_name: '',
     contact_email: '',
     social_links: [] as { title: string, url: string, icon_url?: string }[],
-    theme_config: { dark_bg: '', light_bg: '', primary_color: '' }
+    theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true }
   })
 
   const supabase = createClient()
@@ -51,7 +51,7 @@ export function SettingsForm() {
         cloudinary_cloud_name: data.cloudinary_cloud_name || '',
         contact_email: data.contact_email || '',
         social_links: data.social_links || [],
-        theme_config: data.theme_config || { dark_bg: '', light_bg: '', primary_color: '' }
+        theme_config: data.theme_config || { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true }
       })
     }
     if (error && error.code !== 'PGRST116') {
@@ -117,7 +117,7 @@ export function SettingsForm() {
     }
   }
 
-  const handleThemeChange = (field: 'dark_bg' | 'light_bg' | 'primary_color', value: string) => {
+  const handleThemeChange = (field: 'dark_bg' | 'light_bg' | 'primary_color' | 'enable_watermark', value: string | boolean) => {
     setSettings(prev => ({
       ...prev,
       theme_config: { ...prev.theme_config, [field]: value }
@@ -128,7 +128,7 @@ export function SettingsForm() {
     if (confirm('Yakin ingin mereset tema ke warna bawaan asli (Legendary UI)?')) {
       setSettings(prev => ({
         ...prev,
-        theme_config: { dark_bg: '', light_bg: '', primary_color: '' }
+        theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true }
       }))
       toast.success('Warna tema dikembalikan ke default')
     }

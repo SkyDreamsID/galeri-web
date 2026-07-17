@@ -21,6 +21,9 @@ export async function generateMetadata() {
 export default async function AlbumsPage() {
   const supabase = await createClient()
 
+  const { data: settings } = await supabase.from('site_settings').select('theme_config').limit(1).single()
+  const enableWatermark = settings?.theme_config?.enable_watermark !== false
+
   // Ambil daftar koleksi
   const { data: collectionsData } = await supabase
     .from('collections')
@@ -32,7 +35,7 @@ export default async function AlbumsPage() {
     .from('posts')
     .select(`
       collection_id,
-      photos (image_url, is_cover)
+      photos (image_url, is_cover, copyright_name)
     `)
     .eq('status', 'Published')
     .not('collection_id', 'is', null)
@@ -46,21 +49,25 @@ export default async function AlbumsPage() {
     
     // Cari cover: cari post dengan photo is_cover = true, kalau gak ada ambil foto pertama dari post pertama
     let coverUrl = null
+    let copyrightName = null
     for (const post of colPosts) {
       const coverPhoto = post.photos?.find((p: any) => p.is_cover)
       if (coverPhoto) {
         coverUrl = coverPhoto.image_url
+        copyrightName = coverPhoto.copyright_name
         break
       }
     }
     if (!coverUrl && colPosts.length > 0 && colPosts[0].photos?.[0]) {
       coverUrl = colPosts[0].photos[0].image_url
+      copyrightName = colPosts[0].photos[0].copyright_name
     }
 
     return {
       ...col,
       postCount: colPosts.length,
-      coverUrl
+      coverUrl,
+      copyrightName
     }
   })
 
@@ -96,7 +103,7 @@ export default async function AlbumsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
             {sortedAlbums.map((album, idx) => {
-              const displayUrl = album.coverUrl ? getOptimizedImageUrl(album.coverUrl, 600) : ''
+              const displayUrl = album.coverUrl ? getOptimizedImageUrl(album.coverUrl, 600, album.copyrightName, enableWatermark) : ''
               
               return (
                 <Link 

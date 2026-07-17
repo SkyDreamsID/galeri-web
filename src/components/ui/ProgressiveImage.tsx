@@ -9,13 +9,17 @@ interface ProgressiveImageProps {
   alt: string
   className?: string
   width?: number
+  watermarkText?: string | null
+  enableWatermark?: boolean
 }
 
 export function ProgressiveImage({ 
   src, 
   alt, 
   className = '',
-  width = 800
+  width = 800,
+  watermarkText,
+  enableWatermark = true
 }: ProgressiveImageProps) {
   if (!src) return null;
 
@@ -26,7 +30,7 @@ export function ProgressiveImage({
   }
 
   // 2. Gunakan getOptimizedImageUrl bawaan untuk kualitas utama
-  const highResUrl = getOptimizedImageUrl(src, width)
+  const highResUrl = getOptimizedImageUrl(src, width, watermarkText, enableWatermark)
 
   return (
     <Image 

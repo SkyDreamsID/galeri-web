@@ -20,6 +20,7 @@ type FileWithExif = {
   preview: string
   public_id?: string
   license_type: string
+  show_watermark: boolean
   exif: {
     camera?: string
     lens?: string
@@ -72,7 +73,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           .select(`
             id, title, story, location, license_type, collection_id, status,
             photos (
-              id, image_url, public_id, sort_order, bytes, format, original_filename, license_type, copyright_name,
+              id, image_url, public_id, sort_order, bytes, format, original_filename, license_type, copyright_name, show_watermark,
               exif_data (camera, lens, focal_length, aperture, iso, shutter_speed, date_taken)
             )
           `)
@@ -118,6 +119,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
               preview: p.image_url,
               public_id: p.public_id,
               license_type: p.license_type || 'Copyright',
+              show_watermark: p.show_watermark !== false,
               exif: {
                 camera: exif.camera || undefined,
                 lens: exif.lens || undefined,
@@ -176,7 +178,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           console.warn('Could not parse EXIF for', file.name)
         }
 
-        return { file, preview: URL.createObjectURL(file), license_type: 'Copyright', exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
+        return { file, preview: URL.createObjectURL(file), license_type: 'Copyright', show_watermark: true, exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
       })
     )
     setImages((prev) => [...prev, ...newImages])
@@ -334,6 +336,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             format: photo.format,
             original_filename: photo.original_filename,
             license_type: photo.license_type || 'Copyright',
+            show_watermark: photo.show_watermark !== false,
             is_cover: remainingExistingCount === 0 && i === 0, // Cover jika tidak ada foto lama tersisa
             sort_order: remainingExistingCount + i,
             copyright_name: photo.exif.copyright_name || ''
@@ -358,7 +361,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       for (const img of existingPhotos) {
         await supabase.from('photos').update({ 
           license_type: img.license_type,
-          copyright_name: img.exif.copyright_name || ''
+          copyright_name: img.exif.copyright_name || '',
+          show_watermark: img.show_watermark !== false
         }).eq('id', img.id)
         
         const { copyright_name, ...exifToInsert } = img.exif
@@ -626,6 +630,26 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                         <option value="Copyright">Hak Cipta (Dilarang Unduh)</option>
                         <option value="Free Copyright">Bebas (Izinkan Unduh)</option>
                       </select>
+
+                      {/* Checkbox Tampilkan Watermark */}
+                      <label
+                        className="flex items-center gap-2 cursor-pointer select-none mt-1 group"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={img.show_watermark !== false}
+                          onChange={(e) => {
+                            e.stopPropagation()
+                            const newImages = [...images]
+                            newImages[idx].show_watermark = e.target.checked
+                            setImages(newImages)
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-3.5 h-3.5 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer pointer-events-auto"
+                        />
+                        <span className="text-[11px] text-text-muted group-hover:text-text-main transition-colors">Tampilkan watermark</span>
+                      </label>
 
                       <div className="pt-1 space-y-1">
                         {img.exif.camera && <p>📷 {img.exif.camera} {img.exif.lens}</p>}

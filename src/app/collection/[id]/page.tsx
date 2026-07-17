@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { Navbar } from '@/components/layout/Navbar'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 import { ArrowLeft } from 'lucide-react'
+import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
 const LAYOUT_CONFIG = {
   maxWidth: "w-[95%] max-w-[3840px]",
@@ -52,7 +53,7 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
         .select(`
           id, title, slug, location, created_at,
           collections (name),
-          photos (image_url, is_cover)
+          photos (image_url, is_cover, copyright_name, show_watermark)
         `, { count: 'exact' })
         .eq('status', 'Published')
         .eq('collection_id', collectionId)
@@ -113,8 +114,11 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
           <>
             <div className={`${LAYOUT_CONFIG.gridCols} ${LAYOUT_CONFIG.gridGap}`}>
               {posts.map((post: any) => {
-                const rawCoverImage = post.photos?.find((p: any) => p.is_cover)?.image_url || post.photos?.[0]?.image_url
-                const coverImage = rawCoverImage ? getOptimizedImageUrl(rawCoverImage, 800) : null
+                const coverPhoto = post.photos?.find((p: any) => p.is_cover) || post.photos?.[0]
+                const rawCoverImage = coverPhoto?.image_url
+                const copyrightName = coverPhoto?.copyright_name
+                const showWatermark = coverPhoto?.show_watermark !== false
+                const coverImage = rawCoverImage ? getOptimizedImageUrl(rawCoverImage, 800, copyrightName, showWatermark) : null
                 
                 return (
                   <motion.div 
@@ -127,7 +131,7 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
                   >
                     <Link href={`/post/${post.slug || post.id}`} className="block group cursor-pointer relative overflow-hidden rounded-none md:rounded-2xl bg-surface">
                       {coverImage ? (
-                        <ProgressiveImage src={rawCoverImage} alt={post.title} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]" />
+                        <ProgressiveImage src={rawCoverImage} alt={post.title} watermarkText={copyrightName} enableWatermark={showWatermark} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]" />
                       ) : (
                         <div className="w-full aspect-[4/3] flex items-center justify-center bg-surface text-text-muted">No Photo</div>
                       )}

@@ -17,6 +17,7 @@ type FileWithExif = {
   file: File
   preview: string
   license_type: string
+  show_watermark: boolean
   exif: {
     camera?: string
     lens?: string
@@ -116,7 +117,7 @@ export function UploadForm() {
           console.warn('Could not parse EXIF for', file.name)
         }
 
-        return { file, preview: URL.createObjectURL(file), license_type: 'Copyright', exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
+        return { file, preview: URL.createObjectURL(file), license_type: 'Copyright', show_watermark: true, exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
       })
     )
     setImages((prev) => [...prev, ...newImages])
@@ -213,7 +214,8 @@ export function UploadForm() {
           format: cloudData.format,
           original_filename: cloudData.original_filename,
           license_type: img.license_type,
-          exif: img.exif
+          exif: img.exif,
+          show_watermark: img.show_watermark !== false
         })
       }
       setUploadProgress('Menyimpan data ke database...')
@@ -278,6 +280,7 @@ export function UploadForm() {
             format: photo.format,
             original_filename: photo.original_filename,
             license_type: photo.license_type,
+            show_watermark: photo.show_watermark !== false,
             is_cover: i === 0,
             sort_order: i,
             copyright_name: photo.exif.copyright_name || ''
@@ -564,6 +567,26 @@ export function UploadForm() {
                       <option value="Copyright">Hak Cipta (Dilarang Unduh)</option>
                       <option value="Free Copyright">Bebas (Izinkan Unduh)</option>
                     </select>
+
+                    {/* Checkbox Tampilkan Watermark */}
+                    <label
+                      className="flex items-center gap-2 cursor-pointer select-none mt-1 group"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={img.show_watermark !== false}
+                        onChange={(e) => {
+                          e.stopPropagation()
+                          const newImages = [...images]
+                          newImages[idx].show_watermark = e.target.checked
+                          setImages(newImages)
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-3.5 h-3.5 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer pointer-events-auto"
+                      />
+                      <span className="text-[11px] text-text-muted group-hover:text-text-main transition-colors">Tampilkan watermark</span>
+                    </label>
 
                       <div className="pt-1 space-y-1">
                         {img.exif.camera && <p>📷 {img.exif.camera} {img.exif.lens}</p>}

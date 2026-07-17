@@ -99,7 +99,8 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
             }
             
             // Selalu gunakan versi terkompresi (max 1920px) untuk tampilan frontend web
-            const displayUrl = getOptimizedImageUrl(photo.image_url, 1920)
+            const perPhotoWatermark = photo.show_watermark !== false
+            const displayUrl = getOptimizedImageUrl(photo.image_url, 1920, photo.copyright_name, perPhotoWatermark)
             
             return (
               <div key={photo.id} className="relative flex-[0_0_100%] min-w-0">
