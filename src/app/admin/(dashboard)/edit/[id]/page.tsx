@@ -680,9 +680,15 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                       </button>
                     )}
 
-                    <div className="h-32 md:h-48 w-full relative shrink-0">
-                      <img src={img.preview} alt="preview" className="absolute inset-0 w-full h-full object-cover" />
+                    <div className="h-32 md:h-48 w-full relative shrink-0 bg-zinc-800">
+                      {/* Intercept URL Cloudinary biar dapet versi enteng 400px, kalau file lokal baru biarin utuh */}
+                      <img 
+                        src={img.preview.includes('res.cloudinary.com') ? img.preview.replace('/upload/', '/upload/c_fill,w_400,q_auto,f_auto/') : img.preview} 
+                        alt="preview" 
+                        className="absolute inset-0 w-full h-full object-cover" 
+                      />
                     </div>
+
                     <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between">
                       <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2">
                         <div className="font-medium text-text-main truncate w-full" title={img.file ? img.file.name : 'Foto Tersimpan'}>
