@@ -108,7 +108,7 @@ export function Navbar({
                 <Menu size={22} className="block group-open:hidden" />
                 <X size={22} className="hidden group-open:block" />
               </summary>
-              <div className="absolute right-0 mt-4 w-[240px] rounded-2xl border border-border bg-surface p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
+              <div className="absolute right-0 mt-4 w-[calc(100vw-3rem)] max-w-[240px] rounded-2xl border border-border bg-surface p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
                 <div className="space-y-1">
                   <Link href="/albums" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">📁 Albums</Link>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">📸 My Gear</button>
@@ -180,7 +180,7 @@ export function Navbar({
                 <X size={22} className="hidden group-open:block" />
               </summary>
               
-              <div className="absolute right-0 mt-2 w-[240px] max-h-[70vh] overflow-y-auto overscroll-contain scrollbar-thin rounded-2xl border border-border bg-surface/95 backdrop-blur-xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[9999] hidden group-open:block">
+              <div className="absolute right-0 mt-2 w-[calc(100vw-3rem)] max-w-[240px] max-h-[70vh] overflow-y-auto overscroll-contain scrollbar-thin rounded-2xl border border-border bg-surface/95 backdrop-blur-xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[9999] hidden group-open:block">
                 <div className="space-y-1">
                   <Link href="/albums" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📁 Albums</Link>
                   <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>

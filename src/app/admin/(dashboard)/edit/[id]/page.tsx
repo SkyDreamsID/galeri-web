@@ -601,7 +601,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                     Pilih Semua ({selectedPhotos.length}/{images.length})
                   </span>
                 </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                   <Input 
                     value={bulkCopyrightName} 
                     onChange={(e) => setBulkCopyrightName(e.target.value)}
@@ -754,7 +754,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 <span className="text-sm text-text-muted font-medium whitespace-nowrap">Kompres Foto Baru (Cepat)</span>
               </label>
             )}
-            <div className="flex gap-3 order-1 sm:order-2 w-full sm:w-auto">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 order-1 sm:order-2 w-full sm:w-auto">
               <Link href="/admin/gallery" className="w-full sm:w-auto">
                 <Button type="button" variant="outline" className="w-full bg-surface border-border/50 text-text-main hover:bg-hover-bg">
                   Batal

@@ -157,7 +157,9 @@ export default function GalleryManagement() {
           {/* ===== MOBILE GRID START ===== */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
           {filteredPosts.map((post) => {
-            const coverImage = post.photos?.[0]?.image_url
+            const rawImage = post.photos?.[0]?.image_url;
+            // Optimasi Penggunaan kuota internet
+            const coverImage = rawImage ? rawImage.replace('/upload/', '/upload/c_fill,w_400,q_auto,f_auto/') : null;
             return (
               <Card key={post.id} className="bg-surface border-border/40 overflow-hidden flex flex-col shadow-sm">
                 <div className="h-28 md:h-48 w-full relative bg-background">

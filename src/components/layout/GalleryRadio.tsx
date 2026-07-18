@@ -38,33 +38,29 @@ export function GalleryRadio() {
 
   // Fungsi Toggle Play/Pause
   const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        // Jika sedang loading play(), tunggu sampai resolve baru pause
-        if (playPromiseRef.current) {
-          playPromiseRef.current.then(() => {
-            audioRef.current?.pause()
-          }).catch(() => {})
-        } else {
-          audioRef.current.pause()
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      // Pause tetep instan
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      // Play dibuat responsif, biarin browser yang handle proses loading di background
+      const cacheBuster = streamUrl.includes('?') ? `&cb=${Date.now()}` : `?cb=${Date.now()}`;
+      audioRef.current.src = streamUrl + cacheBuster;
+      
+      // Tombol langsung berubah status biar gak berasa delay
+      setIsPlaying(true);
+      
+      audioRef.current.play().catch(e => {
+        if (e.name !== 'AbortError') {
+          console.error("Play failed:", e);
+          setIsPlaying(false); // Balikin status kalau beneran gagal
         }
-        setIsPlaying(false)
-      } else {
-        // Tambahkan parameter time untuk mencegah browser cache stream lama (biar audio sinkron dengan teks live)
-        const cacheBuster = streamUrl.includes('?') ? `&cb=${Date.now()}` : `?cb=${Date.now()}`
-        audioRef.current.src = streamUrl + cacheBuster
-        audioRef.current.load()
-        const playPromise = audioRef.current.play()
-        playPromiseRef.current = playPromise
-        if (playPromise !== undefined) {
-          playPromise.catch(e => {
-            if (e.name !== 'AbortError') console.error("Play failed:", e)
-          })
-        }
-        setIsPlaying(true)
-      }
+      });
     }
-  }
+  };
+
 
   // Effect untuk Zeno.fm dan deteksi Portal Target
   useEffect(() => {
