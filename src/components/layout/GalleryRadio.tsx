@@ -50,7 +50,9 @@ export function GalleryRadio() {
         }
         setIsPlaying(false)
       } else {
-        audioRef.current.src = streamUrl
+        // Tambahkan parameter time untuk mencegah browser cache stream lama (biar audio sinkron dengan teks live)
+        const cacheBuster = streamUrl.includes('?') ? `&cb=${Date.now()}` : `?cb=${Date.now()}`
+        audioRef.current.src = streamUrl + cacheBuster
         audioRef.current.load()
         const playPromise = audioRef.current.play()
         playPromiseRef.current = playPromise
@@ -87,14 +89,12 @@ export function GalleryRadio() {
             newTitle = parts.slice(1).join(" - ").trim()
           }
 
-          setTrackInfo(prev => ({
-            ...prev,
-            title: newTitle,
-            artist: newArtist
-          }))
+          // Bersihkan judul dan artis dari teks ekstra agar Last.fm lebih akurat
+          const cleanArtist = newArtist.split(/ feat\.? | ft\.? /i)[0].split(',')[0].trim()
+          const cleanTitle = newTitle
 
           const apiKey = "257a264bbac662d1b74762320ba4bcc1"
-          fetch(`https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${apiKey}&artist=${encodeURIComponent(newArtist)}&track=${encodeURIComponent(newTitle)}&format=json`)
+          fetch(`https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${apiKey}&artist=${encodeURIComponent(cleanArtist)}&track=${encodeURIComponent(cleanTitle)}&format=json`)
             .then(res => res.json())
             .then(lastFmData => {
               let fetchedCover = ""
@@ -105,9 +105,23 @@ export function GalleryRadio() {
                   fetchedCover = largeImg['#text']
                 }
               }
-              setTrackInfo(prev => ({ ...prev, coverUrl: fetchedCover }))
+              // Update state sekalian agar teks dan gambar berganti bersamaan
+              setTrackInfo(prev => ({ 
+                ...prev, 
+                title: newTitle, 
+                artist: newArtist, 
+                coverUrl: fetchedCover 
+              }))
             })
-            .catch(err => console.error("Gagal ambil cover Last.fm", err))
+            .catch(err => {
+              console.error("Gagal ambil cover Last.fm", err)
+              // Tetap update title dan artist jika Last.fm gagal
+              setTrackInfo(prev => ({ 
+                ...prev, 
+                title: newTitle, 
+                artist: newArtist 
+              }))
+            })
         }
       } catch (err) {
         console.error("Gagal parsing Zeno metadata", err)
@@ -259,7 +273,7 @@ export function GalleryRadio() {
     <button
       type="button"
       onClick={togglePlay}
-      className={`real-radio-btn w-11 h-11 relative flex items-center justify-center rounded-xl transition-all border shadow-sm touch-manipulation z-10 ${
+      className={`real-radio-btn w-11 h-11 relative flex items-center justify-center rounded-xl transition-all border shadow-sm touch-manipulation z-10 overflow-hidden ${
         isPlaying 
           ? 'bg-surface text-primary-neutral border-primary-neutral/30' 
           : 'bg-surface/80 hover:bg-surface active:scale-90 text-text-main border-border/50'
@@ -277,46 +291,86 @@ export function GalleryRadio() {
     </button>
   )
 
-  // Banner Musik untuk Mobile (IG Notes Style)
+  // Banner Musik untuk Mobile
   const mobileBanner = (
     <AnimatePresence>
       {isPlaying && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.01, y: -30, filter: "blur(10px)", transformOrigin: "60% -30px" }}
-          animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-          exit={{ opacity: 0, scale: 0.01, y: -30, filter: "blur(10px)", transition: { duration: 0.25, ease: "easeInOut" } }}
-          transition={{ type: "spring", damping: 14, stiffness: 280, mass: 0.8 }}
-          /* 🛠️ UBAH JARAK WIDGET DARI ATAS DI SINI */
-          /* 'top-[68px]' = jarak dari layar atas. Kecilin angka (contoh: top-[64px]) kalau mau makin naik nempel ke navbar. */
-          className="fixed top-[68px] right-6 z-[9990] max-w-[220px] bg-surface/95 border border-border/50 shadow-lg rounded-full px-2.5 py-1.5 flex items-center gap-2 lg:hidden pointer-events-auto select-text backdrop-blur-md"
+          initial={{ 
+            opacity: 0, 
+            width: 44,
+            height: 29,
+            y: -20, 
+            filter: "blur(5px)",
+            borderRadius: 10
+          }}
+          animate={{ 
+            opacity: 1, 
+            width: 180,
+            height: 29,
+            y: 0, 
+            filter: "blur(0px)",
+            borderRadius: 10
+          }}
+          exit={{ 
+            opacity: 0, 
+            width: 44,
+            height: 29,
+            y: -20, 
+            filter: "blur(5px)", 
+            transition: { duration: 0.2, ease: "easeIn" } 
+          }}
+          transition={{ 
+            type: "spring", 
+            damping: 17, 
+            stiffness: 250, 
+            mass: 0.8 
+          }}
+          className="absolute top-[56px] -left-3 z-[9990] max-w-[220px] bg-surface/95 border border-border/50 shadow-lg rounded-[10px] flex items-center lg:hidden pointer-events-auto select-text backdrop-blur-md"
         >
-          {/* Cover Art Super Mini */}
-          <div className="w-4 h-4 shrink-0 rounded-full overflow-hidden bg-background flex items-center justify-center relative shadow-sm border border-border/50">
-            {trackInfo.coverUrl ? (
-              <img src={trackInfo.coverUrl} alt="Cover" className="w-full h-full object-cover" />
-            ) : (
-              <Music className="w-2.5 h-2.5 text-text-muted" />
-            )}
-          </div>
-          
-          {/* Info Teks (1 Baris) */}
-          <div className="flex-1 min-w-0 overflow-hidden relative mask-fade-edges">
-            <div className="whitespace-nowrap">
-              {trackInfo.title.length + trackInfo.artist.length > 25 ? (
-                <div className="animate-marquee inline-block">
-                  <span className="text-[10px] font-medium text-text-main pr-6">
-                    <span className="text-text-muted">{trackInfo.artist}</span> • {trackInfo.title}
-                  </span>
-                  <span className="text-[10px] font-medium text-text-main pr-6">
-                    <span className="text-text-muted">{trackInfo.artist}</span> • {trackInfo.title}
-                  </span>
-                </div>
+          {/* EKOR / TAIL (Panah ke atas yang menunjuk ke tombol radio) */}
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1, transition: { delay: 0.1 } }} 
+            exit={{ opacity: 0, transition: { duration: 0.1 } }}
+            className="absolute -top-[6px] left-[27px] w-3 h-3 bg-surface/95 border-t border-l border-border/50 transform rotate-45 z-[-1]"
+          />
+
+          {/* Wrapper Konten Internal (Di-clip supaya teks gak luber saat box-nya masih kecil) */}
+          <div className="flex items-center gap-3 w-full h-full px-2.5 py-1 overflow-hidden rounded-[10px] relative">
+            {/* Cover Art Super Mini */}
+            <div className="w-5 h-5 shrink-0 rounded-[6px] overflow-hidden bg-background flex items-center justify-center shadow-sm border border-border/50 z-10">
+              {trackInfo.coverUrl ? (
+                <img src={trackInfo.coverUrl} alt="Cover" className="w-full h-full object-cover" />
               ) : (
-                <p className="text-[10px] font-medium text-text-main truncate">
-                  <span className="text-text-muted">{trackInfo.artist}</span> • {trackInfo.title}
-                </p>
+                <Music className="w-3 h-3 text-text-muted" />
               )}
             </div>
+            
+            {/* Info Teks (1 Baris) */}
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1, transition: { delay: 0.15 } }}
+              exit={{ opacity: 0, transition: { duration: 0.1 } }}
+              className="flex-1 min-w-0 overflow-hidden relative mask-fade-edges h-full flex flex-col justify-center"
+            >
+              <div className="whitespace-nowrap w-[125px] shrink-0">
+                {trackInfo.title.length + trackInfo.artist.length > 20 ? (
+                  <div className="animate-marquee inline-block">
+                    <span className="text-[10px] font-medium text-text-main pr-6">
+                      <span className="text-text-muted">{trackInfo.artist}</span> • {trackInfo.title}
+                    </span>
+                    <span className="text-[10px] font-medium text-text-main pr-6">
+                      <span className="text-text-muted">{trackInfo.artist}</span> • {trackInfo.title}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-[10px] font-medium text-text-main truncate">
+                    <span className="text-text-muted">{trackInfo.artist}</span> • {trackInfo.title}
+                  </p>
+                )}
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       )}
@@ -335,8 +389,13 @@ export function GalleryRadio() {
       />
       {isMobile ? (
         <>
-          {portalTarget ? createPortal(mobileToggleButton, portalTarget) : null}
-          {mobileBanner}
+          {portalTarget ? createPortal(
+            <>
+              {mobileToggleButton}
+              {mobileBanner}
+            </>, 
+            portalTarget
+          ) : null}
         </>
       ) : (
         desktopWidget

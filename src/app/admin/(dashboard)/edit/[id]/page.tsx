@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, X, ArrowLeft, FileText } from 'lucide-react'
+import { Loader2, UploadCloud, X, ArrowLeft, FileText, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { TagInput } from '@/components/admin/TagInput'
 import { toast } from 'sonner'
@@ -55,6 +55,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [images, setImages] = useState<FileWithExif[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [useCompression, setUseCompression] = useState(true)
+  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null)
 
   // Bulk Edit States
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
@@ -63,6 +65,17 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
   // Track deleted existing photos
   const [deletedPhotos, setDeletedPhotos] = useState<{ id: string; public_id: string }[]>([])
+
+  // Auto-resize textarea when story changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+      }
+    }, 10)
+    return () => clearTimeout(timer)
+  }, [story])
 
   useEffect(() => {
     const loadPostData = async () => {
@@ -73,7 +86,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           .select(`
             id, title, story, location, license_type, collection_id, status,
             photos (
-              id, image_url, public_id, sort_order, bytes, format, original_filename, license_type, copyright_name, show_watermark,
+              id, image_url, public_id, sort_order, bytes, format, original_filename, license_type, copyright_name, show_watermark, is_cover,
               exif_data (camera, lens, focal_length, aperture, iso, shutter_speed, date_taken)
             )
           `)
@@ -112,7 +125,9 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         // 3. Map Photos
         if (post.photos) {
           const sortedPhotos = [...post.photos].sort((a, b) => a.sort_order - b.sort_order)
+          let coverId = null
           const mappedPhotos: FileWithExif[] = sortedPhotos.map((p: any) => {
+            if (p.is_cover) coverId = p.id
             const exif = p.exif_data?.[0] || {}
             return {
               id: p.id,
@@ -133,6 +148,11 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             }
           })
           setImages(mappedPhotos)
+          if (coverId) {
+            setCoverPhotoId(coverId)
+          } else if (mappedPhotos.length > 0) {
+            setCoverPhotoId(mappedPhotos[0].id!)
+          }
         }
       } catch (err) {
         console.error(err)
@@ -178,7 +198,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           console.warn('Could not parse EXIF for', file.name)
         }
 
-        return { file, preview: URL.createObjectURL(file), license_type: 'Copyright', show_watermark: true, exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
+        return { id: `new-${Math.random().toString(36).substring(7)}`, file, preview: URL.createObjectURL(file), license_type: 'Copyright', show_watermark: true, exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
       })
     )
     setImages((prev) => [...prev, ...newImages])
@@ -203,11 +223,18 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
   const removeImage = (index: number) => {
     const imgToRemove = images[index]
-    if (imgToRemove.id && imgToRemove.public_id) {
+    if (imgToRemove.id && imgToRemove.public_id && !imgToRemove.id.startsWith('new-')) {
       setDeletedPhotos((prev) => [...prev, { id: imgToRemove.id!, public_id: imgToRemove.public_id! }])
     }
-    setImages((prev) => prev.filter((_, i) => i !== index))
+    const newImages = images.filter((_, i) => i !== index)
+    setImages(newImages)
     setSelectedPhotos((prev) => prev.filter(i => i !== index).map(i => i > index ? i - 1 : i))
+    
+    if (imgToRemove.id === coverPhotoId && newImages.length > 0) {
+      setCoverPhotoId(newImages[0].id!)
+    } else if (newImages.length === 0) {
+      setCoverPhotoId(null)
+    }
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -250,8 +277,44 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
         uploadedPhotos = await Promise.all(
           newFiles.map(async (img) => {
+            // Proses Kompresi
+            let fileToUpload = img.file!
+            if (useCompression && fileToUpload.type.startsWith('image/')) {
+              fileToUpload = await new Promise<File>((resolve) => {
+                const imageObj = new Image()
+                imageObj.src = URL.createObjectURL(img.file!)
+                imageObj.onload = () => {
+                  const canvas = document.createElement('canvas')
+                  const MAX_WIDTH = 2500
+                  const MAX_HEIGHT = 2500
+                  let width = imageObj.width
+                  let height = imageObj.height
+                  
+                  if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                    if (width > height) {
+                      height = Math.round(height * (MAX_WIDTH / width))
+                      width = MAX_WIDTH
+                    } else {
+                      width = Math.round(width * (MAX_HEIGHT / height))
+                      height = MAX_HEIGHT
+                    }
+                  }
+                  canvas.width = width
+                  canvas.height = height
+                  const ctx = canvas.getContext('2d')
+                  if (!ctx) return resolve(img.file!)
+                  ctx.drawImage(imageObj, 0, 0, width, height)
+                  canvas.toBlob((blob) => {
+                    if (blob) resolve(new File([blob], img.file!.name, { type: 'image/jpeg' }))
+                    else resolve(img.file!)
+                  }, 'image/jpeg', 0.85)
+                }
+                imageObj.onerror = () => resolve(img.file!)
+              })
+            }
+
             const formData = new FormData()
-            formData.append('file', img.file!)
+            formData.append('file', fileToUpload)
             formData.append('api_key', apiKey)
             formData.append('timestamp', timestamp.toString())
             formData.append('signature', signature)
@@ -323,9 +386,10 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       }
 
       // 6. Insert Foto Baru & EXIF
-      const remainingExistingCount = images.filter(img => img.id !== undefined).length
+      const remainingExistingCount = images.filter(img => img.file === undefined).length
       for (let i = 0; i < uploadedPhotos.length; i++) {
         const photo = uploadedPhotos[i]
+        const originalImg = newFiles[i]
         const { data: photoData, error: photoError } = await supabase
           .from('photos')
           .insert({
@@ -337,7 +401,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             original_filename: photo.original_filename,
             license_type: photo.license_type || 'Copyright',
             show_watermark: photo.show_watermark !== false,
-            is_cover: remainingExistingCount === 0 && i === 0, // Cover jika tidak ada foto lama tersisa
+            is_cover: originalImg.id === coverPhotoId,
             sort_order: remainingExistingCount + i,
             copyright_name: photo.exif.copyright_name || ''
           })
@@ -357,12 +421,13 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       }
 
       // 7. Update metadata foto lama (lisensi & copyright_name) yang tidak dihapus
-      const existingPhotos = images.filter(img => img.id !== undefined)
+      const existingPhotos = images.filter(img => img.file === undefined)
       for (const img of existingPhotos) {
         await supabase.from('photos').update({ 
           license_type: img.license_type,
           copyright_name: img.exif.copyright_name || '',
-          show_watermark: img.show_watermark !== false
+          show_watermark: img.show_watermark !== false,
+          is_cover: img.id === coverPhotoId
         }).eq('id', img.id)
         
         const { copyright_name, ...exifToInsert } = img.exif
@@ -401,47 +466,41 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
-      <div className="flex items-center gap-3">
-        <Link href="/admin/gallery">
-          <Button variant="outline" size="icon" className="bg-surface border-border/50 hover:bg-hover-bg text-text-main">
-            <ArrowLeft size={18} />
-          </Button>
-        </Link>
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-text-main">Edit Momen</h2>
-          <p className="text-text-muted mt-1">Ubah cerita, lokasi, tag, atau foto pada momen ini.</p>
-        </div>
-      </div>
-
-      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left column: metadata */}
-        <div className="lg:col-span-1 space-y-6">
+      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 relative">
+        {/* Kolom Kiri: Meta Data Post */}
+        <div className="lg:col-span-1 space-y-4 md:space-y-6">
           <Card className="bg-surface border-border/40 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-text-main font-heading">Detail Momen</CardTitle>
+            <CardHeader className="p-4 pb-0 md:p-6 md:pb-6 flex flex-row items-center gap-4 space-y-0">
+              <Link href="/admin/gallery" className="p-2 hover:bg-hover-bg rounded-full transition-colors shrink-0">
+                <ArrowLeft size={20} className="text-text-muted hover:text-text-main" />
+              </Link>
+              <div>
+                <CardTitle className="text-text-main font-heading text-xl md:text-2xl">Edit Momen</CardTitle>
+                <p className="text-[10px] md:text-sm text-text-muted mt-1">Ubah cerita, lokasi, tag, atau foto pada momen ini.</p>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-text-muted">Judul Momen</Label>
+            <CardContent className="p-4 pt-4 md:p-6 space-y-3 md:space-y-4">
+              <div className="space-y-1.5 md:space-y-2">
+                <Label className="text-text-muted text-xs md:text-sm">Judul Momen</Label>
                 <Input 
                   value={title} onChange={(e) => setTitle(e.target.value)}
                   placeholder="Misal: Senja di Stasiun Tugu" required
-                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral"
+                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 md:h-10 text-[13px] md:text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-text-muted">Lokasi (Opsional)</Label>
+              <div className="space-y-1.5 md:space-y-2">
+                <Label className="text-text-muted text-xs md:text-sm">Lokasi (Opsional)</Label>
                 <Input 
                   value={location} onChange={(e) => setLocation(e.target.value)}
                   placeholder="Yogyakarta"
-                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral"
+                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 md:h-10 text-[13px] md:text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-text-muted">Album / Koleksi</Label>
+              <div className="space-y-1.5 md:space-y-2">
+                <Label className="text-text-muted text-xs md:text-sm">Album / Koleksi</Label>
                 <select 
                   value={album} onChange={(e) => setAlbum(e.target.value)}
-                  className="w-full rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral appearance-none"
+                  className="w-full rounded-xl md:rounded-md border border-border/50 bg-background px-3 md:px-4 py-2 md:py-2.5 text-[13px] md:text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary-neutral appearance-none cursor-pointer h-9 md:h-auto"
                 >
                   <option value="">-- Tanpa Koleksi --</option>
                   {availableCollections.map(c => (
@@ -449,23 +508,23 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                   ))}
                 </select>
               </div>
-              <div className="space-y-2">
-                <Label className="text-text-muted">Status Tayang</Label>
+              <div className="space-y-1.5 md:space-y-2">
+                <Label className="text-text-muted text-xs md:text-sm">Status Tayang</Label>
                 <select 
                   value={status} onChange={(e) => setStatus(e.target.value)}
-                  className="w-full rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral appearance-none"
+                  className="w-full rounded-md border border-border/50 bg-background px-3 py-1.5 md:py-2 text-[13px] md:text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral appearance-none h-9 md:h-10"
                 >
                   <option value="Published">Publik</option>
                   <option value="Draft">Pribadi / Draft</option>
                 </select>
               </div>
-              <div className="space-y-2">
-                <Label className="mb-2 block">Tags</Label>
+              <div className="space-y-1.5 md:space-y-2">
+                <Label className="text-text-muted text-xs md:text-sm">Tags</Label>
                 <TagInput tags={tags} setTags={setTags} availableTags={allTags} placeholder="Ketik tag & enter" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5 md:space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-text-muted">Cerita / Deskripsi</Label>
+                  <Label className="text-text-muted text-xs md:text-sm">Cerita / Deskripsi</Label>
                   <label className="cursor-pointer text-xs flex items-center gap-1.5 text-primary-neutral hover:text-primary-neutral/80 transition-colors bg-primary-neutral/10 px-2 py-1 rounded-md border border-primary-neutral/20">
                     <FileText size={14} />
                     <span>Import .txt / .md</span>
@@ -492,31 +551,31 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                   ref={textareaRef}
                   value={story} onChange={(e) => setStory(e.target.value)}
                   placeholder="Tulis cerita di balik karya ini..."
-                  className="w-full min-h-[120px] resize-none overflow-hidden rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
+                  className="w-full min-h-[90px] md:min-h-[120px] resize-none overflow-hidden rounded-md border border-border/50 bg-background px-3 py-2 text-[13px] md:text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
                 />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right column: photos */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Kolom Kanan: Upload Foto */}
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
           <Card className="bg-surface border-border/40 border-dashed shadow-sm">
-            <CardContent className="p-8">
+            <CardContent className="p-3 md:p-8">
               <label 
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                className={`flex flex-col items-center justify-center w-full h-32 md:h-48 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
                   isDragging ? 'border-primary-neutral bg-primary-neutral/10' : 'border-border/60 bg-background hover:bg-background/80'
                 }`}
               >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6 pointer-events-none">
-                  <UploadCloud className="w-10 h-10 mb-3 text-text-muted" />
-                  <p className="mb-2 text-sm text-text-muted">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6 pointer-events-none px-4 text-center">
+                  <UploadCloud className="w-8 h-8 md:w-10 md:h-10 mb-2 md:mb-3 text-text-muted" />
+                  <p className="mb-1 md:mb-2 text-xs md:text-sm text-text-muted">
                     <span className="font-semibold text-text-main">Klik untuk tambah foto</span> atau drag and drop
                   </p>
-                  <p className="text-xs text-text-muted/70 mt-1">JPG, PNG (Bisa multi-upload) • Max 10MB/foto</p>
+                  <p className="text-[10px] md:text-xs text-text-muted/70 mt-1">JPG, PNG (Bisa multi-upload) • Max 10MB/foto</p>
                 </div>
                 <input type="file" className="hidden" multiple accept="image/*" onChange={handleFileChange} />
               </label>
@@ -547,12 +606,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                     value={bulkCopyrightName} 
                     onChange={(e) => setBulkCopyrightName(e.target.value)}
                     placeholder="Masukkan Nama"
-                    className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-32 text-sm"
+                    className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-32 text-[13px] md:text-sm"
                   />
                   <select 
                     value={bulkLicense}
                     onChange={(e) => setBulkLicense(e.target.value)}
-                    className="bg-background border border-border/50 text-text-main rounded-md focus:outline-none focus:border-primary-neutral h-9 px-2 w-full sm:w-36 text-sm"
+                    className="bg-background border border-border/50 text-text-main rounded-md focus:outline-none focus:border-primary-neutral h-9 px-2 w-full sm:w-36 text-[13px] md:text-sm"
                   >
                     <option value="Copyright">Copyright</option>
                     <option value="Free Copyright">Free Copyright</option>
@@ -573,11 +632,11 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 </div>
               </Card>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {images.map((img, idx) => (
                   <Card 
                     key={idx} 
-                    className={`bg-surface border-2 overflow-hidden group relative shadow-sm transition-colors cursor-pointer ${
+                    className={`bg-surface border-2 overflow-hidden group relative shadow-sm transition-colors cursor-pointer flex flex-col ${
                       selectedPhotos.includes(idx) ? 'border-primary-neutral/60' : 'border-border/40 hover:border-primary-neutral/30'
                     }`}
                     onClick={() => {
@@ -603,15 +662,33 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                     >
                       <X size={16} className="text-white" />
                     </button>
-                    <div className="h-48 w-full relative">
+
+                    {/* Button Jadikan Thumbnail */}
+                    {img.id === coverPhotoId ? (
+                      <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-yellow-500 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-md shadow-md z-10 flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-white" />
+                        THUMBNAIL
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setCoverPhotoId(img.id!) }}
+                        className="absolute top-2 left-1/2 -translate-x-1/2 bg-black/60 hover:bg-black/80 text-white text-[10px] md:text-xs font-semibold px-2 py-1 rounded-md shadow-sm z-10 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 backdrop-blur-sm"
+                      >
+                        <Star className="w-3 h-3" />
+                        Jadikan Thumbnail
+                      </button>
+                    )}
+
+                    <div className="h-32 md:h-48 w-full relative shrink-0">
                       <img src={img.preview} alt="preview" className="absolute inset-0 w-full h-full object-cover" />
                     </div>
-                    <div className="p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="font-medium text-text-main truncate" title={img.file ? img.file.name : 'Foto Tersimpan'}>
+                    <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between">
+                      <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2">
+                        <div className="font-medium text-text-main truncate w-full" title={img.file ? img.file.name : 'Foto Tersimpan'}>
                           {img.file ? img.file.name : 'Foto Tersimpan'}
                         </div>
-                        <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[10px] font-medium text-primary-neutral border border-primary-neutral/20">
+                        <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[9px] md:text-[10px] font-medium text-primary-neutral border border-primary-neutral/20">
                           © {img.exif.copyright_name}
                         </span>
                       </div>
@@ -625,10 +702,10 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                           setImages(newImages)
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-background border border-border/50 text-text-main rounded py-1 px-2 text-xs focus:outline-none focus:border-primary-neutral"
+                        className="w-full bg-background border border-border/50 text-text-main rounded py-1 px-2 text-[10px] md:text-xs focus:outline-none focus:border-primary-neutral"
                       >
-                        <option value="Copyright">Hak Cipta (Dilarang Unduh)</option>
-                        <option value="Free Copyright">Bebas (Izinkan Unduh)</option>
+                        <option value="Copyright">Hak Cipta</option>
+                        <option value="Free Copyright">Bebas Unduh</option>
                       </select>
 
                       {/* Checkbox Tampilkan Watermark */}
@@ -651,12 +728,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                         <span className="text-[11px] text-text-muted group-hover:text-text-main transition-colors">Tampilkan watermark</span>
                       </label>
 
-                      <div className="pt-1 space-y-1">
-                        {img.exif.camera && <p>📷 {img.exif.camera} {img.exif.lens}</p>}
+                      <div className="pt-1 space-y-0.5 md:space-y-1 text-[9px] md:text-[10px] leading-tight">
+                        {img.exif.camera && <p className="truncate">📷 {img.exif.camera} {img.exif.lens}</p>}
                         {img.exif.aperture && (
-                          <p>⚙️ {img.exif.focal_length} • {img.exif.aperture} • {img.exif.shutter_speed} • {img.exif.iso}</p>
+                          <p className="truncate">⚙️ {img.exif.focal_length} • {img.exif.aperture} • {img.exif.shutter_speed} • {img.exif.iso}</p>
                         )}
-                        {!img.exif.camera && <p className="text-yellow-500/80">⚠️ Data EXIF tidak terdeteksi</p>}
+                        {!img.exif.camera && <p className="text-yellow-500/80">⚠️ Tanpa EXIF</p>}
                       </div>
                     </div>
                   </Card>
@@ -665,26 +742,39 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Link href="/admin/gallery">
-              <Button type="button" variant="outline" className="bg-surface border-border/50 text-text-main hover:bg-hover-bg">
-                Batal
+          <div className="flex flex-col sm:flex-row items-center sm:justify-end gap-4 pt-4 w-full">
+            {images.some(img => img.file !== undefined) && (
+              <label className="flex items-center gap-2 cursor-pointer order-2 sm:order-1 bg-surface border border-border/50 px-3 py-2 rounded-lg shadow-sm hover:border-primary-neutral/40 transition-colors w-full sm:w-auto">
+                <input 
+                  type="checkbox" 
+                  checked={useCompression} 
+                  onChange={(e) => setUseCompression(e.target.checked)} 
+                  className="w-4 h-4 rounded border-border/50 accent-primary-neutral shrink-0" 
+                />
+                <span className="text-sm text-text-muted font-medium whitespace-nowrap">Kompres Foto Baru (Cepat)</span>
+              </label>
+            )}
+            <div className="flex gap-3 order-1 sm:order-2 w-full sm:w-auto">
+              <Link href="/admin/gallery" className="w-full sm:w-auto">
+                <Button type="button" variant="outline" className="w-full bg-surface border-border/50 text-text-main hover:bg-hover-bg">
+                  Batal
+                </Button>
+              </Link>
+              <Button 
+                type="submit" 
+                disabled={isSaving || images.length === 0} 
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Menyimpan...
+                  </>
+                ) : (
+                  'Simpan Perubahan'
+                )}
               </Button>
-            </Link>
-            <Button 
-              type="submit" 
-              disabled={isSaving || images.length === 0} 
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Menyimpan...
-                </>
-              ) : (
-                'Simpan Perubahan'
-              )}
-            </Button>
+            </div>
           </div>
         </div>
       </form>

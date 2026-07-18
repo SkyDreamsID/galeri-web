@@ -13,19 +13,19 @@ export async function Footer() {
       {/* Subtle Glow Background */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-px bg-gradient-to-r from-transparent via-text-muted/20 to-transparent"></div>
 
-      <div className="container mx-auto max-w-3xl px-6 pt-10 pb-16 md:pt-16 md:pb-20 lg:pb-24 flex flex-col items-center text-center">
+      <div className="container mx-auto max-w-3xl px-6 pt-8 pb-10 md:pt-16 md:pb-20 lg:pb-24 flex flex-col items-center text-center">
         
         {/* Branding Minimalis */}
-        <span className="font-heading text-lg md:text-2xl font-bold tracking-tight text-text-main mb-3">
+        <span className="font-heading text-base md:text-2xl font-bold tracking-tight text-text-main mb-2 md:mb-3">
           {authorName}
         </span>
-        <p className="text-[13px] md:text-sm text-text-muted max-w-md leading-relaxed mb-8 whitespace-pre-wrap">
+        <p className="text-xs md:text-sm text-text-muted max-w-md leading-relaxed mb-6 md:mb-8 whitespace-pre-wrap">
           {footerText}
         </p>
         
         {/* Sosmed Links */}
         {socialLinks.length > 0 && (
-          <div className="flex flex-wrap justify-center items-center gap-5 md:gap-6 mb-10">
+          <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6 mb-8 md:mb-10">
             {socialLinks.map((link, idx) => (
               <a 
                 key={idx} 

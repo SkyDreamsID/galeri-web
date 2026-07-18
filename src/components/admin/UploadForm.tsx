@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Loader2, UploadCloud, X, FileText, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Loader2, UploadCloud, X, FileText, CheckCircle2, AlertCircle, Star, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -14,6 +14,7 @@ import { TagInput } from './TagInput'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
 type FileWithExif = {
+  id: string
   file: File
   preview: string
   license_type: string
@@ -52,9 +53,14 @@ export function UploadForm() {
   const [availableCollections, setAvailableCollections] = useState<{id: string, name: string}[]>([])
   const [availableTags, setAvailableTags] = useState<string[]>([])
   const [images, setImages] = useState<FileWithExif[]>([])
-  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
+  const [selectedPhotos, setSelectedPhotos] = useState<string[]>([])
+  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null)
+  const [isCreatingCollection, setIsCreatingCollection] = useState(false)
+  const [newCollectionName, setNewCollectionName] = useState('')
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
+  const [useCompression, setUseCompression] = useState(true)
 
   // Fetch collections and tags on mount
   useEffect(() => {
@@ -117,10 +123,16 @@ export function UploadForm() {
           console.warn('Could not parse EXIF for', file.name)
         }
 
-        return { file, preview: URL.createObjectURL(file), license_type: 'Copyright', show_watermark: true, exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
+        return { id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36), file, preview: URL.createObjectURL(file), license_type: 'Copyright', show_watermark: true, exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
       })
     )
-    setImages((prev) => [...prev, ...newImages])
+    setImages((prev) => {
+      const updated = [...prev, ...newImages]
+      if (!coverPhotoId && updated.length > 0) {
+        setCoverPhotoId(updated[0].id)
+      }
+      return updated
+    })
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,8 +153,40 @@ export function UploadForm() {
   }
 
   const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index))
-    setSelectedPhotos((prev) => prev.filter(i => i !== index).map(i => i > index ? i - 1 : i))
+    setImages((prev) => {
+      const newArr = prev.filter((_, i) => i !== index)
+      if (prev[index].id === coverPhotoId && newArr.length > 0) {
+        setCoverPhotoId(newArr[0].id)
+      } else if (newArr.length === 0) {
+        setCoverPhotoId(null)
+      }
+      return newArr
+    })
+    setSelectedPhotos(prev => prev.filter(id => id !== images[index].id))
+  }
+
+  const handleCardDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIdx(index)
+    e.currentTarget.classList.add('opacity-50')
+  }
+
+  const handleCardDragEnd = (e: React.DragEvent) => {
+    setDraggedIdx(null)
+    e.currentTarget.classList.remove('opacity-50')
+  }
+
+  const handleCardDragEnter = (e: React.DragEvent, targetIdx: number) => {
+    e.preventDefault()
+    if (draggedIdx === null || draggedIdx === targetIdx) return
+    
+    setImages(prev => {
+      const newImages = [...prev]
+      const draggedItem = newImages[draggedIdx]
+      newImages.splice(draggedIdx, 1)
+      newImages.splice(targetIdx, 0, draggedItem)
+      return newImages
+    })
+    setDraggedIdx(targetIdx)
   }
 
   const slugify = (text: string) => {
@@ -172,52 +216,116 @@ export function UploadForm() {
     const uploadedPublicIds: string[] = []
 
     try {
-      // 1. Get Signature & API Key
-      const timestamp = Math.round(new Date().getTime() / 1000)
-      const sigRes = await fetch('/api/cloudinary/sign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paramsToSign: { timestamp } }),
-        signal
-      })
-      if (!sigRes.ok) throw new Error('Gagal memproses otorisasi upload')
-      const { signature, apiKey } = await sigRes.json()
+      // 1. Upload tiap foto ke Cloudinary (Sistem Antrian / Concurrent 3-3 & Auto-retry)
+      const uploadedPhotos: any[] = new Array(images.length)
+      let completedCount = 0
 
-      // 2. Upload tiap foto ke Cloudinary (satu per satu + progress)
-      const uploadedPhotos = []
-      for (let i = 0; i < images.length; i++) {
-        const img = images[i]
-        setUploadProgress(`Mengunggah foto ${i + 1} dari ${images.length}...`)
-        
-        const formData = new FormData()
-        formData.append('file', img.file)
-        formData.append('api_key', apiKey)
-        formData.append('timestamp', timestamp.toString())
-        formData.append('signature', signature)
+      const uploadWorker = async (img: FileWithExif, index: number) => {
+        let attempts = 0
+        const maxAttempts = 3
+        while (attempts < maxAttempts) {
+          try {
+            if (signal.aborted) throw new Error('Dibatalkan oleh pengguna')
+            
+            // Generate signature BARU untuk setiap foto biar ga keburu expired
+            const timestamp = Math.round(new Date().getTime() / 1000)
+            const sigRes = await fetch('/api/cloudinary/sign', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paramsToSign: { timestamp } }),
+              signal
+            })
+            if (!sigRes.ok) throw new Error('Gagal memproses otorisasi upload')
+            const { signature, apiKey } = await sigRes.json()
 
-        const cloudRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          { method: 'POST', body: formData, signal }
-        )
-        
-        if (!cloudRes.ok) {
-          const errText = await cloudRes.text()
-          throw new Error(`Gagal upload foto "${img.file.name}": ${errText}`)
+            // Proses Kompresi (Jika diaktifkan)
+            let fileToUpload = img.file
+            if (useCompression && fileToUpload.type.startsWith('image/')) {
+              fileToUpload = await new Promise<File>((resolve) => {
+                const imageObj = new Image()
+                imageObj.src = URL.createObjectURL(img.file)
+                imageObj.onload = () => {
+                  const canvas = document.createElement('canvas')
+                  const MAX_WIDTH = 2500
+                  const MAX_HEIGHT = 2500
+                  let width = imageObj.width
+                  let height = imageObj.height
+                  
+                  if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                    if (width > height) {
+                      height = Math.round(height * (MAX_WIDTH / width))
+                      width = MAX_WIDTH
+                    } else {
+                      width = Math.round(width * (MAX_HEIGHT / height))
+                      height = MAX_HEIGHT
+                    }
+                  }
+                  canvas.width = width
+                  canvas.height = height
+                  const ctx = canvas.getContext('2d')
+                  if (!ctx) return resolve(img.file)
+                  ctx.drawImage(imageObj, 0, 0, width, height)
+                  canvas.toBlob((blob) => {
+                    if (blob) resolve(new File([blob], img.file.name, { type: 'image/jpeg' }))
+                    else resolve(img.file)
+                  }, 'image/jpeg', 0.85)
+                }
+                imageObj.onerror = () => resolve(img.file)
+              })
+            }
+
+            const formData = new FormData()
+            formData.append('file', fileToUpload)
+            formData.append('api_key', apiKey)
+            formData.append('timestamp', timestamp.toString())
+            formData.append('signature', signature)
+
+            const cloudRes = await fetch(
+              `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+              { method: 'POST', body: formData, signal }
+            )
+            
+            if (!cloudRes.ok) {
+              const errText = await cloudRes.text()
+              throw new Error(`Gagal upload foto "${img.file.name}": ${errText}`)
+            }
+            const cloudData = await cloudRes.json()
+            uploadedPublicIds.push(cloudData.public_id)
+            
+            uploadedPhotos[index] = {
+              image_url: cloudData.secure_url,
+              public_id: cloudData.public_id,
+              bytes: cloudData.bytes,
+              format: cloudData.format,
+              original_filename: cloudData.original_filename,
+              license_type: img.license_type,
+              exif: img.exif,
+              show_watermark: img.show_watermark !== false,
+              is_cover: img.id === coverPhotoId
+            }
+            
+            completedCount++
+            setUploadProgress(`Mengunggah foto... (${completedCount}/${images.length} selesai)`)
+            break // sukses, keluar dari loop retry
+          } catch (err: any) {
+            attempts++
+            if (err.name === 'AbortError' || err.message === 'Dibatalkan oleh pengguna' || attempts >= maxAttempts) throw err
+            console.warn(`Retry upload ${img.file.name} (${attempts}/${maxAttempts})...`)
+            await new Promise(r => setTimeout(r, 2000)) // delay 2 detik sebelum retry
+          }
         }
-        const cloudData = await cloudRes.json()
-        uploadedPublicIds.push(cloudData.public_id)
-        
-        uploadedPhotos.push({
-          image_url: cloudData.secure_url,
-          public_id: cloudData.public_id,
-          bytes: cloudData.bytes,
-          format: cloudData.format,
-          original_filename: cloudData.original_filename,
-          license_type: img.license_type,
-          exif: img.exif,
-          show_watermark: img.show_watermark !== false
-        })
       }
+
+      // Execute worker dengan limit max 3 barengan
+      let workerIndex = 0
+      const executeNextWorker = async (): Promise<void> => {
+        if (workerIndex >= images.length) return
+        const currentIndex = workerIndex++
+        await uploadWorker(images[currentIndex], currentIndex)
+        return executeNextWorker()
+      }
+      const workers = Array.from({ length: Math.min(3, images.length) }, () => executeNextWorker())
+      await Promise.all(workers)
       setUploadProgress('Menyimpan data ke database...')
       if (signal.aborted) throw new Error('Dibatalkan oleh pengguna')
 
@@ -281,7 +389,7 @@ export function UploadForm() {
             original_filename: photo.original_filename,
             license_type: photo.license_type,
             show_watermark: photo.show_watermark !== false,
-            is_cover: i === 0,
+            is_cover: photo.is_cover,
             sort_order: i,
             copyright_name: photo.exif.copyright_name || ''
           })
@@ -332,32 +440,32 @@ export function UploadForm() {
 
   return (
     <>
-      <form onSubmit={handleUpload} className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
+      <form onSubmit={handleUpload} className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 relative">
         {/* Kolom Kiri: Meta Data Post */}
-      <div className="lg:col-span-1 space-y-6">
+      <div className="lg:col-span-1 space-y-4 md:space-y-6">
         <Card className="bg-surface border-border/40 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-text-main font-heading">Detail Momen</CardTitle>
+          <CardHeader className="p-4 pb-0 md:p-6 md:pb-6">
+            <CardTitle className="text-text-main font-heading text-xl md:text-2xl">Detail Momen</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
+          <CardContent className="p-4 pt-4 md:p-6 space-y-3 md:space-y-4">
+            <div className="space-y-1.5 md:space-y-2">
               <Label className="text-text-muted">Judul Momen</Label>
               <Input 
                 value={title} onChange={(e) => setTitle(e.target.value)}
                 placeholder="Misal: Senja di Stasiun Tugu" required
-                className="bg-background border-border/50 text-text-main focus:border-primary-neutral"
+                className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 md:h-10 text-[13px] md:text-sm"
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-text-muted">Lokasi (Opsional)</Label>
+            <div className="space-y-1.5 md:space-y-2">
+              <Label className="text-text-muted text-xs md:text-sm">Lokasi (Opsional)</Label>
               <Input 
                 value={location} onChange={(e) => setLocation(e.target.value)}
                 placeholder="Yogyakarta"
-                className="bg-background border-border/50 text-text-main focus:border-primary-neutral"
+                className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 md:h-10 text-[13px] md:text-sm"
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-text-muted">Override Lensa (Opsional)</Label>
+            <div className="space-y-1.5 md:space-y-2">
+              <Label className="text-text-muted text-xs md:text-sm">Override Lensa (Opsional)</Label>
               <Input 
                 onChange={(e) => {
                   // Jika diisi, override semua foto di preview
@@ -368,43 +476,95 @@ export function UploadForm() {
                   })))
                 }}
                 placeholder="Misal: NIKKOR AF-S 55-300MM (Isi jika EXIF gagal)"
-                className="bg-background border-border/50 text-text-main focus:border-primary-neutral"
+                className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 md:h-10 text-[13px] md:text-sm"
               />
-              <p className="text-xs text-text-muted/70">Otomatis menimpa data lensa semua foto di bawah.</p>
+              <p className="text-[10px] md:text-xs text-text-muted/70">Otomatis menimpa data lensa semua foto di bawah.</p>
             </div>
-            <div className="space-y-2">
-              <Label className="text-text-muted">Album / Koleksi</Label>
-              <select 
-                value={album} onChange={(e) => setAlbum(e.target.value)}
-                className="w-full rounded-xl border border-border/50 bg-background px-4 py-2.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary-neutral appearance-none"
-              >
-                <option value="">-- Tanpa Koleksi --</option>
-                {availableCollections.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+            <div className="space-y-1.5 md:space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-text-muted text-xs md:text-sm">Album / Koleksi</Label>
+                {!isCreatingCollection && (
+                  <button 
+                    type="button" 
+                    onClick={() => setIsCreatingCollection(true)}
+                    className="text-xs flex items-center gap-1 text-primary-neutral hover:text-primary-neutral/80"
+                  >
+                    <Plus size={14} /> Buat Baru
+                  </button>
+                )}
+              </div>
+              
+              {isCreatingCollection ? (
+                <div className="flex items-center gap-2">
+                  <Input 
+                    value={newCollectionName} 
+                    onChange={(e) => setNewCollectionName(e.target.value)}
+                    placeholder="Nama koleksi baru..."
+                    className="bg-background border-border/50 text-text-main h-9 md:h-10 text-[13px] md:text-sm"
+                    autoFocus
+                  />
+                  <Button 
+                    type="button"
+                    disabled={!newCollectionName.trim()}
+                    onClick={async () => {
+                      if (!newCollectionName.trim()) return
+                      try {
+                        const { data, error } = await supabase
+                          .from('collections')
+                          .insert({ name: newCollectionName.trim() })
+                          .select('id, name')
+                          .single()
+                        if (error) throw error
+                        setAvailableCollections(prev => [...prev, data].sort((a,b) => a.name.localeCompare(b.name)))
+                        setAlbum(data.id)
+                        setIsCreatingCollection(false)
+                        setNewCollectionName('')
+                        toast.success('Koleksi baru ditambahkan!')
+                      } catch (err: any) {
+                        toast.error('Gagal membuat koleksi')
+                      }
+                    }}
+                    className="bg-primary-neutral text-surface hover:bg-primary-neutral/90 h-10 px-4"
+                  >
+                    Simpan
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={() => setIsCreatingCollection(false)} className="h-10 px-3 border border-border/50 text-text-main hover:bg-border/30">
+                    Batal
+                  </Button>
+                </div>
+              ) : (
+                <select 
+                  value={album} onChange={(e) => setAlbum(e.target.value)}
+                  className="w-full rounded-xl md:rounded-md border border-border/50 bg-background px-3 md:px-4 py-2 md:py-2.5 text-[13px] md:text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary-neutral appearance-none cursor-pointer h-9 md:h-auto"
+                >
+                  <option value="">-- Tanpa Koleksi --</option>
+                  {availableCollections.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label className="text-text-muted">Status Tayang</Label>
+            <div className="space-y-1.5 md:space-y-2">
+              <Label className="text-text-muted text-xs md:text-sm">Status Tayang</Label>
               <select 
                 value={status} onChange={(e) => setStatus(e.target.value)}
-                className="w-full rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral appearance-none"
+                className="w-full rounded-md border border-border/50 bg-background px-3 py-1.5 md:py-2 text-[13px] md:text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral appearance-none h-9 md:h-10"
               >
                 <option value="Published">Publik</option>
                 <option value="Draft">Pribadi / Draft</option>
               </select>
             </div>
-            <div className="space-y-2">
-              <Label className="text-text-muted">Tags</Label>
+            <div className="space-y-1.5 md:space-y-2">
+              <Label className="text-text-muted text-xs md:text-sm">Tags</Label>
               <TagInput 
                 tags={tags} 
                 setTags={setTags} 
                 availableTags={availableTags} 
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5 md:space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-text-muted">Cerita / Deskripsi</Label>
+                <Label className="text-text-muted text-xs md:text-sm">Cerita / Deskripsi</Label>
                 <label className="cursor-pointer text-xs flex items-center gap-1.5 text-primary-neutral hover:text-primary-neutral/80 transition-colors bg-primary-neutral/10 px-2 py-1 rounded-md border border-primary-neutral/20">
                   <FileText size={14} />
                   <span>Import .txt / .md</span>
@@ -431,7 +591,7 @@ export function UploadForm() {
                 ref={textareaRef}
                 value={story} onChange={(e) => setStory(e.target.value)}
                 placeholder="Tulis cerita di balik karya ini..."
-                className="w-full min-h-[120px] resize-none overflow-hidden rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
+                className="w-full min-h-[90px] md:min-h-[120px] resize-none overflow-hidden rounded-md border border-border/50 bg-background px-3 py-2 text-[13px] md:text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
               />
             </div>
           </CardContent>
@@ -439,23 +599,23 @@ export function UploadForm() {
       </div>
 
       {/* Kolom Kanan: Upload Foto */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="lg:col-span-2 space-y-4 md:space-y-6">
         <Card className="bg-surface border-border/40 border-dashed shadow-sm">
-          <CardContent className="p-4 md:p-8">
+          <CardContent className="p-3 md:p-8">
             <label 
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+              className={`flex flex-col items-center justify-center w-full h-32 md:h-48 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
                 isDragging ? 'border-primary-neutral bg-primary-neutral/10' : 'border-border/60 bg-background hover:bg-background/80'
               }`}
             >
               <div className="flex flex-col items-center justify-center pt-5 pb-6 pointer-events-none px-4 text-center">
-                <UploadCloud className="w-10 h-10 mb-3 text-text-muted" />
-                <p className="mb-2 text-sm text-text-muted">
+                <UploadCloud className="w-8 h-8 md:w-10 md:h-10 mb-2 md:mb-3 text-text-muted" />
+                <p className="mb-1 md:mb-2 text-xs md:text-sm text-text-muted">
                   <span className="font-semibold text-text-main">Klik untuk upload</span> atau drag and drop
                 </p>
-                <p className="text-xs text-text-muted/70 mt-1">JPG, PNG (Bisa multi-upload) • Max 10MB/foto</p>
+                <p className="text-[10px] md:text-xs text-text-muted/70 mt-1">JPG, PNG (Bisa multi-upload) • Max 10MB/foto</p>
               </div>
               <input type="file" className="hidden" multiple accept="image/*" onChange={handleFileChange} />
             </label>
@@ -472,7 +632,7 @@ export function UploadForm() {
                   type="checkbox" 
                   checked={selectedPhotos.length === images.length && images.length > 0}
                   onChange={(e) => {
-                    if (e.target.checked) setSelectedPhotos(images.map((_, i) => i))
+                    if (e.target.checked) setSelectedPhotos(images.map(img => img.id))
                     else setSelectedPhotos([])
                   }}
                   className="w-4 h-4 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer"
@@ -486,12 +646,12 @@ export function UploadForm() {
                   value={bulkCopyrightName} 
                   onChange={(e) => setBulkCopyrightName(e.target.value)}
                   placeholder="Masukkan Nama"
-                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-32 text-sm"
+                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-32 text-[13px] md:text-sm"
                 />
                 <select 
                   value={bulkLicense}
                   onChange={(e) => setBulkLicense(e.target.value)}
-                  className="bg-background border border-border/50 text-text-main rounded-md focus:outline-none focus:border-primary-neutral h-9 px-2 w-full sm:w-36 text-sm"
+                  className="bg-background border border-border/50 text-text-main rounded-md focus:outline-none focus:border-primary-neutral h-9 px-2 w-full sm:w-36 text-[13px] md:text-sm"
                 >
                   <option value="Copyright">Copyright</option>
                   <option value="Free Copyright">Free Copyright</option>
@@ -500,8 +660,8 @@ export function UploadForm() {
                   type="button"
                   disabled={selectedPhotos.length === 0}
                   onClick={() => {
-                    setImages(prev => prev.map((img, i) => 
-                      selectedPhotos.includes(i) ? { ...img, license_type: bulkLicense, exif: { ...img.exif, copyright_name: bulkCopyrightName || img.exif.copyright_name } } : img
+                    setImages(prev => prev.map(img => 
+                      selectedPhotos.includes(img.id) ? { ...img, license_type: bulkLicense, exif: { ...img.exif, copyright_name: bulkCopyrightName || img.exif.copyright_name } } : img
                     ))
                     setSelectedPhotos([])
                   }}
@@ -512,24 +672,29 @@ export function UploadForm() {
               </div>
             </Card>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {images.map((img, idx) => (
                 <Card 
-                  key={idx} 
-                  className={`bg-surface border-2 overflow-hidden group relative shadow-sm transition-colors cursor-pointer ${
-                    selectedPhotos.includes(idx) ? 'border-primary-neutral/60' : 'border-border/40 hover:border-primary-neutral/30'
+                  key={img.id} 
+                  draggable
+                  onDragStart={(e) => handleCardDragStart(e, idx)}
+                  onDragEnter={(e) => handleCardDragEnter(e, idx)}
+                  onDragEnd={handleCardDragEnd}
+                  onDragOver={(e) => e.preventDefault()}
+                  className={`bg-surface border-2 overflow-hidden group relative shadow-sm transition-colors cursor-move flex flex-col ${
+                    selectedPhotos.includes(img.id) ? 'border-primary-neutral/60' : 'border-border/40 hover:border-primary-neutral/30'
                   }`}
                   onClick={() => {
                     setSelectedPhotos(prev => 
-                      prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
+                      prev.includes(img.id) ? prev.filter(id => id !== img.id) : [...prev, img.id]
                     )
                   }}
                 >
                   {/* Checkbox Overlay */}
-                  <div className="absolute top-2 left-2 z-10 bg-background/80 p-1.5 rounded-lg backdrop-blur-sm border border-border/50">
+                  <div className="absolute top-2 left-2 z-10 bg-background/80 p-1 rounded-lg backdrop-blur-sm border border-border/50">
                     <input 
                       type="checkbox" 
-                      checked={selectedPhotos.includes(idx)}
+                      checked={selectedPhotos.includes(img.id)}
                       onChange={() => {}} // handled by parent onClick
                       className="w-4 h-4 rounded border-border/50 bg-background accent-primary-neutral pointer-events-none"
                     />
@@ -542,13 +707,31 @@ export function UploadForm() {
                   >
                     <X size={16} className="text-white" />
                   </button>
-                  <div className="h-48 w-full relative">
-                    <img src={img.preview} alt="preview" className="absolute inset-0 w-full h-full object-cover" />
+
+                  {/* Button Jadikan Thumbnail */}
+                  {img.id === coverPhotoId ? (
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-yellow-500 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-md shadow-md z-10 flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-white" />
+                      THUMBNAIL
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setCoverPhotoId(img.id!) }}
+                      className="absolute top-2 left-1/2 -translate-x-1/2 bg-black/60 hover:bg-black/80 text-white text-[10px] md:text-xs font-semibold px-2 py-1 rounded-md shadow-sm z-10 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 backdrop-blur-sm"
+                    >
+                      <Star className="w-3 h-3" />
+                      Jadikan Thumbnail
+                    </button>
+                  )}
+
+                  <div className="h-32 md:h-48 w-full relative shrink-0">
+                    <img src={img.preview} alt="preview" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
                   </div>
-                  <div className="p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="font-medium text-text-main truncate" title={img.file.name}>{img.file.name}</div>
-                      <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[10px] font-medium text-primary-neutral border border-primary-neutral/20">
+                  <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between">
+                    <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2">
+                      <div className="font-medium text-text-main truncate w-full" title={img.file.name}>{img.file.name}</div>
+                      <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[9px] md:text-[10px] font-medium text-primary-neutral border border-primary-neutral/20">
                         © {img.exif.copyright_name}
                       </span>
                     </div>
@@ -562,10 +745,10 @@ export function UploadForm() {
                         setImages(newImages)
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full bg-background border border-border/50 text-text-main rounded py-1 px-2 text-xs focus:outline-none focus:border-primary-neutral"
+                      className="w-full bg-background border border-border/50 text-text-main rounded py-1 px-2 text-[10px] md:text-xs focus:outline-none focus:border-primary-neutral"
                     >
-                      <option value="Copyright">Hak Cipta (Dilarang Unduh)</option>
-                      <option value="Free Copyright">Bebas (Izinkan Unduh)</option>
+                      <option value="Copyright">Hak Cipta</option>
+                      <option value="Free Copyright">Bebas Unduh</option>
                     </select>
 
                     {/* Checkbox Tampilkan Watermark */}
@@ -588,25 +771,34 @@ export function UploadForm() {
                       <span className="text-[11px] text-text-muted group-hover:text-text-main transition-colors">Tampilkan watermark</span>
                     </label>
 
-                      <div className="pt-1 space-y-1">
-                        {img.exif.camera && <p>📷 {img.exif.camera} {img.exif.lens}</p>}
-                        {img.exif.aperture && (
-                          <p>⚙️ {img.exif.focal_length} • {img.exif.aperture} • {img.exif.shutter_speed} • {img.exif.iso}</p>
-                        )}
-                        {!img.exif.camera && <p className="text-yellow-500/80">⚠️ Data EXIF tidak terdeteksi</p>}
-                      </div>
+                    <div className="pt-1 space-y-0.5 md:space-y-1 text-[9px] md:text-[10px] leading-tight">
+                      {img.exif.camera && <p className="truncate">📷 {img.exif.camera} {img.exif.lens}</p>}
+                      {img.exif.aperture && (
+                        <p className="truncate">⚙️ {img.exif.focal_length} • {img.exif.aperture} • {img.exif.shutter_speed} • {img.exif.iso}</p>
+                      )}
+                      {!img.exif.camera && <p className="text-yellow-500/80">⚠️ Tanpa EXIF</p>}
                     </div>
+                  </div>
                   </Card>
             ))}
             </div>
           </div>
         )}
 
-        <div className="flex justify-end pt-4 pb-12 md:pb-4">
+        <div className="flex flex-col sm:flex-row items-center sm:justify-end gap-4 pt-4 pb-12 md:pb-4 w-full">
+          <label className="flex items-center gap-2 cursor-pointer order-2 sm:order-1 bg-surface border border-border/50 px-3 py-2 rounded-lg shadow-sm hover:border-primary-neutral/40 transition-colors w-full sm:w-auto">
+            <input 
+              type="checkbox" 
+              checked={useCompression} 
+              onChange={(e) => setUseCompression(e.target.checked)} 
+              className="w-4 h-4 rounded border-border/50 accent-primary-neutral shrink-0" 
+            />
+            <span className="text-sm text-text-muted font-medium whitespace-nowrap">Kompres Resolusi (upload lebih Cepat)</span>
+          </label>
           <Button 
             type="submit" 
             disabled={uploadState !== 'idle' || images.length === 0} 
-            className="w-full sm:w-auto bg-primary-neutral hover:bg-primary-neutral/90 text-surface h-12 md:h-10 text-base md:text-sm shadow-md"
+            className="w-full sm:w-auto bg-primary-neutral hover:bg-primary-neutral/90 text-surface h-12 md:h-10 text-base md:text-sm shadow-md order-1 sm:order-2 shrink-0 px-8"
           >
             Publish Momen
           </Button>
