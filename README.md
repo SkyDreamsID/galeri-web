@@ -13,7 +13,7 @@ Dibuat untuk fotografer dan seniman visual yang ingin memiliki kontrol penuh ata
 <summary><b>📸 Preview Jurnal Visual (Klik untuk memperluas)</b></summary>
 <br>
 
-*(Silakan tambahkan screenshot/GIF Tampilan Utama, Post Detail, dan Dasbor Admin di sini untuk memamerkan keindahan UI/UX proyek ini kepada forker atau recruiter Anda).*
+Segera Hadir..
 
 </details>
 
