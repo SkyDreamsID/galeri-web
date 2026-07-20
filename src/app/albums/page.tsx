@@ -117,7 +117,7 @@ export default async function AlbumsPage() {
                       <img 
                         src={displayUrl} 
                         alt={album.name} 
-                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-text-muted/50 bg-background/50">

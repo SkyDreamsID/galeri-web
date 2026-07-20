@@ -5,9 +5,15 @@ import { createPortal } from 'react-dom'
 import { Play, Pause, Music, Disc } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
+import { usePathname } from 'next/navigation' // Ditambahkan untuk deteksi URL
 
 export function GalleryRadio() {
   const settings = useSiteSettings()
+  
+  // Deteksi apakah sedang berada di halaman detail post
+  const pathname = usePathname()
+  const isPostPage = pathname?.startsWith('/post/')
+
   let rawZenoId = settings?.zenofm_station_id || process.env.NEXT_PUBLIC_ZENO_STATION_ID
   let streamUrl = rawZenoId?.trim()
   let zenoId: string | null = null
@@ -34,33 +40,29 @@ export function GalleryRadio() {
   })
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const playPromiseRef = useRef<Promise<void> | void | null>(null)
 
   // Fungsi Toggle Play/Pause
   const togglePlay = () => {
     if (!audioRef.current) return;
 
     if (isPlaying) {
-      // Pause tetep instan
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      // Play dibuat responsif, biarin browser yang handle proses loading di background
-      const cacheBuster = streamUrl.includes('?') ? `&cb=${Date.now()}` : `?cb=${Date.now()}`;
-      audioRef.current.src = streamUrl + cacheBuster;
-      
-      // Tombol langsung berubah status biar gak berasa delay
+      // PERBAIKAN 1: Hapus Cache Buster dan gunakan .load()
+      audioRef.current.src = streamUrl as string; 
+      audioRef.current.load(); 
+
       setIsPlaying(true);
-      
+
       audioRef.current.play().catch(e => {
         if (e.name !== 'AbortError') {
           console.error("Play failed:", e);
-          setIsPlaying(false); // Balikin status kalau beneran gagal
+          setIsPlaying(false);
         }
       });
     }
   };
-
 
   // Effect untuk Zeno.fm dan deteksi Portal Target
   useEffect(() => {
@@ -85,9 +87,17 @@ export function GalleryRadio() {
             newTitle = parts.slice(1).join(" - ").trim()
           }
 
-          // Bersihkan judul dan artis dari teks ekstra agar Last.fm lebih akurat
+          // Perbaikan fungsi split agar tidak memicu error array
           const cleanArtist = newArtist.split(/ feat\.? | ft\.? /i)[0].split(',')[0].trim()
           const cleanTitle = newTitle
+
+          // PERBAIKAN 2: Tampilkan judul dan artis secara real-time detik itu juga
+          setTrackInfo(prev => ({
+            ...prev,
+            title: newTitle,
+            artist: newArtist,
+            coverUrl: ""
+          }))
 
           const apiKey = "257a264bbac662d1b74762320ba4bcc1"
           fetch(`https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${apiKey}&artist=${encodeURIComponent(cleanArtist)}&track=${encodeURIComponent(cleanTitle)}&format=json`)
@@ -101,22 +111,16 @@ export function GalleryRadio() {
                   fetchedCover = largeImg['#text']
                 }
               }
-              // Update state sekalian agar teks dan gambar berganti bersamaan
-              setTrackInfo(prev => ({ 
-                ...prev, 
-                title: newTitle, 
-                artist: newArtist, 
-                coverUrl: fetchedCover 
-              }))
+              // Update gambar menyusul jika ditemukan
+              if (fetchedCover) {
+                setTrackInfo(prev => ({
+                  ...prev,
+                  coverUrl: fetchedCover
+                }))
+              }
             })
             .catch(err => {
               console.error("Gagal ambil cover Last.fm", err)
-              // Tetap update title dan artist jika Last.fm gagal
-              setTrackInfo(prev => ({ 
-                ...prev, 
-                title: newTitle, 
-                artist: newArtist 
-              }))
             })
         }
       } catch (err) {
@@ -151,7 +155,6 @@ export function GalleryRadio() {
     setIsMounted(true)
     checkPortal()
 
-    // Polling untuk memastikan target portal ditemukan meskipun ada delay rendering (misal hydration)
     let retryCount = 0
     const pollInterval = setInterval(() => {
       const found = checkPortal()
@@ -185,6 +188,7 @@ export function GalleryRadio() {
         hidden lg:flex fixed bottom-8 right-8
         bg-black/70 border border-white/20 text-white shadow-2xl backdrop-blur-xl hover:bg-black/80 hover:border-white/40
         items-center overflow-hidden pointer-events-auto cursor-pointer z-[9999] transition-all duration-300
+        ${isPostPage ? 'opacity-20 hover:opacity-100' : 'opacity-100'} 
       `}
       
       onClick={!isPlaying ? togglePlay : undefined}
@@ -200,7 +204,6 @@ export function GalleryRadio() {
             transition={{ duration: 0.3, delay: 0.1 }}
             className="flex items-center gap-3 pl-3 h-full flex-1 min-w-0"
           >
-            {/* 🖼️ KOTAK FOTO / COVER ART */}
             <div className={`relative shrink-0 rounded-[10px] md:rounded-xl overflow-hidden flex items-center justify-center shadow-inner w-14 h-14 bg-black/40 border border-white/10`}>
               {trackInfo.coverUrl ? (
                 <img 
@@ -218,7 +221,6 @@ export function GalleryRadio() {
               )}
             </div>
 
-            {/* 📝 TEKS INFORMASI LAGU */}
             <div className="flex-1 min-w-0 flex flex-col justify-center">
               <div className="overflow-hidden relative whitespace-nowrap mask-fade-edges w-full">
                 {trackInfo.title.length > 20 ? (
@@ -240,7 +242,6 @@ export function GalleryRadio() {
         )}
       </AnimatePresence>
 
-      {/* AREA TOMBOL */}
       <div 
         className={`w-16 h-16 shrink-0 flex items-center justify-center ml-auto`}
         onClick={isPlaying ? togglePlay : undefined}
@@ -277,7 +278,6 @@ export function GalleryRadio() {
       title="Radio"
     >
       <Music size={18} className={isPlaying ? 'opacity-90' : ''} />
-      {/* Indikator "Nyala" (Filler) di pojok atas tombol */}
       {isPlaying && (
         <>
           <span className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-primary-neutral animate-ping" />
@@ -324,17 +324,13 @@ export function GalleryRadio() {
           }}
           className="absolute top-[56px] -left-3 z-[9990] max-w-[220px] bg-surface/95 border border-border/50 shadow-lg rounded-[10px] flex items-center lg:hidden pointer-events-auto select-text backdrop-blur-md"
         >
-          {/* EKOR / TAIL (Panah ke atas yang menunjuk ke tombol radio) */}
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1, transition: { delay: 0.1 } }} 
             exit={{ opacity: 0, transition: { duration: 0.1 } }}
             className="absolute -top-[6px] left-[27px] w-3 h-3 bg-surface/95 border-t border-l border-border/50 transform rotate-45 z-[-1]"
           />
-
-          {/* Wrapper Konten Internal (Di-clip supaya teks gak luber saat box-nya masih kecil) */}
           <div className="flex items-center gap-3 w-full h-full px-2.5 py-1 overflow-hidden rounded-[10px] relative">
-            {/* Cover Art Super Mini */}
             <div className="w-5 h-5 shrink-0 rounded-[6px] overflow-hidden bg-background flex items-center justify-center shadow-sm border border-border/50 z-10">
               {trackInfo.coverUrl ? (
                 <img src={trackInfo.coverUrl} alt="Cover" className="w-full h-full object-cover" />
@@ -343,7 +339,6 @@ export function GalleryRadio() {
               )}
             </div>
             
-            {/* Info Teks (1 Baris) */}
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1, transition: { delay: 0.15 } }}

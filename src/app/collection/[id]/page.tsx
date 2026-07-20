@@ -84,9 +84,9 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
     <>
       <main className="container mx-auto px-6 py-12 md:py-20 mt-16 max-w-7xl min-h-screen">
         <div className="mb-10 md:mb-16">
-          <Link href="/" className="inline-flex items-center gap-2 text-text-muted hover:text-primary-neutral transition-colors mb-6 text-sm font-medium">
+          <Link href="/albums" className="inline-flex items-center gap-2 text-text-muted hover:text-primary-neutral transition-colors mb-6 text-sm font-medium">
             <ArrowLeft className="w-4 h-4" />
-            Kembali ke Semua Foto
+            Kembali ke Daftar Album
           </Link>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: "easeOut" }}
