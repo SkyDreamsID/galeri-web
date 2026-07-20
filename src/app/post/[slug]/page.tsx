@@ -4,9 +4,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { EmblaCarousel } from '@/components/post/EmblaCarousel'
 import { Metadata } from 'next'
-import { getOptimizedImageUrl } from '@/lib/utils'
+import { getOptimizedImageUrl, formatCreators } from '@/lib/utils'
 import { ViewTracker } from '@/components/post/ViewTracker'
 import { CarouselActions } from '@/components/post/CarouselActions'
+import { ShareButton } from '@/components/post/ShareButton'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -43,8 +44,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     if (byId) post = byId
   }
 
-  const { data: settings } = await supabase.from('site_settings').select('theme_config').limit(1).single()
+  const { data: settings } = await supabase.from('site_settings').select('theme_config, site_title').limit(1).single()
   enableWatermark = settings?.theme_config?.enable_watermark !== false
+  const siteTitle = settings?.site_title || 'Jurnal Visual'
 
   if (!post || post.status !== 'Published') {
     return {
@@ -55,19 +57,28 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const coverPhoto = post.photos?.find((p: any) => p.is_cover) || post.photos?.[0]
   const imageUrl = coverPhoto ? getOptimizedImageUrl(coverPhoto.image_url, 1200, coverPhoto.copyright_name, enableWatermark) : ''
-  const desc = post.story ? post.story.substring(0, 160) + '...' : 'Sebuah momen tertangkap kamera.'
+  
+  const uniqueCopyrights = Array.from(
+    new Set(
+      post.photos?.map((p: any) => p.copyright_name).filter(Boolean) || []
+    )
+  ) as string[]
+  const creators = uniqueCopyrights.length > 0 ? formatCreators(uniqueCopyrights) : siteTitle
+
+  const title = `${post.title} • ${siteTitle}`
+  const desc = `Jelajahi karya "${post.title}" oleh ${creators} di ${siteTitle}.`
 
   return {
-    title: `${post.title} | Galeri`,
+    title: title,
     description: desc,
     openGraph: {
-      title: post.title,
+      title: title,
       description: desc,
       images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630 }] : [],
     },
     twitter: {
       card: 'summary_large_image',
-      title: post.title,
+      title: title,
       description: desc,
       images: imageUrl ? [imageUrl] : [],
     }
@@ -83,7 +94,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     .from('posts')
     .select(`
       id, title, story, location, created_at, license_type, slug, status,
-      collections (name),
+      collections (id, name),
       post_tags ( tags (name) ),
       photos (
         id, image_url, sort_order, bytes, format, original_filename, license_type, copyright_name, show_watermark,
@@ -100,7 +111,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
       .from('posts')
       .select(`
         id, title, story, location, created_at, license_type, slug, status,
-        collections (name),
+        collections (id, name),
         post_tags ( tags (name) ),
         photos (
           id, image_url, sort_order, bytes, format, original_filename, license_type, copyright_name, show_watermark,
@@ -116,7 +127,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     finalPost = postById
   }
 
-  const { data: settings } = await supabase.from('site_settings').select('theme_config').limit(1).single()
+  const { data: settings } = await supabase.from('site_settings').select('theme_config, site_title').limit(1).single()
   const enableWatermark = settings?.theme_config?.enable_watermark !== false
 
   if (!finalPost || finalPost.status !== 'Published') {
@@ -157,17 +168,18 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     new Set(
       photos.map((p: any) => p.copyright_name).filter(Boolean)
     )
-  )
-  const displayCopyright = uniqueCopyrights.length > 0 
-    ? uniqueCopyrights.join(', ') 
-    : 'Rifki Eka Putra'
+  ) as string[]
+  
+  const creatorsFormatted = uniqueCopyrights.length > 0 
+    ? formatCreators(uniqueCopyrights) 
+    : (settings?.site_title || 'Jurnal Visual')
 
-  // Safely extract collection name
-  const collectionName = postData.collections
-    ? (Array.isArray(postData.collections)
-      ? (postData.collections[0] as any)?.name
-      : (postData.collections as any)?.name)
+  // Safely extract collection name & id
+  const collectionData = postData.collections
+    ? (Array.isArray(postData.collections) ? postData.collections[0] : postData.collections)
     : null
+  const collectionName = (collectionData as any)?.name || null
+  const collectionId = (collectionData as any)?.id || null
 
   return (
     <>
@@ -203,37 +215,64 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             <div className="max-lg:landscape:flex-1 max-lg:landscape:overflow-y-auto lg:flex-1 lg:overflow-y-auto pr-1 max-lg:landscape:scrollbar-thin lg:scrollbar-thin space-y-6 md:space-y-8 pb-10">
               
               {/* Header Area */}
-              <div>
+              <div className="flex flex-col gap-2 md:gap-3">
                 {collectionName && (
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2 md:mb-3">
-                    {collectionName}
+                  <div>
+                    {collectionId ? (
+                      <Link 
+                        href={`/collection/${collectionId}`}
+                        className="inline-block text-[11px] font-semibold uppercase tracking-widest text-text-muted hover:text-primary-neutral transition-colors"
+                        title={`Lihat album ${collectionName}`}
+                      >
+                        {collectionName}
+                      </Link>
+                    ) : (
+                      <div className="text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                        {collectionName}
+                      </div>
+                    )}
                   </div>
                 )}
-                <h1 className={`${LAYOUT_CONFIG.postTitle} font-heading font-extrabold text-text-main mb-3 md:mb-4 tracking-tighter leading-tight`}>
-                  {postData.title}
-                </h1>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-text-muted font-sans">
-                  {postData.location && <span>📍 {postData.location}</span>}
+                
+                {/* Judul */}
+                <div>
+                  <h1 className={`${LAYOUT_CONFIG.postTitle} font-heading font-extrabold text-text-main tracking-tighter leading-tight break-words`}>
+                    {postData.title}
+                  </h1>
                 </div>
               </div>
 
               {/* Story Area */}
               <div className="space-y-6">
-                {/* Metadata Tanggal dll */}
-                <div className="flex flex-col gap-2 text-[13px] md:text-sm text-text-muted font-sans pb-4 border-b border-border/10">
-                  <div className="flex items-center gap-2">
-                    <span>🗓️ Diposting:</span>
-                    <span className="text-text-main">{new Date(postData.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                  </div>
-                  {firstExifDate && (
+                {/* Metadata & Action Block */}
+                <div className="flex flex-col gap-4 pb-6 border-b border-border/10">
+                  {/* Info List */}
+                  <div className="flex flex-col gap-2 text-[13px] md:text-sm text-text-muted font-sans">
                     <div className="flex items-center gap-2">
-                      <span>📷 Diambil:</span>
-                      <span className="text-text-main">{new Date(firstExifDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      <span>🗓️ Diposting:</span>
+                      <span className="text-text-main">{new Date(postData.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                     </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <span>🖼️ File:</span>
-                    <span className="text-text-main">{photos.length} Foto</span>
+                    {firstExifDate && (
+                      <div className="flex items-center gap-2">
+                        <span>📷 Diambil:</span>
+                        <span className="text-text-main">{new Date(firstExifDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <span>🖼️ File:</span>
+                      <span className="text-text-main">{photos.length} Foto</span>
+                    </div>
+                    {postData.location && (
+                      <div className="flex items-center gap-2">
+                        <span>📍 Lokasi:</span>
+                        <span className="text-text-main">{postData.location}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Share Action */}
+                  <div className="pt-2 flex">
+                    <ShareButton title={postData.title} siteTitle={settings?.site_title} creators={creatorsFormatted} />
                   </div>
                 </div>
                 

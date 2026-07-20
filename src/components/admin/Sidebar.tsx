@@ -1,16 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ImagePlus, Images, LogOut, Settings, Menu, X, Camera, Folder, Tag, Globe } from 'lucide-react'
+import { ImagePlus, Images, LogOut, Settings, Menu, X, Camera, Folder, Tag, Globe, Sun, Moon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useTheme } from 'next-themes'
 
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  
+  const { theme, setTheme } = useTheme()
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -33,10 +41,30 @@ export function Sidebar() {
           <h1 className="text-lg md:text-xl font-heading font-bold tracking-tight text-text-main leading-tight">Admin Dashboard</h1>
           <p className="text-[10px] md:text-xs text-text-muted mt-0.5 font-sans">Galeri Control Panel</p>
         </div>
-        {/* Tombol X untuk tutup menu di HP */}
-        <button onClick={() => setIsMenuOpen(false)} className="md:hidden p-1.5 text-text-muted hover:text-text-main bg-surface rounded-lg">
-          <X size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* PORTAL TARGET UNTUK RADIO WIDGET DI TABLET */}
+          <div id="radio-portal-tablet" className="hidden md:flex lg:hidden w-10 h-10 shrink-0 relative items-center justify-center"></div>
+          
+          {/* Tombol Tema untuk Desktop/Tablet */}
+          <button
+            type="button"
+            onClick={() => setTheme(theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'light' : 'dark')}
+            className="hidden md:flex w-9 h-9 items-center justify-center rounded-lg bg-background hover:bg-background/80 active:scale-90 transition-all text-text-main border border-border/50"
+            title="Ganti Tema"
+          >
+            {isMounted ? (
+              <>
+                <Sun size={16} className="hidden dark:block text-yellow-500" />
+                <Moon size={16} className="block dark:hidden text-text-main" />
+              </>
+            ) : <div className="w-4 h-4"></div>}
+          </button>
+          
+          {/* Tombol X untuk tutup menu di HP */}
+          <button onClick={() => setIsMenuOpen(false)} className="md:hidden p-1.5 text-text-muted hover:text-text-main bg-surface rounded-lg">
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto font-sans">
@@ -88,12 +116,32 @@ export function Sidebar() {
       {/* 📱 TOP NAVBAR KHUSUS HP (MOBILE VIEW) */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-background/90 backdrop-blur-md border-b border-border/40 flex items-center justify-between px-4 z-50">
         <h1 className="text-base font-heading font-bold tracking-tight text-text-main">Admin<span className="text-primary-neutral">.</span></h1>
-        <button 
-          onClick={() => setIsMenuOpen(true)}
-          className="p-2 text-text-main bg-surface rounded-xl border border-border/50"
-        >
-          <Menu size={20} />
-        </button>
+        <div className="flex items-center gap-3">
+          {/* PORTAL TARGET UNTUK RADIO WIDGET DI MOBILE */}
+          <div id="radio-portal-mobile" className="w-10 h-10 shrink-0 relative flex items-center justify-center"></div>
+          
+          {/* Tombol Tema Khusus Mobile */}
+          <button
+            type="button"
+            onClick={() => setTheme(theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'light' : 'dark')}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface hover:bg-surface/80 active:scale-90 transition-all text-text-main border border-border/50"
+            title="Ganti Tema"
+          >
+            {isMounted ? (
+              <>
+                <Sun size={18} className="hidden dark:block text-yellow-500" />
+                <Moon size={18} className="block dark:hidden text-text-main" />
+              </>
+            ) : <div className="w-[18px] h-[18px]"></div>}
+          </button>
+
+          <button 
+            onClick={() => setIsMenuOpen(true)}
+            className="w-10 h-10 flex items-center justify-center text-text-main bg-surface rounded-xl border border-border/50"
+          >
+            <Menu size={20} />
+          </button>
+        </div>
       </div>
 
       {/* 📱 MOBILE MENU DROPDOWN (OVERLAY) */}

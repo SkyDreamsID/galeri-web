@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Info, Download, Copyright } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function CarouselActions({ 
   photo, 

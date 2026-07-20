@@ -76,12 +76,21 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 - [x] Deployment Frontend + Admin ke Vercel/Netlify.
 - [x] Peluncuran Versi 1.0 (Live).
 
-### Phase 6: Advanced Gallery Features (In Progress)
-*Fokus: Kustomisasi tingkat lanjut dan interaksi pengunjung.*
+### Phase 6: Advanced Gallery Features (Paused - Feature Freeze)
+*Fokus: Kustomisasi tingkat lanjut dan interaksi pengunjung. (Dihentikan sementara untuk fokus ke tahap Polish).*
 - [x] **Dynamic Watermark (Cloudinary)**: Menerapkan watermark dinamis (nama copyright) pada URL gambar secara on-the-fly via Cloudinary text layer transform. Dapat dikontrol **per-foto** (bukan global) dari Admin Panel saat Upload maupun Edit — nilai disimpan di kolom `photos.show_watermark`. Tanpa merusak file asli.
 - [ ] **Per-Photo Analytics**: Mencatat dan menampilkan jumlah *views* (kunjungan) secara spesifik untuk masing-masing foto, bukan hanya per post.
 - [ ] **Color Palette Extractor**: Mengekstrak warna dominan tiap foto saat diupload dan menampilkannya di halaman web untuk referensi estetika.
-- [ ] **Share to IG Stories**: Menambahkan dukungan Web Share API untuk langsung membagikan foto ke Instagram Stories di mobile.
+- [x] **Share to IG Stories & Meta Creator**: Refactor metadata kreator dan tombol Share untuk mendukung karya kolaborasi dan *multi-creator*.
+
+### Phase 7: ✨ Polish (In Progress)
+*Fokus: Memoles dan menstabilkan web pasca-rilis v1.0 (menuju v1.1). Tidak ada penambahan fitur baru.*
+- [ ] Fix bug & Stabilisasi
+- [ ] Animasi & Micro-interactions
+- [ ] Performa & Loading speed
+- [ ] SEO Optimization
+- [ ] Responsive & Layout refinement
+- [ ] Accessibility
 
 ---
 
@@ -90,4 +99,5 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 1. **Client Booking/Hiring Page**: Formulir *booking* langsung untuk klien yang ingin menyewa jasa fotografi.
 2. **Timeline Photography**: *View mode* kronologis (*Timeline Slider*) berdasarkan metadata tanggal jepretan EXIF.
 3. **Advanced Analytics**: Integrasi Google Analytics / Vercel Web Analytics untuk *tracking views* tiap postingan galeri.
-4. **Free Footage Distribution**: Sistem bagi-bagi video resolusi tinggi (B-Roll/Footage) menggunakan *Embed* YouTube untuk *preview* dan link *Google Drive/Mega* untuk unduhan agar bandwidth Cloudinary/Vercel tetap aman. 
+4. **Free Footage Distribution**: Sistem bagi-bagi video resolusi tinggi (B-Roll/Footage) menggunakan *Embed* YouTube untuk *preview* dan link *Google Drive/Mega* untuk unduhan agar bandwidth Cloudinary/Vercel tetap aman.
+5. **Pemisahan Entitas Kreator & Hak Cipta**: Saat ini `copyright_name` diasumsikan sebagai identitas kreator. Jika di masa depan field tersebut digunakan eksklusif sebagai pemegang hak cipta (organisasi/penerbit), pertimbangkan penambahan tabel/field `creator` terpisah agar metadata multi-kreator lebih akurat.

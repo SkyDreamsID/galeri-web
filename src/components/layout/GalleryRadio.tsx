@@ -72,7 +72,8 @@ export function GalleryRadio() {
     }
 
     // 1. Zeno.fm Fetch
-    const eventSource = new EventSource(`https://api.zeno.fm/mounts/metadata/subscribe/${zenoId}`)
+    // Tambahkan cache buster (?cb=...) agar CDN Vercel/Cloudflare tidak menyimpan cache SSE lama
+    const eventSource = new EventSource(`https://api.zeno.fm/mounts/metadata/subscribe/${zenoId}?cb=${Date.now()}`)
 
     eventSource.onmessage = (event) => {
       try {
@@ -172,6 +173,18 @@ export function GalleryRadio() {
     }
   }, [])
 
+  // Re-check portal setiap pindah halaman (karena Navbar/Sidebar mungkin unmount/remount)
+  useEffect(() => {
+    if (!isMounted) return
+    const timer = setTimeout(() => {
+      const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1023px)').matches
+      let targetId = isTablet ? 'radio-portal-tablet' : 'radio-portal-mobile'
+      const targetNode = document.getElementById(targetId)
+      setPortalTarget(prev => prev !== targetNode ? targetNode : prev)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [pathname, isMounted])
+
   // Widget untuk Desktop (Kanan Bawah)
   const desktopWidget = (
     <motion.div
@@ -182,18 +195,21 @@ export function GalleryRadio() {
         height: isPlaying ? 80 : 64,
         borderRadius: isPlaying ? 24 : 32,
       }}
-      transition={{ type: "spring", damping: 22, stiffness: 200 }}
-      
       className={`
-        hidden lg:flex fixed bottom-8 right-8
-        bg-black/70 border border-white/20 text-white shadow-2xl backdrop-blur-xl hover:bg-black/80 hover:border-white/40
-        items-center overflow-hidden pointer-events-auto cursor-pointer z-[9999] transition-all duration-300
-        ${isPostPage ? 'opacity-20 hover:opacity-100' : 'opacity-100'} 
+        group hidden lg:flex fixed bottom-8 right-8
+        text-white shadow-2xl items-center overflow-hidden pointer-events-auto cursor-pointer z-[9999] transition-all duration-300
       `}
       
       onClick={!isPlaying ? togglePlay : undefined}
       style={{ originX: 1 }}
     >
+      {/* Background & Border Layer (Translucent on post page) */}
+      <div 
+        className={`absolute inset-0 bg-black/70 border border-white/20 backdrop-blur-xl transition-all duration-300 group-hover:bg-black/80 group-hover:border-white/40 ${
+          isPostPage ? 'opacity-20 group-hover:opacity-100' : 'opacity-100'
+        }`}
+        style={{ borderRadius: 'inherit' }}
+      />
       <AnimatePresence>
         {isPlaying && (
           <motion.div
@@ -202,48 +218,50 @@ export function GalleryRadio() {
             animate={{ opacity: 1, filter: "blur(0px)" }}
             exit={{ opacity: 0, filter: "blur(4px)" }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="flex items-center gap-3 pl-3 h-full flex-1 min-w-0"
+            className="flex-1 min-w-0 h-full pl-3"
           >
-            <div className={`relative shrink-0 rounded-[10px] md:rounded-xl overflow-hidden flex items-center justify-center shadow-inner w-14 h-14 bg-black/40 border border-white/10`}>
-              {trackInfo.coverUrl ? (
-                <img 
-                  src={trackInfo.coverUrl} 
-                  alt="Cover Art" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <>
-                  <Disc className={`w-7 h-7 animate-spin duration-3000 text-white/50`} />
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-2.5 h-2.5 rounded-full bg-primary-neutral animate-ping"></div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <div className="overflow-hidden relative whitespace-nowrap mask-fade-edges w-full">
-                {trackInfo.title.length > 20 ? (
-                  <div className="animate-marquee">
-                    <span className={`text-base font-bold pr-12 text-white`}>{trackInfo.title}</span>
-                    <span className={`text-base font-bold pr-12 text-white`}>{trackInfo.title}</span>
-                  </div>
+            <div className={`relative flex items-center gap-3 h-full w-full transition-opacity duration-300 ${isPostPage ? 'opacity-20 group-hover:opacity-100' : 'opacity-100'}`}>
+              <div className={`relative shrink-0 rounded-[10px] md:rounded-xl overflow-hidden flex items-center justify-center shadow-inner w-14 h-14 bg-black/40 border border-white/10`}>
+                {trackInfo.coverUrl ? (
+                  <img 
+                    src={trackInfo.coverUrl} 
+                    alt="Cover Art" 
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <p className={`text-base font-bold truncate text-white`}>
-                    {trackInfo.title}
-                  </p>
+                  <>
+                    <Disc className={`w-7 h-7 animate-spin duration-3000 text-white/50`} />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="w-2.5 h-2.5 rounded-full bg-primary-neutral animate-ping"></div>
+                    </div>
+                  </>
                 )}
               </div>
-              <p className={`text-xs truncate mt-0.5 font-medium text-white/70`}>
-                {trackInfo.artist}
-              </p>
+
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <div className="overflow-hidden relative whitespace-nowrap mask-fade-edges w-full">
+                  {trackInfo.title.length > 20 ? (
+                    <div className="animate-marquee">
+                      <span className={`text-base font-bold pr-12 text-white`}>{trackInfo.title}</span>
+                      <span className={`text-base font-bold pr-12 text-white`}>{trackInfo.title}</span>
+                    </div>
+                  ) : (
+                    <p className={`text-base font-bold truncate text-white`}>
+                      {trackInfo.title}
+                    </p>
+                  )}
+                </div>
+                <p className={`text-xs truncate mt-0.5 font-medium text-white/70`}>
+                  {trackInfo.artist}
+                </p>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <div 
-        className={`w-16 h-16 shrink-0 flex items-center justify-center ml-auto`}
+        className={`relative w-16 h-16 shrink-0 flex items-center justify-center ml-auto`}
         onClick={isPlaying ? togglePlay : undefined}
       >
         {isPlaying ? (

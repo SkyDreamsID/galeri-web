@@ -22,3 +22,12 @@ export function getOptimizedImageUrl(url: string, width: number = 1920, watermar
   }
   return url
 }
+
+export function formatCreators(creators: string[]): string {
+  if (!creators || creators.length === 0) return '';
+  if (creators.length === 1) return creators[0];
+  
+  const last = creators[creators.length - 1];
+  const rest = creators.slice(0, -1);
+  return `${rest.join(', ')} & ${last}`;
+}

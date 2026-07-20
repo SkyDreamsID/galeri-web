@@ -465,18 +465,18 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-12">
-      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 relative">
+    <div className="max-w-6xl mx-auto space-y-6 pb-12 w-full overflow-x-hidden md:overflow-visible">
+      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 relative w-full">
         {/* Kolom Kiri: Meta Data Post */}
         <div className="lg:col-span-1 space-y-4 md:space-y-6">
           <Card className="bg-surface border-border/40 shadow-sm">
-            <CardHeader className="p-4 pb-0 md:p-6 md:pb-6 flex flex-row items-center gap-4 space-y-0">
-              <Link href="/admin/gallery" className="p-2 hover:bg-hover-bg rounded-full transition-colors shrink-0">
-                <ArrowLeft size={20} className="text-text-muted hover:text-text-main" />
+            <CardHeader className="p-3 md:p-6 md:pb-6 flex flex-row items-center gap-2 md:gap-4 space-y-0 min-w-0">
+              <Link href="/admin/gallery" className="p-1 md:p-2 hover:bg-hover-bg rounded-full transition-colors shrink-0">
+                <ArrowLeft size={18} className="text-text-muted hover:text-text-main md:w-5 md:h-5" />
               </Link>
-              <div>
-                <CardTitle className="text-text-main font-heading text-xl md:text-2xl">Edit Momen</CardTitle>
-                <p className="text-[10px] md:text-sm text-text-muted mt-1">Ubah cerita, lokasi, tag, atau foto pada momen ini.</p>
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-text-main font-heading text-lg md:text-2xl truncate">Edit Momen</CardTitle>
+                <p className="text-[10px] md:text-sm text-text-muted mt-0.5 md:mt-1 truncate">Ubah cerita, lokasi, tag, atau foto pada momen ini.</p>
               </div>
             </CardHeader>
             <CardContent className="p-4 pt-4 md:p-6 space-y-3 md:space-y-4">
@@ -601,17 +601,17 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                     Pilih Semua ({selectedPhotos.length}/{images.length})
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <div className="flex items-center gap-1.5 md:gap-2 w-full sm:w-auto mt-2 sm:mt-0 min-w-0">
                   <Input 
                     value={bulkCopyrightName} 
                     onChange={(e) => setBulkCopyrightName(e.target.value)}
                     placeholder="Masukkan Nama"
-                    className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-32 text-[13px] md:text-sm"
+                    className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-8 md:h-9 w-full sm:w-32 text-[11px] md:text-sm px-2 min-w-0"
                   />
                   <select 
                     value={bulkLicense}
                     onChange={(e) => setBulkLicense(e.target.value)}
-                    className="bg-background border border-border/50 text-text-main rounded-md focus:outline-none focus:border-primary-neutral h-9 px-2 w-full sm:w-36 text-[13px] md:text-sm"
+                    className="bg-background border border-border/50 text-text-main rounded-md focus:outline-none focus:border-primary-neutral h-8 md:h-9 px-1 md:px-2 w-full sm:w-36 text-[11px] md:text-sm min-w-0"
                   >
                     <option value="Copyright">Copyright</option>
                     <option value="Free Copyright">Free Copyright</option>
@@ -625,7 +625,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                       ))
                       setSelectedPhotos([])
                     }}
-                    className="bg-primary-neutral hover:bg-primary-neutral/90 text-surface h-9 text-sm px-4 shrink-0"
+                    className="bg-primary-neutral hover:bg-primary-neutral/90 text-surface h-8 md:h-9 text-xs md:text-sm px-3 md:px-4 shrink-0"
                   >
                     Terapkan
                   </Button>
@@ -689,12 +689,12 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                       />
                     </div>
 
-                    <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between">
-                      <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2">
+                    <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between min-w-0">
+                      <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2 min-w-0">
                         <div className="font-medium text-text-main truncate w-full" title={img.file ? img.file.name : 'Foto Tersimpan'}>
                           {img.file ? img.file.name : 'Foto Tersimpan'}
                         </div>
-                        <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[9px] md:text-[10px] font-medium text-primary-neutral border border-primary-neutral/20">
+                        <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[9px] md:text-[10px] font-medium text-primary-neutral border border-primary-neutral/20 max-w-full truncate">
                           © {img.exif.copyright_name}
                         </span>
                       </div>
@@ -708,7 +708,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                           setImages(newImages)
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-background border border-border/50 text-text-main rounded py-1 px-2 text-[10px] md:text-xs focus:outline-none focus:border-primary-neutral"
+                        className="w-full bg-background border border-border/50 text-text-main rounded py-1 px-2 text-[10px] md:text-xs focus:outline-none focus:border-primary-neutral min-w-0"
                       >
                         <option value="Copyright">Hak Cipta</option>
                         <option value="Free Copyright">Bebas Unduh</option>
@@ -716,7 +716,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
                       {/* Checkbox Tampilkan Watermark */}
                       <label
-                        className="flex items-center gap-2 cursor-pointer select-none mt-1 group"
+                        className="flex items-center gap-2 cursor-pointer select-none mt-1 group min-w-0"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <input
@@ -729,17 +729,17 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                             setImages(newImages)
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className="w-3.5 h-3.5 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer pointer-events-auto"
+                          className="w-3.5 h-3.5 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer pointer-events-auto shrink-0"
                         />
-                        <span className="text-[11px] text-text-muted group-hover:text-text-main transition-colors">Tampilkan watermark</span>
+                        <span className="text-[11px] text-text-muted group-hover:text-text-main transition-colors truncate">Tampilkan watermark</span>
                       </label>
 
-                      <div className="pt-1 space-y-0.5 md:space-y-1 text-[9px] md:text-[10px] leading-tight">
+                      <div className="pt-1 space-y-0.5 md:space-y-1 text-[9px] md:text-[10px] leading-tight min-w-0">
                         {img.exif.camera && <p className="truncate">📷 {img.exif.camera} {img.exif.lens}</p>}
                         {img.exif.aperture && (
                           <p className="truncate">⚙️ {img.exif.focal_length} • {img.exif.aperture} • {img.exif.shutter_speed} • {img.exif.iso}</p>
                         )}
-                        {!img.exif.camera && <p className="text-yellow-500/80">⚠️ Tanpa EXIF</p>}
+                        {!img.exif.camera && <p className="text-yellow-500/80 truncate">⚠️ Tanpa EXIF</p>}
                       </div>
                     </div>
                   </Card>
