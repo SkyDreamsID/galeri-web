@@ -235,6 +235,7 @@ export function HomeClient({
 
             return (
               <motion.div
+                layout
                 key={post.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

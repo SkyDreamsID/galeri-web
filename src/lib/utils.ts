@@ -9,7 +9,7 @@ export function getOptimizedImageUrl(url: string, width: number = 1920, watermar
   if (!url) return ''
   // Cek apakah ini URL Cloudinary
   if (url.includes('res.cloudinary.com')) {
-    let transformation = `q_auto,f_auto,w_${width},c_limit`
+    let transformation = `q_auto,f_auto,fl_progressive,w_${width},c_limit`
     
     if (watermarkText && enableWatermark) {
       // Watermark: font size 18, opacity 50 - subtle tapi terbaca

@@ -141,6 +141,7 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
                 
                 return (
                   <motion.div 
+                    layout
                     key={post.id} 
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
