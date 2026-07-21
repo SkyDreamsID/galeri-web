@@ -91,14 +91,14 @@ export default async function AlbumsPage() {
             Albums
           </h1>
           <p className="text-lg md:text-xl text-text-muted max-w-2xl font-sans leading-relaxed">
-            Eksplorasi cerita melalui koleksi dan momen yang diabadikan.
+            Eksplorasi cerita melalui koleksi dan momen yang diabadikan
           </p>
         </div>
 
         {sortedAlbums.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-text-muted animate-in fade-in duration-500">
             <ImageIcon className="w-16 h-16 mb-4 opacity-20" />
-            <p>Belum ada album yang dibuat.</p>
+            <p>Belum ada album yang dibuat</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
@@ -129,9 +129,9 @@ export default async function AlbumsPage() {
                     {/* Overlay Gradient (Mobile Style Folder) */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-80"></div>
                     
-                    {/* Badge Jumlah Foto */}
+                    {/* Badge Jumlah Post/judul */}
                     <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-border/50">
-                      <span className="text-[10px] font-bold text-text-main">{album.postCount} Foto</span>
+                      <span className="text-[10px] font-bold text-text-main">{album.postCount} Post</span>
                     </div>
                   </div>
 

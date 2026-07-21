@@ -108,26 +108,29 @@ export function Navbar({
                 <Menu size={22} className="block group-open:hidden" />
                 <X size={22} className="hidden group-open:block" />
               </summary>
-              <div className="absolute right-0 mt-4 w-[calc(100vw-3rem)] max-w-[240px] rounded-2xl border border-border bg-surface p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
-                <div className="space-y-1">
-                  <Link href="/albums" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">📁 Albums</Link>
-                  <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">📸 My Gear</button>
-                  <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">👨‍💻 About Me</a>
-                  <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">💻 Source Code (Free)</a>
+              <div className="absolute right-0 mt-4 w-[calc(100vw-2rem)] sm:w-56 max-w-[220px] max-h-[75vh] overflow-y-auto overscroll-contain scrollbar-thin rounded-2xl border border-border bg-surface p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
+                <div className="space-y-0.5">
+                  <Link href="/albums" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background active:bg-background transition-colors">Albums</Link>
+                  <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background active:bg-background transition-colors">My Gear</button>
+                  <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background active:bg-background transition-colors">About Me</a>
+                  <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background active:bg-background transition-colors">Source Code (Free)</a>
                   
-                  <div className="h-px bg-border my-2"></div>
-                  <span className="block px-4 py-2 text-[11px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
+                  <span className="block text-center text-text-muted/70 my-2 text-[10px] select-none tracking-widest">──────── LAINNYA ────────</span>
                   
                   {socialLinks.map((link, idx) => (
-                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main active:bg-background transition-colors">
-                      {link.title === 'Instagram' ? '📷 Instagram' : link.title === 'GitHub' ? '🐙 GitHub' : link.title}
+                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main active:bg-background transition-colors">
+                      {link.title}
                     </a>
                   ))}
                   {contactEmail && (
-                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl hover:bg-background active:bg-background transition-colors">✉️ Hubungi Saya (Email)</a>
+                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background active:bg-background transition-colors">Hubungi Saya (Email)</a>
                   )}
+                  
                   {isAdmin && (
-                    <Link href="/admin/gallery" className="block w-full text-left px-4 py-3 text-sm font-medium rounded-xl bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 active:bg-primary-neutral/30 transition-colors mt-2">⚙️ Dashboard Admin</Link>
+                    <>
+                      <span className="block text-center text-text-muted/70 my-2 text-[10px] select-none tracking-widest">──────── ADMIN ────────</span>
+                      <Link href="/admin/gallery" className="block w-full text-left px-3 py-2 text-[13px] font-bold rounded-xl bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 active:bg-primary-neutral/30 transition-colors">⚙️ Dashboard Admin</Link>
+                    </>
                   )}
                 </div>
               </div>
@@ -180,25 +183,28 @@ export function Navbar({
                 <X size={22} className="hidden group-open:block" />
               </summary>
               
-              <div className="absolute right-0 mt-2 w-[calc(100vw-3rem)] max-w-[240px] max-h-[70vh] overflow-y-auto overscroll-contain scrollbar-thin rounded-2xl border border-border bg-surface/95 backdrop-blur-xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[9999] hidden group-open:block">
-                <div className="space-y-1">
-                  <Link href="/albums" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📁 Albums</Link>
-                  <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
-                  <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">👨‍💻 About Me</a>
-                  <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">💻 Source Code (Free)</a>
+              <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-56 max-w-[220px] max-h-[75vh] overflow-y-auto overscroll-contain scrollbar-thin rounded-2xl border border-border bg-surface/95 backdrop-blur-xl p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[9999] hidden group-open:block">
+                <div className="space-y-0.5">
+                  <Link href="/albums" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">Albums</Link>
+                  <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">My Gear</button>
+                  <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">About Me</a>
+                  <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">Source Code (Free)</a>
                   
-                  <div className="h-px bg-border/50 my-2 mx-2"></div>
-                  <span className="block px-3 py-1.5 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
+                  <span className="block text-center text-text-muted/70 my-2 text-[10px] select-none tracking-widest">──────── LAINNYA ────────</span>
                   {socialLinks.map((link, idx) => (
-                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">
-                      {link.title === 'Instagram' ? '📷 Instagram' : link.title === 'GitHub' ? '🐙 GitHub' : link.title}
+                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">
+                      {link.title}
                     </a>
                   ))}
                   {contactEmail && (
-                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
+                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">Hubungi Saya (Email)</a>
                   )}
+                  
                   {isAdmin && (
-                    <Link href="/admin/gallery" className="block w-full text-left px-3 py-2 text-sm font-bold rounded-xl bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 transition-colors cursor-pointer select-none mt-1.5">⚙️ Dashboard Admin</Link>
+                    <>
+                      <span className="block text-center text-text-muted/70 my-2 text-[10px] select-none tracking-widest">──────── ADMIN ────────</span>
+                      <Link href="/admin/gallery" className="block w-full text-left px-3 py-2 text-[13px] font-bold rounded-xl bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 transition-colors cursor-pointer select-none">⚙️ Dashboard Admin</Link>
+                    </>
                   )}
                 </div>
               </div>
@@ -249,9 +255,9 @@ export function Navbar({
               <div className="absolute right-0 mt-2 w-52 max-h-[70vh] overflow-y-auto overscroll-contain scrollbar-thin rounded-xl border border-border bg-surface p-2 shadow-xl animate-in fade-in zoom-in-95 duration-200 z-[9999]">
                 <div className="space-y-1">
                   <span className="block px-3 py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Lainnya</span>
-                  <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">📸 My Gear</button>
+                  <button type="button" onClick={() => setIsGearModalOpen(true)} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">My Gear</button>
                   {contactEmail && (
-                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">✉️ Hubungi Saya (Email)</a>
+                    <a href={`mailto:${contactEmail}`} className="block w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">Hubungi Saya (Email)</a>
                   )}
                   {isAdmin && (
                     <Link href="/admin/gallery" className="block w-full text-left px-3 py-2 text-sm font-medium rounded-lg bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 transition-colors cursor-pointer select-none mt-1">⚙️ Dashboard Admin</Link>

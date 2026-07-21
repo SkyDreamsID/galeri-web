@@ -100,7 +100,7 @@ export function UploadForm() {
       files.map(async (file) => {
         let exifData: FileWithExif['exif'] = {}
         try {
-          const parsed = await exifr.parse(file, { tiff: true, exif: true, makerNote: true })
+          const parsed = await exifr.parse(file, { tiff: true, exif: true, makerNote: true, xmp: true, iptc: true })
           if (parsed) {
             const make = parsed.Make || ''
             const model = parsed.Model || ''
