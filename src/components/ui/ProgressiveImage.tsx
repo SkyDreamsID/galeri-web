@@ -14,6 +14,7 @@ interface ProgressiveImageProps {
   priority?: boolean
   style?: React.CSSProperties
   onClick?: () => void
+  sizes?: string
 }
 
 export function ProgressiveImage({ 
@@ -25,7 +26,8 @@ export function ProgressiveImage({
   enableWatermark = true,
   priority = false,
   style = { width: '100%', height: 'auto' },
-  onClick
+  onClick,
+  sizes = "(max-width: 768px) 50vw, 33vw"
 }: ProgressiveImageProps) {
   if (!src) return null;
 
@@ -35,12 +37,15 @@ export function ProgressiveImage({
      blurUrl = src.replace('upload/', 'upload/e_blur:1000,f_auto,q_1,w_100/')
   }
 
-  // 2. Gunakan getOptimizedImageUrl bawaan untuk kualitas utama
-  const highResUrl = getOptimizedImageUrl(src, width, watermarkText, enableWatermark)
+  // 2. Custom Loader untuk Next.js Image
+  const cloudinaryLoader = ({ src: loaderSrc, width: loaderWidth }: { src: string, width: number }) => {
+    return getOptimizedImageUrl(loaderSrc, loaderWidth, watermarkText, enableWatermark)
+  }
 
   return (
     <Image 
-      src={highResUrl} 
+      loader={cloudinaryLoader}
+      src={src} 
       alt={alt} 
       width={width}
       height={width} // dummy height, css auto overrides it
@@ -48,7 +53,7 @@ export function ProgressiveImage({
       placeholder="blur"
       blurDataURL={blurUrl}
       className={className}
-      unoptimized // Cloudinary sudah melakukan kompresi f_auto,q_auto
+      sizes={sizes}
       priority={priority}
       onClick={onClick}
     />

@@ -234,7 +234,7 @@ export function Navbar({
             <div className="h-4 w-px bg-border/50 mx-2"></div>
             
             <label className="relative rounded-lg p-2 hover:bg-surface transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center text-text-main cursor-pointer select-none">
-              <input type="checkbox" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" checked={isDark} onChange={toggleDarkMode} />
+              <input type="checkbox" aria-label="Toggle Dark Mode" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" checked={isDark} onChange={toggleDarkMode} />
               {isDark ? <Sun className="h-5 w-5 text-yellow-500 pointer-events-none" /> : <Moon className="h-5 w-5 text-text-main pointer-events-none" />}
             </label>
 

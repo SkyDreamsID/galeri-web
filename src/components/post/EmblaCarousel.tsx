@@ -114,6 +114,7 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
                     src={photo.image_url} 
                     alt="Photo View" 
                     width={1920}
+                    sizes="100vw"
                     style={{ width: 'auto', height: '100%', maxHeight: '100%', maxWidth: '100%' }}
                     className="object-contain cursor-zoom-in transition-transform hover:scale-[1.01]" 
                     onClick={() => openZoom(displayUrl)}
