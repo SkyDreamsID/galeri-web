@@ -92,6 +92,7 @@ Ubah nama file `.env.example` menjadi `.env.local` di *root* folder proyek Anda,
 # Ambil dari: Supabase Dashboard > Project Settings > API
 NEXT_PUBLIC_SUPABASE_URL="https://[YOUR_PROJECT_ID].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key-here"
+SUPABASE_SERVICE_ROLE_KEY="your-service-role-key-here"
 
 # ==========================================
 # CLOUDINARY CONFIGURATION (Untuk Fitur Upload Foto)

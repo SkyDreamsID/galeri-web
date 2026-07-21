@@ -79,8 +79,7 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 ### Phase 6: Advanced Gallery Features (Paused - Feature Freeze)
 *Fokus: Kustomisasi tingkat lanjut dan interaksi pengunjung. (Dihentikan sementara untuk fokus ke tahap Polish).*
 - [x] **Dynamic Watermark (Cloudinary)**: Menerapkan watermark dinamis (nama copyright) pada URL gambar secara on-the-fly via Cloudinary text layer transform. Dapat dikontrol **per-foto** (bukan global) dari Admin Panel saat Upload maupun Edit — nilai disimpan di kolom `photos.show_watermark`. Tanpa merusak file asli.
-- [ ] **Per-Photo Analytics**: Mencatat dan menampilkan jumlah *views* (kunjungan) secara spesifik untuk masing-masing foto, bukan hanya per post.
-- [ ] **Color Palette Extractor**: Mengekstrak warna dominan tiap foto saat diupload dan menampilkannya di halaman web untuk referensi estetika.
+- [~] **Per-Photo Analytics**: ~~Mencatat dan menampilkan jumlah *views* (kunjungan) secara spesifik untuk masing-masing foto.~~ *(Dibatalkan: Terlalu rumit secara logika dan struktur database, cukup gunakan hitungan per-post/judul).*
 - [x] **Share to IG Stories & Meta Creator**: Refactor metadata kreator dan tombol Share untuk mendukung karya kolaborasi dan *multi-creator*.
 
 ### Phase 7: ✨ Polish (In Progress)
@@ -98,6 +97,6 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 
 1. **Client Booking/Hiring Page**: Formulir *booking* langsung untuk klien yang ingin menyewa jasa fotografi.
 2. **Timeline Photography**: *View mode* kronologis (*Timeline Slider*) berdasarkan metadata tanggal jepretan EXIF.
-3. **Advanced Analytics**: Integrasi Google Analytics / Vercel Web Analytics untuk *tracking views* tiap postingan galeri.
+3. **Color Palette Extractor**: Mengekstrak warna dominan tiap foto saat diupload dan menampilkannya di halaman web sebagai aksen estetika dinamis.
 4. **Free Footage Distribution**: Sistem bagi-bagi video resolusi tinggi (B-Roll/Footage) menggunakan *Embed* YouTube untuk *preview* dan link *Google Drive/Mega* untuk unduhan agar bandwidth Cloudinary/Vercel tetap aman.
 5. **Pemisahan Entitas Kreator & Hak Cipta**: Saat ini `copyright_name` diasumsikan sebagai identitas kreator. Jika di masa depan field tersebut digunakan eksklusif sebagai pemegang hak cipta (organisasi/penerbit), pertimbangkan penambahan tabel/field `creator` terpisah agar metadata multi-kreator lebih akurat.
