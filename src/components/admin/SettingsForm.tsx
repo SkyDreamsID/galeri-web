@@ -24,7 +24,7 @@ export function SettingsForm() {
     cloudinary_cloud_name: '',
     contact_email: '',
     social_links: [] as { title: string, url: string, icon_url?: string }[],
-    theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true }
+    theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true, show_public_stats: true }
   })
 
   const supabase = createClient()
@@ -51,7 +51,7 @@ export function SettingsForm() {
         cloudinary_cloud_name: data.cloudinary_cloud_name || '',
         contact_email: data.contact_email || '',
         social_links: data.social_links || [],
-        theme_config: data.theme_config || { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true }
+        theme_config: data.theme_config || { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true, show_public_stats: true }
       })
     }
     if (error && error.code !== 'PGRST116') {
@@ -117,7 +117,7 @@ export function SettingsForm() {
     }
   }
 
-  const handleThemeChange = (field: 'dark_bg' | 'light_bg' | 'primary_color' | 'enable_watermark', value: string | boolean) => {
+  const handleThemeChange = (field: 'dark_bg' | 'light_bg' | 'primary_color' | 'enable_watermark' | 'show_public_stats', value: string | boolean) => {
     setSettings(prev => ({
       ...prev,
       theme_config: { ...prev.theme_config, [field]: value }
@@ -128,7 +128,7 @@ export function SettingsForm() {
     if (confirm('Yakin ingin mereset tema ke warna bawaan asli (Legendary UI)?')) {
       setSettings(prev => ({
         ...prev,
-        theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true }
+        theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true, show_public_stats: true }
       }))
       toast.success('Warna tema dikembalikan ke default')
     }
@@ -526,6 +526,24 @@ export function SettingsForm() {
                 className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
                 placeholder="#EEEEEE"
               />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-text-muted">Statistik Publik</label>
+            <div className="flex items-center gap-3 bg-background border border-border/50 rounded-xl px-4 py-3 h-12">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={settings.theme_config.show_public_stats !== false}
+                  onChange={(e) => handleThemeChange('show_public_stats', e.target.checked)}
+                />
+                <div className="w-9 h-5 bg-border/50 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+              </label>
+              <span className="text-sm text-text-main">
+                {settings.theme_config.show_public_stats !== false ? 'Tampilkan (Views & Downloads)' : 'Sembunyikan'}
+              </span>
             </div>
           </div>
         </div>

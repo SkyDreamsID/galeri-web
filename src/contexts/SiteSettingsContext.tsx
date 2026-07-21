@@ -21,6 +21,7 @@ export type SiteSettings = {
     light_bg?: string
     primary_color?: string
     enable_watermark?: boolean
+    show_public_stats?: boolean
   }
 }
 

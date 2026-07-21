@@ -44,7 +44,7 @@ export function ShareButton({ title, siteTitle = 'Jurnal Visual', creators }: Sh
     <button 
       onClick={handleShare}
       disabled={isSharing}
-      className="shrink-0 flex items-center justify-center px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-surface/50 border border-border/40 text-text-muted hover:text-text-main hover:bg-surface transition-all active:scale-95 shadow-sm disabled:opacity-50 gap-2 font-sans text-xs md:text-sm font-medium"
+      className="shrink-0 flex items-center justify-center gap-2 px-3 md:px-4 py-2 text-text-muted hover:text-text-main hover:bg-surface/80 transition-all active:scale-95 disabled:opacity-50 font-sans text-xs md:text-sm font-medium"
       title="Bagikan Tautan"
     >
       {isSharing ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}

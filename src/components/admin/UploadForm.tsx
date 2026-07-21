@@ -238,39 +238,29 @@ export function UploadForm() {
             if (!sigRes.ok) throw new Error('Gagal memproses otorisasi upload')
             const { signature, apiKey } = await sigRes.json()
 
-            // Proses Kompresi (Jika diaktifkan)
+            // Proses Kompresi (Jika diaktifkan) via Web Worker
             let fileToUpload = img.file
             if (useCompression && fileToUpload.type.startsWith('image/')) {
               fileToUpload = await new Promise<File>((resolve) => {
-                const imageObj = new Image()
-                imageObj.src = URL.createObjectURL(img.file)
-                imageObj.onload = () => {
-                  const canvas = document.createElement('canvas')
-                  const MAX_WIDTH = 2500
-                  const MAX_HEIGHT = 2500
-                  let width = imageObj.width
-                  let height = imageObj.height
-                  
-                  if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-                    if (width > height) {
-                      height = Math.round(height * (MAX_WIDTH / width))
-                      width = MAX_WIDTH
-                    } else {
-                      width = Math.round(width * (MAX_HEIGHT / height))
-                      height = MAX_HEIGHT
+                try {
+                  const worker = new Worker(new URL('../../workers/imageCompressor.worker.ts', import.meta.url))
+                  worker.onmessage = (e) => {
+                    if (e.data.success) {
+                      const newFile = new File([e.data.blob], img.file.name, { type: 'image/jpeg' })
+                      resolve(newFile)
                     }
+                    else resolve(img.file) // Fallback
+                    worker.terminate()
                   }
-                  canvas.width = width
-                  canvas.height = height
-                  const ctx = canvas.getContext('2d')
-                  if (!ctx) return resolve(img.file)
-                  ctx.drawImage(imageObj, 0, 0, width, height)
-                  canvas.toBlob((blob) => {
-                    if (blob) resolve(new File([blob], img.file.name, { type: 'image/jpeg' }))
-                    else resolve(img.file)
-                  }, 'image/jpeg', 0.85)
+                  worker.onerror = () => {
+                    resolve(img.file) // Fallback
+                    worker.terminate()
+                  }
+                  worker.postMessage({ file: img.file, MAX_WIDTH: 2500, MAX_HEIGHT: 2500 })
+                } catch (workerErr) {
+                  console.warn("Failed to start Web Worker:", workerErr)
+                  resolve(img.file) // Fallback if worker fails
                 }
-                imageObj.onerror = () => resolve(img.file)
               })
             }
 

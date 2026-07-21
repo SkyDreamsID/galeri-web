@@ -30,6 +30,7 @@ export function GalleryRadio() {
 
   if (!streamUrl) return null
   const [isPlaying, setIsPlaying] = useState(false)
+  const isPlayingRef = useRef(false) // sensor real-time: cold start vs continuous
   
   // State untuk data radio
   const [trackInfo, setTrackInfo] = useState({
@@ -48,17 +49,21 @@ export function GalleryRadio() {
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
+      isPlayingRef.current = false;
     } else {
-      // PERBAIKAN 1: Hapus Cache Buster dan gunakan .load()
-      audioRef.current.src = streamUrl as string; 
-      audioRef.current.load(); 
+      // Cache buster: paksa browser muat audio live baru, bukan cache lama
+      const cacheBuster = (streamUrl as string).includes('?') ? `&cb=${Date.now()}` : `?cb=${Date.now()}`;
+      audioRef.current.src = (streamUrl as string) + cacheBuster;
+      audioRef.current.load();
 
       setIsPlaying(true);
+      isPlayingRef.current = true;
 
       audioRef.current.play().catch(e => {
         if (e.name !== 'AbortError') {
           console.error("Play failed:", e);
           setIsPlaying(false);
+          isPlayingRef.current = false;
         }
       });
     }
@@ -92,37 +97,42 @@ export function GalleryRadio() {
           const cleanArtist = newArtist.split(/ feat\.? | ft\.? /i)[0].split(',')[0].trim()
           const cleanTitle = newTitle
 
-          // PERBAIKAN 2: Tampilkan judul dan artis secara real-time detik itu juga
-          setTrackInfo(prev => ({
-            ...prev,
-            title: newTitle,
-            artist: newArtist,
-            coverUrl: ""
-          }))
+          // Dynamic Delay:
+          // - Cold start (pertama kali play): delay 0ms → teks langsung keluar bareng audio
+          // - Continuous (lagu ganti saat radio jalan): delay 12000ms → tunggu buffer audio HTML5
+          const delay = isPlayingRef.current ? 12000 : 0;
 
-          const apiKey = "257a264bbac662d1b74762320ba4bcc1"
-          fetch(`https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${apiKey}&artist=${encodeURIComponent(cleanArtist)}&track=${encodeURIComponent(cleanTitle)}&format=json`)
-            .then(res => res.json())
-            .then(lastFmData => {
-              let fetchedCover = ""
-              if (lastFmData.track?.album?.image) {
-                const images = lastFmData.track.album.image
-                const largeImg = images.find((img: any) => img.size === 'large') || images[images.length - 1]
-                if (largeImg && largeImg['#text']) {
-                  fetchedCover = largeImg['#text']
+          setTimeout(() => {
+            setTrackInfo(prev => ({
+              ...prev,
+              title: newTitle,
+              artist: newArtist,
+              coverUrl: ""
+            }))
+
+            const apiKey = "257a264bbac662d1b74762320ba4bcc1"
+            fetch(`https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${apiKey}&artist=${encodeURIComponent(cleanArtist)}&track=${encodeURIComponent(cleanTitle)}&format=json`)
+              .then(res => res.json())
+              .then(lastFmData => {
+                let fetchedCover = ""
+                if (lastFmData.track?.album?.image) {
+                  const images = lastFmData.track.album.image
+                  const largeImg = images.find((img: { size: string, '#text': string }) => img.size === 'large') || images[images.length - 1]
+                  if (largeImg && largeImg['#text']) {
+                    fetchedCover = largeImg['#text']
+                  }
                 }
-              }
-              // Update gambar menyusul jika ditemukan
-              if (fetchedCover) {
-                setTrackInfo(prev => ({
-                  ...prev,
-                  coverUrl: fetchedCover
-                }))
-              }
-            })
-            .catch(err => {
-              console.error("Gagal ambil cover Last.fm", err)
-            })
+                if (fetchedCover) {
+                  setTrackInfo(prev => ({
+                    ...prev,
+                    coverUrl: fetchedCover
+                  }))
+                }
+              })
+              .catch(err => {
+                console.error("Gagal ambil cover Last.fm", err)
+              })
+          }, delay);
         }
       } catch (err) {
         console.error("Gagal parsing Zeno metadata", err)
@@ -140,50 +150,41 @@ export function GalleryRadio() {
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    const checkPortal = () => {
+    setIsMounted(true)
+    
+    const getTargetId = () => {
       const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1023px)').matches
+      return isTablet ? 'radio-portal-tablet' : 'radio-portal-mobile'
+    }
+
+    const checkPortal = () => {
       const isDesktop = window.matchMedia('(min-width: 1024px)').matches
-      
       setIsMobile(!isDesktop)
       
-      let targetId = isTablet ? 'radio-portal-tablet' : 'radio-portal-mobile'
-      const targetNode = document.getElementById(targetId)
-      
+      const targetNode = document.getElementById(getTargetId())
       setPortalTarget(prev => prev !== targetNode ? targetNode : prev)
       return targetNode
     }
     
-    setIsMounted(true)
     checkPortal()
 
-    let retryCount = 0
-    const pollInterval = setInterval(() => {
-      const found = checkPortal()
-      retryCount++
-      if (found || retryCount > 20) {
-        clearInterval(pollInterval)
+    const observer = new MutationObserver(() => {
+      const targetNode = document.getElementById(getTargetId())
+      if (targetNode) {
+        setPortalTarget(prev => prev !== targetNode ? targetNode : prev)
+      } else {
+        setPortalTarget(null)
       }
-    }, 150)
-    
+    })
+
+    observer.observe(document.body, { childList: true, subtree: true })
     window.addEventListener('resize', checkPortal)
     
     return () => {
-      clearInterval(pollInterval)
+      observer.disconnect()
       window.removeEventListener('resize', checkPortal)
     }
   }, [])
-
-  // Re-check portal setiap pindah halaman (karena Navbar/Sidebar mungkin unmount/remount)
-  useEffect(() => {
-    if (!isMounted) return
-    const timer = setTimeout(() => {
-      const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1023px)').matches
-      let targetId = isTablet ? 'radio-portal-tablet' : 'radio-portal-mobile'
-      const targetNode = document.getElementById(targetId)
-      setPortalTarget(prev => prev !== targetNode ? targetNode : prev)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [pathname, isMounted])
 
   // Widget untuk Desktop (Kanan Bawah)
   const desktopWidget = (
@@ -265,7 +266,7 @@ export function GalleryRadio() {
         onClick={isPlaying ? togglePlay : undefined}
       >
         {isPlaying ? (
-          <button className={`shrink-0 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md w-11 h-11 bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm`}>
+          <button className={`shrink-0 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md w-11 h-11 bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700`}>
             <Pause className={`fill-current w-5 h-5`} />
           </button>
         ) : (

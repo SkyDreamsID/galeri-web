@@ -1,6 +1,8 @@
 import React from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import type { ExifData } from '@/types/gallery'
 
-export function CarouselExifCard({ exif, cameraName, isVisible }: { exif: any, cameraName: string, isVisible: boolean }) {
+export function CarouselExifCard({ exif, cameraName, isVisible }: { exif?: ExifData, cameraName: string, isVisible: boolean }) {
   if (!isVisible) return null;
 
   // Jika tidak ada data EXIF sama sekali

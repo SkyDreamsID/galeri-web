@@ -11,13 +11,15 @@ import { ShareButton } from '@/components/post/ShareButton'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { Eye, Download } from 'lucide-react'
+import type { Photo, PostTag } from '@/types/gallery'
 
 // =========================================================================
 // 🛠️ PAPAN KONTROL UKURAN (Tinggal ganti di sini biar gampang utak-atik)
 // =========================================================================
 const LAYOUT_CONFIG = {
   // Ukuran Judul Postingan
-  postTitle: "text-3xl md:text-5xl lg:text-5xl max-lg:landscape:text-3xl",
+  postTitle: "text-xl md:text-3xl lg:text-4xl max-lg:landscape:text-xl",
   // Ukuran Teks Sub-Judul Cerita
   storySubtitle: "text-lg md:text-xl lg:text-2xl max-lg:landscape:text-lg",
   // Ukuran Teks Cerita
@@ -55,14 +57,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
   }
 
-  const coverPhoto = post.photos?.find((p: any) => p.is_cover) || post.photos?.[0]
-  const imageUrl = coverPhoto ? getOptimizedImageUrl(coverPhoto.image_url, 1200, coverPhoto.copyright_name, enableWatermark) : ''
-  
-  const uniqueCopyrights = Array.from(
-    new Set(
-      post.photos?.map((p: any) => p.copyright_name).filter(Boolean) || []
-    )
-  ) as string[]
+  const coverPhoto = post.photos?.find((p: Photo) => p.is_cover) || post.photos?.[0]
+  const imageToUse = coverPhoto ? getOptimizedImageUrl(coverPhoto.image_url, 1200, undefined, false) : '/placeholder.jpg'
+
+  // Kumpulin semua nama kreator/copyright
+  const uniqueCopyrights = Array.from(new Set(
+      post.photos?.map((p: Photo) => p.copyright_name).filter(Boolean) || []
+  )) as string[]
   const creators = uniqueCopyrights.length > 0 ? formatCreators(uniqueCopyrights) : siteTitle
 
   const title = `${post.title} • ${siteTitle}`
@@ -74,13 +75,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: title,
       description: desc,
-      images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630 }] : [],
+      images: imageToUse ? [{ url: imageToUse, width: 1200, height: 630 }] : [],
     },
     twitter: {
       card: 'summary_large_image',
       title: title,
       description: desc,
-      images: imageUrl ? [imageUrl] : [],
+      images: imageToUse ? [imageToUse] : [],
     }
   }
 }
@@ -93,7 +94,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   const { data: post, error } = await supabase
     .from('posts')
     .select(`
-      id, title, story, location, created_at, license_type, slug, status,
+      id, title, story, location, created_at, license_type, slug, status, views, downloads,
       collections (id, name),
       post_tags ( tags (name) ),
       photos (
@@ -110,7 +111,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     const { data: postById, error: errById } = await supabase
       .from('posts')
       .select(`
-        id, title, story, location, created_at, license_type, slug, status,
+        id, title, story, location, created_at, license_type, slug, status, views, downloads,
         collections (id, name),
         post_tags ( tags (name) ),
         photos (
@@ -129,6 +130,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
 
   const { data: settings } = await supabase.from('site_settings').select('theme_config, site_title').limit(1).single()
   const enableWatermark = settings?.theme_config?.enable_watermark !== false
+  const showPublicStats = settings?.theme_config?.show_public_stats !== false && String(settings?.theme_config?.show_public_stats) !== "false"
 
   if (!finalPost || finalPost.status !== 'Published') {
     return (
@@ -153,10 +155,10 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   const postData = finalPost
 
   // Sortir foto berdasarkan sort_order
-  const photos = postData.photos?.sort((a: any, b: any) => a.sort_order - b.sort_order) || []
-
-  // Buat Ambient Glow dari gambar cover (tanpa watermark untuk performa)
-  const ambientCover = photos.find((p: any) => p.is_cover) || photos[0]
+  const photos: Photo[] = postData.photos?.sort((a: Photo, b: Photo) => (a.sort_order || 0) - (b.sort_order || 0)) || []
+  
+  // Find cover photo explicitly
+  const ambientCover = photos.find((p: Photo) => p.is_cover) || photos[0]
   const ambientGlowUrl = ambientCover ? getOptimizedImageUrl(ambientCover.image_url, 400, null, false) : null
 
   // Cari tanggal diambil dari EXIF foto pertama, fallback ke created_at
@@ -166,7 +168,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   // Ambil semua copyright_name unik dari foto
   const uniqueCopyrights = Array.from(
     new Set(
-      photos.map((p: any) => p.copyright_name).filter(Boolean)
+      photos.map((p: Photo) => p.copyright_name).filter(Boolean)
     )
   ) as string[]
   
@@ -178,8 +180,8 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   const collectionData = postData.collections
     ? (Array.isArray(postData.collections) ? postData.collections[0] : postData.collections)
     : null
-  const collectionName = (collectionData as any)?.name || null
-  const collectionId = (collectionData as any)?.id || null
+  const collectionName = collectionData && !Array.isArray(collectionData) ? collectionData.name : null
+  const collectionId = collectionData && !Array.isArray(collectionData) ? collectionData.id : null
 
   return (
     <>
@@ -221,13 +223,13 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                     {collectionId ? (
                       <Link 
                         href={`/collection/${collectionId}`}
-                        className="inline-block text-[11px] font-semibold uppercase tracking-widest text-text-muted hover:text-primary-neutral transition-colors"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-neutral/10 border border-primary-neutral/20 text-[10px] font-bold uppercase tracking-widest text-primary-neutral hover:bg-primary-neutral/20 transition-colors"
                         title={`Lihat album ${collectionName}`}
                       >
                         {collectionName}
                       </Link>
                     ) : (
-                      <div className="text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                      <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-surface border border-border/40 text-[10px] font-bold uppercase tracking-widest text-text-muted">
                         {collectionName}
                       </div>
                     )}
@@ -246,33 +248,46 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
               <div className="space-y-6">
                 {/* Metadata & Action Block */}
                 <div className="flex flex-col gap-4 pb-6 border-b border-border/10">
-                  {/* Info List */}
-                  <div className="flex flex-col gap-2 text-[13px] md:text-sm text-text-muted font-sans">
-                    <div className="flex items-center gap-2">
-                      <span>🗓️ Diposting:</span>
-                      <span className="text-text-main">{new Date(postData.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                    </div>
+                  {/* Info List — grid biar ":" sejajar */}
+                  <div className="grid gap-y-2 text-[13px] md:text-sm text-text-muted font-sans" style={{ gridTemplateColumns: 'auto 1fr' }}>
+                    <span className="pr-3 whitespace-nowrap">🗓️ Diposting</span>
+                    <span className="text-text-main"><span className="text-text-muted mr-2">:</span>{new Date(postData.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                     {firstExifDate && (
-                      <div className="flex items-center gap-2">
-                        <span>📷 Diambil:</span>
-                        <span className="text-text-main">{new Date(firstExifDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                      </div>
+                      <>
+                        <span className="pr-3 whitespace-nowrap">📷 Diambil</span>
+                        <span className="text-text-main"><span className="text-text-muted mr-2">:</span>{new Date(firstExifDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      </>
                     )}
-                    <div className="flex items-center gap-2">
-                      <span>🖼️ File:</span>
-                      <span className="text-text-main">{photos.length} Foto</span>
-                    </div>
+                    <span className="pr-3 whitespace-nowrap">🖼️ File</span>
+                    <span className="text-text-main"><span className="text-text-muted mr-2">:</span>{photos.length} Foto</span>
                     {postData.location && (
-                      <div className="flex items-center gap-2">
-                        <span>📍 Lokasi:</span>
-                        <span className="text-text-main">{postData.location}</span>
-                      </div>
+                      <>
+                        <span className="pr-3 whitespace-nowrap">📍 Lokasi</span>
+                        <span className="text-text-main"><span className="text-text-muted mr-2">:</span>{postData.location}</span>
+                      </>
                     )}
                   </div>
 
-                  {/* Share Action */}
+                  {/* Share & Stats Action */}
                   <div className="pt-2 flex">
-                    <ShareButton title={postData.title} siteTitle={settings?.site_title} creators={creatorsFormatted} />
+                    <div className="flex items-stretch bg-surface/50 border border-border/40 rounded-full shadow-sm backdrop-blur-sm overflow-hidden transition-all">
+                      <ShareButton title={postData.title} siteTitle={settings?.site_title} creators={creatorsFormatted} />
+                      
+                      {showPublicStats && (
+                        <>
+                          <div className="w-px bg-border/40 my-2"></div>
+                          <div className="shrink-0 flex items-center justify-center gap-2 px-3 md:px-4 py-2 text-text-muted hover:text-text-main hover:bg-surface/80 transition-all font-sans text-xs md:text-sm font-medium cursor-default" title="Total Dilihat">
+                            <Eye size={16} />
+                            <span>{postData.views || 0}</span>
+                          </div>
+                          <div className="w-px bg-border/40 my-2"></div>
+                          <div className="shrink-0 flex items-center justify-center gap-2 px-3 md:px-4 py-2 text-text-muted hover:text-text-main hover:bg-surface/80 transition-all font-sans text-xs md:text-sm font-medium cursor-default" title="Total Diunduh">
+                            <Download size={16} />
+                            <span>{postData.downloads || 0}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
@@ -294,7 +309,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                 {postData.post_tags && postData.post_tags.length > 0 && (
                   <div className="pt-2 md:pt-4 pb-6">
                     <div className="flex flex-wrap gap-2">
-                      {postData.post_tags.map((pt: any, idx: number) => (
+                      {postData.post_tags.map((pt: PostTag, idx: number) => (
                         <Link key={idx} href={`/tag/${pt.tags.name}`} className="px-4 py-1.5 bg-surface/50 border border-border/20 text-xs font-medium text-text-muted hover:text-text-main hover:bg-surface/80 hover:border-border/40 transition-all duration-300 rounded-full cursor-pointer backdrop-blur-sm">
                           #{pt.tags.name}
                         </Link>

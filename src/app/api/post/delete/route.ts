@@ -52,10 +52,10 @@ export async function POST(request: Request) {
         })
         
         await Promise.all(deletePromises)
-      } catch (cloudErr) {
+      } catch (cloudErr: any) {
         console.error('Cloudinary deletion failed:', cloudErr)
         return NextResponse.json({ 
-          error: 'Gagal menghapus file gambar di Cloudinary. Database tidak diubah.' 
+          error: `Storage Failure: Gagal menghapus media di Cloudinary (${cloudErr?.message || 'Network/API error'}). Database tidak diubah.` 
         }, { status: 500 })
       }
     }
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
     if (deleteError) {
       console.error('Supabase delete post error:', deleteError)
-      return NextResponse.json({ error: 'Gagal menghapus data momen dari database' }, { status: 500 })
+      return NextResponse.json({ error: `Database Failure: Gagal menghapus data momen (${deleteError.message})` }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, message: 'Momen dan semua aset media berhasil dihapus.' })

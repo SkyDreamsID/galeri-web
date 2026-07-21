@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, use } from 'react'
+import React, { useEffect, useState, use, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getOptimizedImageUrl } from '@/lib/utils'
@@ -29,6 +29,7 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const POSTS_PER_PAGE = 9
+  const observerTarget = useRef<HTMLDivElement>(null)
 
   const fetchPosts = async (pageIndex = 0, isInitial = false) => {
     try {
@@ -71,6 +72,32 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
   useEffect(() => {
     if (tagName) fetchPosts(0, true)
   }, [tagName])
+
+  const loadMore = useCallback(() => {
+    if (isLoadingMore) return
+    const nextPage = page + 1
+    setPage(nextPage)
+    fetchPosts(nextPage, false)
+  }, [page, isLoadingMore])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current)
+    }
+
+    return () => {
+      if (observerTarget.current) observer.unobserve(observerTarget.current)
+    }
+  }, [hasMore, isLoadingMore, loadMore])
 
   return (
     <div className="bg-background text-text-main min-h-screen">
@@ -121,34 +148,40 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className="block break-inside-avoid" 
                   >
-                    <Link href={`/post/${post.slug || post.id}`} className="block group cursor-pointer relative overflow-hidden rounded-none md:rounded-2xl bg-surface">
+                    <Link href={`/post/${post.slug || post.id}`} className="block group cursor-pointer relative overflow-hidden rounded-xl md:rounded-2xl bg-surface">
                       {coverImage ? (
                         <ProgressiveImage src={rawCoverImage} alt={post.title} watermarkText={copyrightName} enableWatermark={showWatermark} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]" />
                       ) : (
                         <div className="w-full aspect-[4/3] flex items-center justify-center bg-surface text-text-muted">No Photo</div>
                       )}
                       
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-500 lg:backdrop-blur-[2px]"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-500"></div>
                       
-                      <div className="absolute bottom-0 left-0 right-0 p-2.5 md:p-6 translate-y-0 opacity-100 lg:translate-y-8 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 ease-out">
-                        {/* 👇 UKURAN TEKS: KATEGORI / KOLEKSI */}
-                        <div className="text-[7px] md:text-[10px] font-bold uppercase tracking-widest text-primary-neutral mb-0.5 md:mb-2 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-75 line-clamp-1">
-                          {post.collections?.name || 'Uncategorized'}
-                        </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-2.5 md:p-6 translate-y-0 opacity-100 lg:translate-y-8 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 ease-out drop-shadow-md">
                         {/* 👇 UKURAN TEKS: JUDUL FOTO */}
-                        <h3 className="font-heading text-[11px] md:text-xl font-bold text-text-main mb-0.5 md:mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2 leading-snug">
+                        <h3 className="font-heading text-[12px] leading-snug md:text-xl font-bold text-white mb-0.5 md:mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2">
                           {post.title}
                         </h3>
                         <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150 gap-1">
                           {/* 👇 UKURAN TEKS: LOKASI */}
-                          <p className="text-[8px] md:text-xs text-text-muted line-clamp-1">
+                          <p className="text-[9px] md:text-xs text-white/70 line-clamp-1">
                             {post.location || 'Unknown Location'}
                           </p>
                           {/* 👇 UKURAN TEKS: TANGGAL */}
-                          <p className="text-[7px] md:text-[10px] text-text-muted/70 font-medium whitespace-nowrap">
+                          <p className="text-[8px] md:text-[10px] text-white/60 font-medium whitespace-nowrap">
                             {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
                         </div>
+                        {post.photos && post.photos.length > 1 && (
+                          <div className="flex items-center gap-1 md:gap-1.5 mt-1 md:mt-4 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-200">
+                            {post.photos.slice(0, 5).map((_: any, idx: number) => (
+                              <div key={idx} className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${idx === 0 ? 'bg-primary-neutral drop-shadow' : 'bg-primary-neutral/40'}`}></div>
+                            ))}
+                            {post.photos.length > 5 && (
+                              <span className="text-[8px] md:text-[9px] text-text-muted font-bold ml-0.5">+{post.photos.length - 5}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </Link>
                   </motion.div>
@@ -157,14 +190,17 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
             </div>
 
             {hasMore && (
-              <div className="flex justify-center mt-12 mb-8">
-                <button 
-                  onClick={() => { const nextPage = page + 1; setPage(nextPage); fetchPosts(nextPage, false); }}
-                  disabled={isLoadingMore}
-                  className="px-6 py-3 rounded-full bg-surface border border-border text-text-main text-sm font-bold tracking-wide hover:bg-surface/80 hover:border-primary-neutral/50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                >
-                  {isLoadingMore ? 'Memuat Foto...' : 'Muat Lebih Banyak'}
-                </button>
+              <div ref={observerTarget} className="flex justify-center mt-6 md:mt-12 h-10">
+                <div className="flex items-center justify-center gap-3 text-text-muted text-sm font-medium">
+                  {isLoadingMore ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-primary-neutral border-t-transparent rounded-full animate-spin"></div>
+                      Memuat Foto...
+                    </>
+                  ) : (
+                    'Scroll ke bawah untuk memuat lebih banyak'
+                  )}
+                </div>
               </div>
             )}
           </>

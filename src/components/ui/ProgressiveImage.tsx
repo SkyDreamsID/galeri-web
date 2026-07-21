@@ -11,6 +11,9 @@ interface ProgressiveImageProps {
   width?: number
   watermarkText?: string | null
   enableWatermark?: boolean
+  priority?: boolean
+  style?: React.CSSProperties
+  onClick?: () => void
 }
 
 export function ProgressiveImage({ 
@@ -19,7 +22,10 @@ export function ProgressiveImage({
   className = '',
   width = 800,
   watermarkText,
-  enableWatermark = true
+  enableWatermark = true,
+  priority = false,
+  style = { width: '100%', height: 'auto' },
+  onClick
 }: ProgressiveImageProps) {
   if (!src) return null;
 
@@ -38,11 +44,13 @@ export function ProgressiveImage({
       alt={alt} 
       width={width}
       height={width} // dummy height, css auto overrides it
-      style={{ width: '100%', height: 'auto' }}
+      style={style}
       placeholder="blur"
       blurDataURL={blurUrl}
       className={className}
       unoptimized // Cloudinary sudah melakukan kompresi f_auto,q_auto
+      priority={priority}
+      onClick={onClick}
     />
   )
 }

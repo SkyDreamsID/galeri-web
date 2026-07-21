@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 
 import { getOptimizedImageUrl } from '@/lib/utils'
+import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 import { CarouselControls } from './CarouselControls'
 import { CarouselPagination } from './CarouselPagination'
 import { CarouselActions } from './CarouselActions'
@@ -88,7 +89,7 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
     <div className="relative group">
       <div className="overflow-hidden rounded-[16px] bg-surface/50 border border-border backdrop-blur-sm" ref={emblaRef}>
         <div className="flex">
-          {photos.map((photo) => {
+          {photos.map((photo, index) => {
             const exif = photo.exif_data?.[0]
             const isExifVisible = showExif[photo.id]
             let cameraName = exif?.camera || 'Unknown Camera'
@@ -109,15 +110,16 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
                 {/* 📸 KONTENER FOTO RESPONSIVE 📸 */}
                 {/* ======================================================= */}
                 <div className="flex w-full items-center justify-center aspect-square md:aspect-auto max-lg:landscape:aspect-[4/3] md:h-[65vh] max-lg:landscape:h-auto lg:h-[80vh] lg:landscape:h-[80vh]">
-                  <Image 
-                    src={displayUrl} 
+                  <ProgressiveImage 
+                    src={photo.image_url} 
                     alt="Photo View" 
                     width={1920}
-                    height={1080}
                     style={{ width: 'auto', height: '100%', maxHeight: '100%', maxWidth: '100%' }}
                     className="object-contain cursor-zoom-in transition-transform hover:scale-[1.01]" 
-                    unoptimized
                     onClick={() => openZoom(displayUrl)}
+                    priority={index === 0}
+                    watermarkText={photo.copyright_name}
+                    enableWatermark={photo.show_watermark !== false}
                   />
                   
                   <CarouselActions 
