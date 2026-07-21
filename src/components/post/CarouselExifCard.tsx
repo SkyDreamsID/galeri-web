@@ -15,7 +15,7 @@ export function CarouselExifCard({ exif, cameraName, isVisible }: { exif?: ExifD
   }
 
   return (
-    <div className="absolute bottom-16 right-4 p-4 rounded-xl shadow-xl border border-[#3A3A3A] bg-[#F4F4F4] dark:bg-[#1F1F1F] text-sm w-72 animate-in fade-in slide-in-from-bottom-4 duration-250 z-50">
+    <div className="absolute bottom-16 right-4 p-4 rounded-xl shadow-xl border border-[#3A3A3A] bg-[#F4F4F4] dark:bg-[#1F1F1F] text-sm w-56 animate-in fade-in slide-in-from-bottom-4 duration-250 z-50">
       <div className="font-mono text-[13px] text-text-main space-y-2">
         <div className="font-bold border-b border-[#3A3A3A]/20 pb-2 mb-2 line-clamp-2 break-words text-[14px]">
           {cameraName}

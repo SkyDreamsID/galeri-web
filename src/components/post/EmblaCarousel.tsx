@@ -17,7 +17,7 @@ import { CarouselExifCard } from './CarouselExifCard'
 
 export function EmblaCarousel({ photos, postId, license }: { photos: any[], postId: string, license?: string }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
-  const [showExif, setShowExif] = useState<Record<string, boolean>>({})
+  const [openPopup, setOpenPopup] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [scrollSnaps, setScrollSnaps] = useState<number[]>([])
   const [zoomedImage, setZoomedImage] = useState<string | null>(null)
@@ -67,6 +67,7 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
 
   const onSelect = useCallback((emblaApi: any) => {
     setSelectedIndex(emblaApi.selectedScrollSnap())
+    setOpenPopup(null) // Tutup popup saat digeser
   }, [])
 
   useEffect(() => {
@@ -78,10 +79,6 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
     emblaApi.on('select', onSelect)
   }, [emblaApi, onInit, onSelect])
 
-  const toggleExif = (photoId: string) => {
-    setShowExif(prev => ({ ...prev, [photoId]: !prev[photoId] }))
-  }
-
   if (!photos || photos.length === 0) return null
 
   return (
@@ -91,7 +88,6 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
         <div className="flex">
           {photos.map((photo, index) => {
             const exif = photo.exif_data?.[0]
-            const isExifVisible = showExif[photo.id]
             let cameraName = exif?.camera || 'Unknown Camera'
             if (cameraName.includes('NIKON CORPORATION NIKON')) {
               cameraName = cameraName.replace('NIKON CORPORATION NIKON', 'NIKON')
@@ -103,6 +99,11 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
             const perPhotoWatermark = photo.show_watermark !== false
             const displayUrl = getOptimizedImageUrl(photo.image_url, 1920, photo.copyright_name, perPhotoWatermark)
             
+            const isExifVisible = openPopup === `${photo.id}-exif`
+            const isCopyrightVisible = openPopup === `${photo.id}-copyright`
+            const toggleExif = () => setOpenPopup(prev => prev === `${photo.id}-exif` ? null : `${photo.id}-exif`)
+            const toggleCopyright = () => setOpenPopup(prev => prev === `${photo.id}-copyright` ? null : `${photo.id}-copyright`)
+
             return (
               <div key={photo.id} className="relative flex-[0_0_100%] min-w-0">
                 
@@ -117,14 +118,19 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
                     sizes="100vw"
                     style={{ width: 'auto', height: '100%', maxHeight: '100%', maxWidth: '100%' }}
                     className="object-contain cursor-zoom-in transition-transform hover:scale-[1.01]" 
-                    onClick={() => openZoom(displayUrl)}
+                    onClick={() => {
+                        if (openPopup) setOpenPopup(null);
+                        else openZoom(displayUrl);
+                    }}
                     priority={index === 0}
                     watermarkText={photo.copyright_name}
                     enableWatermark={photo.show_watermark !== false}
                   />
                   
                   <CarouselActions 
-                    photo={photo} postId={postId} license={photo.license_type} copyrightName={photo.copyright_name} hasExif={!!exif && Object.keys(exif).length > 0} onToggleExif={() => toggleExif(photo.id)}
+                    photo={photo} postId={postId} license={photo.license_type} copyrightName={photo.copyright_name} 
+                    isCopyrightVisible={isCopyrightVisible} onToggleCopyright={toggleCopyright}
+                    onToggleExif={toggleExif}
                   />
                   <CarouselExifCard exif={exif} cameraName={cameraName} isVisible={isExifVisible} />
                 </div>

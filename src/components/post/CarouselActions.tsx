@@ -8,16 +8,17 @@ export function CarouselActions({
   license, 
   copyrightName,
   onToggleExif, 
-  hasExif 
+  isCopyrightVisible,
+  onToggleCopyright
 }: { 
   photo: any, 
   postId: string,
   license?: string, 
   copyrightName?: string,
   onToggleExif: () => void,
-  hasExif: boolean
+  isCopyrightVisible: boolean,
+  onToggleCopyright: () => void
 }) {
-  const [showCopyright, setShowCopyright] = useState(false);
 
   const handleDownload = () => {
     fetch('/api/download', {
@@ -46,7 +47,7 @@ export function CarouselActions({
       {/* Copyright Button */}
       <div className="relative">
         <button 
-          onClick={() => setShowCopyright(!showCopyright)}
+          onClick={onToggleCopyright}
           className="bg-background/80 backdrop-blur border border-border p-2 rounded-full text-text-main hover:bg-surface transition-colors"
           title="Info Hak Cipta"
         >
@@ -54,7 +55,7 @@ export function CarouselActions({
         </button>
 
         {/* Copyright Popup */}
-        {showCopyright && (
+        {isCopyrightVisible && (
           <div className="absolute bottom-12 right-0 p-3 rounded-xl shadow-xl border border-[#3A3A3A] bg-[#F4F4F4] dark:bg-[#1F1F1F] text-sm w-48 animate-in fade-in slide-in-from-bottom-2 duration-200 z-50">
             <div className="text-[11px] text-text-main font-medium">
               <span className="block text-text-muted mb-1 text-[10px] uppercase tracking-wider">{license || 'Copyright'}</span>
