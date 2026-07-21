@@ -115,7 +115,7 @@ export function Navbar({
                   <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background active:bg-background transition-colors">About Me</a>
                   <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background active:bg-background transition-colors">Source Code (Free)</a>
                   
-                  <span className="block text-center text-text-muted/70 my-2 text-[10px] select-none tracking-widest">──────── LAINNYA ────────</span>
+                  <span className="block text-center text-text-muted/40 my-2 text-[10px] select-none tracking-widest">──── LAINNYA ────</span>
                   
                   {socialLinks.map((link, idx) => (
                     <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main active:bg-background transition-colors">
@@ -128,7 +128,7 @@ export function Navbar({
                   
                   {isAdmin && (
                     <>
-                      <span className="block text-center text-text-muted/70 my-2 text-[10px] select-none tracking-widest">──────── ADMIN ────────</span>
+                      <span className="block text-center text-text-muted/40 my-2 text-[10px] select-none tracking-widest">──── ADMIN ────</span>
                       <Link href="/admin/gallery" className="block w-full text-left px-3 py-2 text-[13px] font-bold rounded-xl bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 active:bg-primary-neutral/30 transition-colors">⚙️ Dashboard Admin</Link>
                     </>
                   )}
@@ -190,7 +190,7 @@ export function Navbar({
                   <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">About Me</a>
                   <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">Source Code (Free)</a>
                   
-                  <span className="block text-center text-text-muted/70 my-2 text-[10px] select-none tracking-widest">──────── LAINNYA ────────</span>
+                  <span className="block text-center text-text-muted/40 my-2 text-[10px] select-none tracking-widest">──── LAINNYA ────</span>
                   {socialLinks.map((link, idx) => (
                     <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="block w-full text-left px-3 py-2 text-[13px] font-medium rounded-xl hover:bg-background hover:text-text-main transition-colors cursor-pointer select-none">
                       {link.title}
@@ -202,7 +202,7 @@ export function Navbar({
                   
                   {isAdmin && (
                     <>
-                      <span className="block text-center text-text-muted/70 my-2 text-[10px] select-none tracking-widest">──────── ADMIN ────────</span>
+                      <span className="block text-center text-text-muted/40 my-2 text-[10px] select-none tracking-widest">──── ADMIN ────</span>
                       <Link href="/admin/gallery" className="block w-full text-left px-3 py-2 text-[13px] font-bold rounded-xl bg-primary-neutral/10 text-primary-neutral hover:bg-primary-neutral/20 transition-colors cursor-pointer select-none">⚙️ Dashboard Admin</Link>
                     </>
                   )}
