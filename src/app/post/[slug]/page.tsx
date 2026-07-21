@@ -309,7 +309,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                 {postData.post_tags && postData.post_tags.length > 0 && (
                   <div className="pt-2 md:pt-4 pb-6">
                     <div className="flex flex-wrap gap-2">
-                      {postData.post_tags.map((pt: PostTag, idx: number) => (
+                      {postData.post_tags.map((pt: any, idx: number) => (
                         <Link key={idx} href={`/tag/${pt.tags.name}`} className="px-4 py-1.5 bg-surface/50 border border-border/20 text-xs font-medium text-text-muted hover:text-text-main hover:bg-surface/80 hover:border-border/40 transition-all duration-300 rounded-full cursor-pointer backdrop-blur-sm">
                           #{pt.tags.name}
                         </Link>
