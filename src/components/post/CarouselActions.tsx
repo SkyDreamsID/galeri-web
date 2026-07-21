@@ -56,9 +56,9 @@ export function CarouselActions({
 
         {/* Copyright Popup */}
         {isCopyrightVisible && (
-          <div className="absolute bottom-12 right-0 p-3 rounded-xl shadow-xl border border-[#3A3A3A] bg-[#F4F4F4] dark:bg-[#1F1F1F] text-sm w-48 animate-in fade-in slide-in-from-bottom-2 duration-200 z-50">
-            <div className="text-[11px] text-text-main font-medium">
-              <span className="block text-text-muted mb-1 text-[10px] uppercase tracking-wider">{license || 'Copyright'}</span>
+          <div className="absolute bottom-12 right-0 p-2.5 sm:p-3 rounded-xl shadow-xl border border-[#3A3A3A] bg-[#F4F4F4] dark:bg-[#1F1F1F] text-sm w-40 sm:w-48 animate-in fade-in slide-in-from-bottom-2 duration-200 z-50">
+            <div className="text-[10px] sm:text-[11px] text-text-main font-medium">
+              <span className="block text-text-muted mb-1 text-[9px] sm:text-[10px] uppercase tracking-wider">{license || 'Copyright'}</span>
               © {copyrightName || 'Rifki Eka Putra'}<br/>All rights reserved.
             </div>
           </div>
