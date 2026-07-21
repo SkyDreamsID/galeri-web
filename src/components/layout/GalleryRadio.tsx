@@ -204,10 +204,10 @@ export function GalleryRadio() {
       onClick={!isPlaying ? togglePlay : undefined}
       style={{ originX: 1 }}
     >
-      {/* Background & Border Layer (Translucent on post page) */}
+      {/* Background & Border Layer (Translucent on post page only when expanded/playing) */}
       <div 
         className={`absolute inset-0 bg-black/70 border border-white/20 backdrop-blur-xl transition-all duration-300 group-hover:bg-black/80 group-hover:border-white/40 ${
-          isPostPage ? 'opacity-20 group-hover:opacity-100' : 'opacity-100'
+          (isPostPage && isPlaying) ? 'opacity-20 group-hover:opacity-100' : 'opacity-100'
         }`}
         style={{ borderRadius: 'inherit' }}
       />
@@ -221,7 +221,7 @@ export function GalleryRadio() {
             transition={{ duration: 0.3, delay: 0.1 }}
             className="flex-1 min-w-0 h-full pl-3"
           >
-            <div className={`relative flex items-center gap-3 h-full w-full transition-opacity duration-300 ${isPostPage ? 'opacity-20 group-hover:opacity-100' : 'opacity-100'}`}>
+            <div className={`relative flex items-center gap-3 h-full w-full transition-opacity duration-300 ${(isPostPage && isPlaying) ? 'opacity-20 group-hover:opacity-100' : 'opacity-100'}`}>
               <div className={`relative shrink-0 rounded-[10px] md:rounded-xl overflow-hidden flex items-center justify-center shadow-inner w-14 h-14 bg-black/40 border border-white/10`}>
                 {trackInfo.coverUrl ? (
                   <img 
