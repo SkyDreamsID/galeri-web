@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { getOptimizedImageUrl } from '@/lib/utils'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
+import Masonry from 'react-masonry-css'
 
 // =========================================================================
 // 🛠️ PAPAN KONTROL UKURAN (Tinggal ganti di sini biar gampang utak-atik)
@@ -225,7 +226,11 @@ export function HomeClient({
         </div>
 
         {/* Masonry Grid */}
-        <div className={`${LAYOUT_CONFIG.gridCols} ${LAYOUT_CONFIG.gridGap}`}>
+        <Masonry
+          breakpointCols={{ default: 3, 1024: 2 }}
+          className="flex w-auto -ml-1.5 md:-ml-5"
+          columnClassName="pl-1.5 md:pl-5 bg-clip-padding flex flex-col gap-1.5 md:gap-5"
+        >
           {posts.map((post, index) => {
             const coverPhoto = post.photos?.find((p) => p.is_cover) || post.photos?.[0]
             const rawCoverImage = coverPhoto?.image_url
@@ -295,7 +300,7 @@ export function HomeClient({
               </motion.div>
             )
           })}
-        </div>
+        </Masonry>
 
         {/* Load More Target */}
         {hasMore && (

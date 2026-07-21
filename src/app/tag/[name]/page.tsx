@@ -7,6 +7,7 @@ import { getOptimizedImageUrl } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { Navbar } from '@/components/layout/Navbar'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
+import Masonry from 'react-masonry-css'
 import { ArrowLeft } from 'lucide-react'
 
 const LAYOUT_CONFIG = {
@@ -131,7 +132,11 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
           </div>
         ) : (
           <>
-            <div className={`${LAYOUT_CONFIG.gridCols} ${LAYOUT_CONFIG.gridGap}`}>
+            <Masonry
+              breakpointCols={{ default: 3, 1024: 2 }}
+              className="flex w-auto -ml-1.5 md:-ml-5"
+              columnClassName="pl-1.5 md:pl-5 bg-clip-padding flex flex-col gap-1.5 md:gap-5"
+            >
               {posts.map((post: any) => {
                 const coverPhoto = post.photos?.find((p: any) => p.is_cover) || post.photos?.[0]
                 const rawCoverImage = coverPhoto?.image_url
@@ -147,7 +152,7 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-50px" }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
-                    className="block break-inside-avoid" 
+                    className="block break-inside-avoid mb-1.5 md:mb-5" 
                   >
                     <Link href={`/post/${post.slug || post.id}`} className="block group cursor-pointer relative overflow-hidden rounded-xl md:rounded-2xl bg-surface">
                       {coverImage ? (
@@ -159,16 +164,13 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-500"></div>
                       
                       <div className="absolute bottom-0 left-0 right-0 p-2.5 md:p-6 translate-y-0 opacity-100 lg:translate-y-8 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 ease-out drop-shadow-md">
-                        {/* 👇 UKURAN TEKS: JUDUL FOTO */}
                         <h3 className="font-heading text-[12px] leading-snug md:text-xl font-bold text-white mb-0.5 md:mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2">
                           {post.title}
                         </h3>
                         <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150 gap-1">
-                          {/* 👇 UKURAN TEKS: LOKASI */}
                           <p className="text-[9px] md:text-xs text-white/70 line-clamp-1">
                             {post.location || 'Unknown Location'}
                           </p>
-                          {/* 👇 UKURAN TEKS: TANGGAL */}
                           <p className="text-[8px] md:text-[10px] text-white/60 font-medium whitespace-nowrap">
                             {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
@@ -188,7 +190,7 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
                   </motion.div>
                 )
               })}
-            </div>
+            </Masonry>
 
             {hasMore && (
               <div ref={observerTarget} className="flex justify-center mt-6 md:mt-12 h-10">

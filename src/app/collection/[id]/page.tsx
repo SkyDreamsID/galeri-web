@@ -7,6 +7,7 @@ import { getOptimizedImageUrl } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { Navbar } from '@/components/layout/Navbar'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
+import Masonry from 'react-masonry-css'
 import { ArrowLeft } from 'lucide-react'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
@@ -139,7 +140,12 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
           </div>
         ) : (
           <>
-            <div className={`${LAYOUT_CONFIG.gridCols} ${LAYOUT_CONFIG.gridGap}`}>
+            {/* Masonry Grid */}
+            <Masonry
+              breakpointCols={{ default: 3, 1024: 2 }}
+              className="flex w-auto -ml-1.5 md:-ml-5"
+              columnClassName="pl-1.5 md:pl-5 bg-clip-padding flex flex-col gap-1.5 md:gap-5"
+            >
               {posts.map((post: any) => {
                 const coverPhoto = post.photos?.find((p: any) => p.is_cover) || post.photos?.[0]
                 const rawCoverImage = coverPhoto?.image_url
@@ -196,7 +202,7 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
                   </motion.div>
                 )
               })}
-            </div>
+            </Masonry>
 
             {hasMore && (
               <div ref={observerTarget} className="flex justify-center mt-6 md:mt-12 h-10">
