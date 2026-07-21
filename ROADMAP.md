@@ -81,6 +81,8 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 - [x] **Dynamic Watermark (Cloudinary)**: Menerapkan watermark dinamis (nama copyright) pada URL gambar secara on-the-fly via Cloudinary text layer transform. Dapat dikontrol **per-foto** (bukan global) dari Admin Panel saat Upload maupun Edit — nilai disimpan di kolom `photos.show_watermark`. Tanpa merusak file asli.
 - [~] **Per-Photo Analytics**: ~~Mencatat dan menampilkan jumlah *views* (kunjungan) secara spesifik untuk masing-masing foto.~~ *(Dibatalkan: Terlalu rumit secara logika dan struktur database, cukup gunakan hitungan per-post/judul).*
 - [x] **Share to IG Stories & Meta Creator**: Refactor metadata kreator dan tombol Share untuk mendukung karya kolaborasi dan *multi-creator*.
+- [x] **Post Analytics (Views, Downloads, Shares)**: Pelacakan statistik per-post dengan sistem RPC Supabase dan Rate-Limiting.
+- [x] **Admin Analytics Dashboard**: Konsolidasi toggle statistik publik (Views, Downloads, & Shares) di panel admin.
 
 ### Phase 7: ✨ Polish (In Progress)
 *Fokus: Memoles dan menstabilkan web pasca-rilis v1.0 (menuju v1.1). Tidak ada penambahan fitur baru.*

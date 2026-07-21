@@ -28,6 +28,7 @@ Segera Hadir..
 - 📻 **Gallery Radio**: Widget pemutar musik *real-time* (mendukung link ZenoFM, Icecast, Shoutcast).
 - ⚡ **Optimasi Kecepatan & SEO**: Menggunakan *Infinite Scroll*, Server Actions (Next.js 14+), PWA Support, dan SEO Tags cerdas.
 - 👥 **Collaborative Identity / Multi-Creator**: Mendukung karya kolaborasi di mana setiap foto dapat memiliki kreator berbeda, dan metadata SEO otomatis menyesuaikan nama kreator (e.g., A, B & C).
+- 📊 **Post Analytics (Views, Downloads, Shares)**: Pelacakan interaksi pengunjung pada setiap rilis yang dilengkapi dengan proteksi *rate-limiting*. Dapat disembunyikan kapan saja secara dinamis melalui Admin Panel.
 - 📱 **Fluid Responsive & Pixel-Perfect**: Tata letak yang dioptimalkan untuk segala skenario orientasi perangkat lengkap dengan *Custom Components*.
 - 🔒 **Admin Dashboard**: Panel kontrol terisolasi yang dilindungi Middleware untuk mengunggah foto, manajemen galeri, dan pengaturan situs (Mobile Friendly!).
 

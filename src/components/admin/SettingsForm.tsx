@@ -542,7 +542,7 @@ export function SettingsForm() {
                 <div className="w-9 h-5 bg-border/50 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
               </label>
               <span className="text-sm text-text-main">
-                {settings.theme_config.show_public_stats !== false ? 'Tampilkan (Views & Downloads)' : 'Sembunyikan'}
+                {settings.theme_config.show_public_stats !== false ? 'Tampilkan (Views, Downloads & Share)' : 'Sembunyikan'}
               </span>
             </div>
           </div>

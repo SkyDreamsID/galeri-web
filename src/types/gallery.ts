@@ -42,6 +42,7 @@ export interface Post {
   status: string
   views?: number
   downloads?: number
+  shares?: number
   collections?: CollectionData | CollectionData[] | null
   post_tags?: PostTag[]
   photos?: Photo[]

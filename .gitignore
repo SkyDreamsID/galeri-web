@@ -36,6 +36,7 @@ yarn-error.log*
 
 # temporary files
 temp_header.md
+generate_report.js
 
 # vercel
 .vercel
@@ -52,4 +53,8 @@ CLAUDE.md
 # Laporan Koding
 laporan_koding.md
 laporan_koding.pdf
+
+# Redundant SQL Migrations
+migration_*.sql
+supabase_schema.sql
 

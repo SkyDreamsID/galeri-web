@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye, DownloadCloud, Search } from 'lucide-react'
+import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye, DownloadCloud, Search, Share2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -16,6 +16,7 @@ type Post = {
   created_at: string
   views: number
   downloads: number
+  shares: number
   status: string
   collections: { name: string } | null
   photos: { image_url: string }[]
@@ -40,6 +41,7 @@ export default function GalleryManagement() {
           created_at,
           views,
           downloads,
+          shares,
           status,
           collections (name),
           photos (image_url),
@@ -220,6 +222,9 @@ export default function GalleryManagement() {
                     </span>
                     <span className="text-[10px] md:text-xs text-text-muted font-medium flex items-center gap-0.5 md:gap-1">
                       <DownloadCloud className="w-3 h-3 md:w-3.5 md:h-3.5" /> {post.downloads || 0}
+                    </span>
+                    <span className="text-[10px] md:text-xs text-text-muted font-medium flex items-center gap-0.5 md:gap-1" title="Total Share">
+                      <Share2 className="w-3 h-3 md:w-3.5 md:h-3.5" /> {post.shares || 0}
                     </span>
                   </div>
                   <div className="flex gap-1.5 md:gap-2 w-full xl:w-auto">

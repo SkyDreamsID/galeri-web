@@ -49,6 +49,9 @@ CREATE TABLE IF NOT EXISTS posts (
   location VARCHAR,
   status VARCHAR DEFAULT 'Draft',
   license_type VARCHAR DEFAULT 'Copyright',
+  views INTEGER DEFAULT 0,
+  downloads INTEGER DEFAULT 0,
+  shares INTEGER DEFAULT 0,
   collection_id UUID REFERENCES collections(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -119,3 +122,25 @@ CREATE POLICY "Admin full akses tags" ON tags FOR ALL TO authenticated USING (tr
 CREATE POLICY "Admin full akses post_tags" ON post_tags FOR ALL TO authenticated USING (true);
 CREATE POLICY "Admin full akses gears" ON gears FOR ALL TO authenticated USING (true);
 CREATE POLICY "Admin full akses site_settings" ON site_settings FOR ALL TO authenticated USING (true);
+
+-- 6. RPC (Remote Procedure Call) STATISTIK
+CREATE OR REPLACE FUNCTION increment_views(row_id UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE posts SET views = COALESCE(views, 0) + 1 WHERE id = row_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION increment_downloads(row_id UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE posts SET downloads = COALESCE(downloads, 0) + 1 WHERE id = row_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION increment_shares(row_id UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE posts SET shares = COALESCE(shares, 0) + 1 WHERE id = row_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

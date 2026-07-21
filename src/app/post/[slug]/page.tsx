@@ -89,12 +89,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function PostDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const isAdmin = !!user
 
   // Ambil detail postingan berdasarkan slug
   const { data: post, error } = await supabase
     .from('posts')
     .select(`
-      id, title, story, location, created_at, license_type, slug, status, views, downloads,
+      id, title, story, location, created_at, license_type, slug, status, views, downloads, shares,
       collections (id, name),
       post_tags ( tags (name) ),
       photos (
@@ -111,7 +113,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     const { data: postById, error: errById } = await supabase
       .from('posts')
       .select(`
-        id, title, story, location, created_at, license_type, slug, status, views, downloads,
+        id, title, story, location, created_at, license_type, slug, status, views, downloads, shares,
         collections (id, name),
         post_tags ( tags (name) ),
         photos (
@@ -271,7 +273,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                   {/* Share & Stats Action */}
                   <div className="pt-2 flex">
                     <div className="flex items-stretch bg-surface/50 border border-border/40 rounded-full shadow-sm backdrop-blur-sm overflow-hidden transition-all">
-                      <ShareButton title={postData.title} siteTitle={settings?.site_title} creators={creatorsFormatted} />
+                      <ShareButton title={postData.title} siteTitle={settings?.site_title} creators={creatorsFormatted} postId={postData.id} shares={postData.shares} showPublicStats={showPublicStats} />
                       
                       {showPublicStats && (
                         <>

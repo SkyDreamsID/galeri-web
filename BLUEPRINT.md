@@ -151,9 +151,10 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 3. Setelah *image_url* dan *public_id* dikembalikan oleh Cloudinary, web merekam ke tabel `gears` Supabase.
 4. UI memunculkan peringatan (Pop-up Toast Custom) tanpa menggunakan `alert()` bawaan peramban.
 
-### Alur View Counter & Image Download
+### Alur Statistik (Views, Downloads, & Shares)
 - **`/api/views`**: Endpoint sederhana untuk menghitung *page views* per postingan (hanya *increment* angka, tidak merekam data privasi pengunjung).
-- **`/api/download`**: Endpoint *proxy* (*Serverless Function*) agar ketika pengguna mengklik "Download", file akan langsung terunduh ke perangkat mereka, bukan malah terbuka di *tab browser* baru.
+- **`/api/download`**: Endpoint *proxy* (*Serverless Function*) dengan fitur *rate-limiting* anti-spam (5 kali per 1 menit per IP) untuk increment stat download lalu memulai file unduhan.
+- **`/api/share`**: Endpoint *Serverless Function* dengan *rate-limiting* serupa untuk melakukan increment stat share via RPC `increment_shares` saat *user* membagikan konten.
 
 ### Sistem CMS & Fallback Konfigurasi (SiteSettings)
 Untuk mendukung *forkability* dan kemudahan pengaturan:

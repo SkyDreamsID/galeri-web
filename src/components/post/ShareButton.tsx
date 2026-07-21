@@ -8,10 +8,15 @@ interface ShareButtonProps {
   title: string
   siteTitle?: string
   creators?: string
+  postId?: string
+  shares?: number
+  showPublicStats?: boolean
 }
 
-export function ShareButton({ title, siteTitle = 'Jurnal Visual', creators }: ShareButtonProps) {
+export function ShareButton({ title, siteTitle = 'Jurnal Visual', creators, postId, shares = 0, showPublicStats = false }: ShareButtonProps) {
   const [isSharing, setIsSharing] = useState(false)
+  const [localShares, setLocalShares] = useState(shares)
+  const [hasShared, setHasShared] = useState(false)
 
   const handleShare = async () => {
     try {
@@ -29,6 +34,17 @@ export function ShareButton({ title, siteTitle = 'Jurnal Visual', creators }: Sh
         // Fallback for browsers that don't support Web Share API
         await navigator.clipboard.writeText(window.location.href)
         toast.success('Link disalin ke clipboard!')
+      }
+
+      // Increment shares only once per session via API
+      if (postId && !hasShared) {
+        setLocalShares(prev => prev + 1)
+        setHasShared(true)
+        fetch('/api/share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId })
+        }).catch(err => console.error('Failed to increment shares:', err))
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
@@ -48,7 +64,9 @@ export function ShareButton({ title, siteTitle = 'Jurnal Visual', creators }: Sh
       title="Bagikan Tautan"
     >
       {isSharing ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}
-      <span>Bagikan</span>
+      <span>
+        {showPublicStats ? `Bagikan${localShares > 0 ? ` (${localShares})` : ''}` : 'Bagikan'}
+      </span>
     </button>
   )
 }
