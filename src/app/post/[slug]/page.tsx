@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   let enableWatermark = true
   const { data } = await supabase
     .from('posts')
-    .select('title, story, status, photos (image_url, is_cover, copyright_name)')
+    .select('title, story, status, photos (id, image_url, is_cover, copyright_name)')
     .eq('slug', slug)
     .single()
   
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     post = data
   }
   if (!post) {
-    const { data: byId } = await supabase.from('posts').select('title, story, status, photos (image_url, is_cover, copyright_name)').eq('id', slug).single()
+    const { data: byId } = await supabase.from('posts').select('title, story, status, photos (id, image_url, is_cover, copyright_name)').eq('id', slug).single()
     if (byId) post = byId
   }
 
