@@ -71,12 +71,11 @@ export default async function AlbumsPage() {
     }
   })
 
-  // Pisahkan album yang ada isinya dan yang kosong
+  // Hanya tampilkan album yang memiliki postingan aktif (Published)
   const activeAlbums = albums.filter(a => a.postCount > 0)
-  const emptyAlbums = albums.filter(a => a.postCount === 0)
-
-  // Gabungkan (active di atas, kosong di bawah)
-  const sortedAlbums = [...activeAlbums, ...emptyAlbums]
+  
+  // Album kosong tidak akan ditampilkan di frontend publik
+  const sortedAlbums = [...activeAlbums]
 
   return (
     <div className="bg-background text-text-main min-h-screen">

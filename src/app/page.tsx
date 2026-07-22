@@ -35,12 +35,16 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     .order(orderColumn, { ascending: isAscending })
     .range(0, POSTS_PER_PAGE - 1)
 
-  // Fetch tags, collections, and settings
-  const [{ data: tagsData }, { data: collectionsData }, { data: settings }] = await Promise.all([
-    supabase.from('tags').select('id, name').order('name'),
-    supabase.from('collections').select('id, name').order('name'),
+  // Fetch tags and collections that are used in Published posts
+  const [{ data: rawTags }, { data: rawCollections }, { data: settings }] = await Promise.all([
+    supabase.from('tags').select('id, name, post_tags!inner(posts!inner(status))').eq('post_tags.posts.status', 'Published').order('name'),
+    supabase.from('collections').select('id, name, posts!inner(status)').eq('posts.status', 'Published').order('name'),
     supabase.from('site_settings').select('hero_title, hero_description').limit(1).single()
   ])
+
+  // Mapping to clean format (remove the relational inner objects)
+  const tagsData = (rawTags || []).map(t => ({ id: t.id, name: t.name }))
+  const collectionsData = (rawCollections || []).map(c => ({ id: c.id, name: c.name }))
 
   const initialPosts = (postsData as any[]) || []
   const initialHasMore = !!(count && count > POSTS_PER_PAGE)
