@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { EmblaCarousel } from '@/components/post/EmblaCarousel'
 import { Metadata } from 'next'
-import { getOptimizedImageUrl, formatCreators } from '@/lib/utils'
+import { getOptimizedImageUrl, formatCreators, formatDate } from '@/lib/utils'
 import { ViewTracker } from '@/components/post/ViewTracker'
 import { CarouselActions } from '@/components/post/CarouselActions'
 import { ShareButton } from '@/components/post/ShareButton'
@@ -253,11 +253,11 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                   {/* Info List — grid biar ":" sejajar */}
                   <div className="grid gap-y-2 text-[13px] md:text-sm text-text-muted font-sans" style={{ gridTemplateColumns: 'auto 1fr' }}>
                     <span className="pr-3 whitespace-nowrap">🗓️ Diposting</span>
-                    <span className="text-text-main"><span className="text-text-muted mr-2">:</span>{new Date(postData.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    <span className="text-text-main"><span className="text-text-muted mr-2">:</span>{formatDate(postData.created_at, true)}</span>
                     {firstExifDate && (
                       <>
                         <span className="pr-3 whitespace-nowrap">📷 Diambil</span>
-                        <span className="text-text-main"><span className="text-text-muted mr-2">:</span>{new Date(firstExifDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                        <span className="text-text-main"><span className="text-text-muted mr-2">:</span>{formatDate(firstExifDate, true)}</span>
                       </>
                     )}
                     <span className="pr-3 whitespace-nowrap">🖼️ File</span>

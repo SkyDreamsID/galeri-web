@@ -26,7 +26,7 @@ Segera Hadir..
 - ©️ **Per-Photo Copyright & Watermark Dinamis**: Hak cipta per-foto dinamis. Watermark nama copyright di-*render* langsung via Cloudinary URL (tanpa merusak gambar asli) dan dapat dikontrol per-foto dari Admin.
 - 🎒 **Gear Showcase**: Integrasi komponen yang memamerkan inventaris kamera & lensa yang digunakan.
 - 📻 **Gallery Radio**: Widget pemutar musik *real-time* (mendukung link ZenoFM, Icecast, Shoutcast).
-- ⚡ **Optimasi Kecepatan & SEO**: Menggunakan *Infinite Scroll*, Server Actions (Next.js 14+), PWA Support, dan SEO Tags cerdas.
+- ⚡ **Optimasi Kecepatan & SEO**: Skor PageSpeed tinggi (>90 Mobile/Desktop) dengan optimasi LCP, rendering deterministik (bebas Hydration Error), *Pre-fetch Infinite Scroll*, PWA Support, dan Aksesibilitas 100/100.
 - 👥 **Collaborative Identity / Multi-Creator**: Mendukung karya kolaborasi di mana setiap foto dapat memiliki kreator berbeda, dan metadata SEO otomatis menyesuaikan nama kreator (e.g., A, B & C).
 - 📊 **Post Analytics (Views, Downloads, Shares)**: Pelacakan interaksi pengunjung pada setiap rilis yang dilengkapi dengan proteksi *rate-limiting*. Dapat disembunyikan kapan saja secara dinamis melalui Admin Panel.
 - 📱 **Fluid Responsive & Pixel-Perfect**: Tata letak yang dioptimalkan untuk segala skenario orientasi perangkat lengkap dengan *Custom Components*.

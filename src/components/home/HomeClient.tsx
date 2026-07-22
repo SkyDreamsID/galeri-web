@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
-import { getOptimizedImageUrl } from '@/lib/utils'
+import { getOptimizedImageUrl, formatDate } from '@/lib/utils'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 import Masonry from 'react-masonry-css'
 
@@ -83,7 +83,7 @@ export function HomeClient({
   const currentSortLabel = sortOptions.find(o => o.value === (currentSort || 'newest'))?.label || 'Terbaru'
 
   const loadMore = useCallback(async () => {
-    if (isLoadingMore) return
+    if (isLoadingMore || !hasMore) return
     setIsLoadingMore(true)
     try {
       const from = page * POSTS_PER_PAGE
@@ -131,25 +131,27 @@ export function HomeClient({
     } finally {
       setIsLoadingMore(false)
     }
-  }, [page, supabase, currentSort, isLoadingMore])
+  }, [page, supabase, currentSort, isLoadingMore, hasMore])
 
   useEffect(() => {
+    const el = observerTarget.current
+    if (!el) return
+
     const observer = new IntersectionObserver(
       entries => {
         if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
           loadMore()
         }
       },
-      { threshold: 0.1 }
+      { 
+        threshold: 0.1,
+        rootMargin: '0px 0px 300px 0px' // Pre-fetch 300px sebelum sampai bawah
+      }
     )
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current)
-    }
+    observer.observe(el)
 
-    return () => {
-      if (observerTarget.current) observer.unobserve(observerTarget.current)
-    }
+    return () => observer.disconnect()
   }, [hasMore, isLoadingMore, loadMore])
 
   return (
@@ -257,31 +259,26 @@ export function HomeClient({
                       alt={post.title}
                       watermarkText={copyrightName}
                       enableWatermark={showWatermark}
-                      className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
+                      priority={index < 2}
+                      className="w-full h-auto object-cover transform group-hover:scale-[1.02] transition-transform duration-500 ease-out"
                     />
                   ) : (
-                    <div className="w-full aspect-[4/3] flex items-center justify-center bg-surface text-text-muted">
-                      No Photo
+                    <div className="w-full aspect-video bg-surface-hover flex items-center justify-center">
+                      <span className="text-text-muted text-sm font-medium">Tanpa Foto</span>
                     </div>
                   )}
-
-                  {/* Overlay — cukup tebal biar teks selalu terbaca walau foto sangat terang */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                  {/* Info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-2.5 md:p-6 translate-y-0 opacity-100 lg:translate-y-8 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 ease-out drop-shadow-md">
-                    {/* 👇 UKURAN TEKS: JUDUL FOTO */}
-                    <h3 className="font-heading text-[12px] leading-snug md:text-xl font-bold text-white mb-0.5 md:mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2">
-                      {post.title}
-                    </h3>
-                    <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150 gap-1">
-                      {/* 👇 UKURAN TEKS: LOKASI */}
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  <div className="absolute inset-0 p-3 md:p-5 flex flex-col justify-end opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 translate-y-0 lg:translate-y-2 lg:group-hover:translate-y-0 pointer-events-none bg-gradient-to-t from-black/80 via-black/30 to-transparent lg:bg-none">
+                    <div className="space-y-0.5 md:space-y-1">
+                      <h2 className="text-[10px] md:text-sm font-bold text-white leading-tight line-clamp-2 drop-shadow-md">
+                        {post.title}
+                      </h2>
                       <p className="text-[9px] md:text-xs text-white/70 line-clamp-1">
                         {post.location || 'Unknown Location'}
                       </p>
-                      {/* 👇 UKURAN TEKS: TANGGAL */}
                       <p className="text-[8px] md:text-[10px] text-white/60 font-medium whitespace-nowrap">
-                        {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {formatDate(post.created_at)}
                       </p>
                     </div>
 
@@ -300,23 +297,30 @@ export function HomeClient({
               </motion.div>
             )
           })}
+
         </Masonry>
 
-        {/* Load More Target */}
-        {hasMore && (
-          <div ref={observerTarget} className="flex justify-center mt-6 md:mt-12 h-10">
-            <div className="flex items-center justify-center gap-3 text-text-muted text-sm font-medium">
-              {isLoadingMore ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-primary-neutral border-t-transparent rounded-full animate-spin"></div>
-                  Memuat Foto...
-                </>
-              ) : (
-                'Scroll ke bawah untuk memuat lebih banyak'
-              )}
+        {/* Infinite Scroll Trigger & Loading Indicator */}
+        <div ref={observerTarget} className="mt-6 md:mt-12">
+          {isLoadingMore && (
+            <div className="flex items-center justify-center gap-3 py-1.5">
+              <div className="flex gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-primary-neutral animate-bounce [animation-delay:0ms]" />
+                <span className="w-2 h-2 rounded-full bg-primary-neutral animate-bounce [animation-delay:150ms]" />
+                <span className="w-2 h-2 rounded-full bg-primary-neutral animate-bounce [animation-delay:300ms]" />
+              </div>
+              <span className="text-text-muted text-sm font-medium">Memuat...</span>
             </div>
-          </div>
-        )}
+          )}
+
+          {!hasMore && posts.length > 0 && (
+            <div className="flex items-center justify-center gap-3 py-1.5">
+              <div className="h-px w-14 bg-border/50" />
+              <span className="text-text-muted/60 text-xs font-medium tracking-wide">Semua telah ditampilkan</span>
+              <div className="h-px w-14 bg-border/50" />
+            </div>
+          )}
+        </div>
 
       </motion.main>
     </div>

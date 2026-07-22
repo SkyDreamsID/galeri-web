@@ -3,7 +3,7 @@
 import React, { useEffect, useState, use, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { getOptimizedImageUrl } from '@/lib/utils'
+import { getOptimizedImageUrl, formatDate } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { Navbar } from '@/components/layout/Navbar'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
@@ -75,29 +75,31 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
   }, [tagName])
 
   const loadMore = useCallback(() => {
-    if (isLoadingMore) return
+    if (isLoadingMore || !hasMore) return
     const nextPage = page + 1
     setPage(nextPage)
     fetchPosts(nextPage, false)
-  }, [page, isLoadingMore])
+  }, [page, isLoadingMore, hasMore])
 
   useEffect(() => {
+    const el = observerTarget.current
+    if (!el) return
+
     const observer = new IntersectionObserver(
       entries => {
         if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
           loadMore()
         }
       },
-      { threshold: 0.1 }
+      { 
+        threshold: 0.1,
+        rootMargin: '0px 0px 300px 0px'
+      }
     )
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current)
-    }
+    observer.observe(el)
 
-    return () => {
-      if (observerTarget.current) observer.unobserve(observerTarget.current)
-    }
+    return () => observer.disconnect()
   }, [hasMore, isLoadingMore, loadMore])
 
   return (
@@ -132,12 +134,13 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
           </div>
         ) : (
           <>
+            {/* Masonry Grid */}
             <Masonry
               breakpointCols={{ default: 3, 1024: 2 }}
               className="flex w-auto -ml-1.5 md:-ml-5"
               columnClassName="pl-1.5 md:pl-5 bg-clip-padding flex flex-col gap-1.5 md:gap-5"
             >
-              {posts.map((post: any) => {
+              {posts.map((post: any, index: number) => {
                 const coverPhoto = post.photos?.find((p: any) => p.is_cover) || post.photos?.[0]
                 const rawCoverImage = coverPhoto?.image_url
                 const copyrightName = coverPhoto?.copyright_name
@@ -156,7 +159,7 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
                   >
                     <Link href={`/post/${post.slug || post.id}`} className="block group cursor-pointer relative overflow-hidden rounded-xl md:rounded-2xl bg-surface">
                       {coverImage ? (
-                        <ProgressiveImage src={rawCoverImage} alt={post.title} watermarkText={copyrightName} enableWatermark={showWatermark} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]" />
+                        <ProgressiveImage src={rawCoverImage} alt={post.title} watermarkText={copyrightName} enableWatermark={showWatermark} priority={index < 4} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]" />
                       ) : (
                         <div className="w-full aspect-[4/3] flex items-center justify-center bg-surface text-text-muted">No Photo</div>
                       )}
@@ -164,15 +167,15 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-500"></div>
                       
                       <div className="absolute bottom-0 left-0 right-0 p-2.5 md:p-6 translate-y-0 opacity-100 lg:translate-y-8 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 ease-out drop-shadow-md">
-                        <h3 className="font-heading text-[12px] leading-snug md:text-xl font-bold text-white mb-0.5 md:mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2">
+                        <h2 className="font-heading text-[12px] leading-snug md:text-xl font-bold text-white mb-0.5 md:mb-1 translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-100 line-clamp-2">
                           {post.title}
-                        </h3>
+                        </h2>
                         <div className="flex items-center justify-between translate-y-0 lg:translate-y-4 lg:group-hover:translate-y-0 transition-transform duration-500 delay-150 gap-1">
                           <p className="text-[9px] md:text-xs text-white/70 line-clamp-1">
                             {post.location || 'Unknown Location'}
                           </p>
                           <p className="text-[8px] md:text-[10px] text-white/60 font-medium whitespace-nowrap">
-                            {new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {formatDate(post.created_at)}
                           </p>
                         </div>
                         {post.photos && post.photos.length > 1 && (
@@ -190,22 +193,30 @@ export default function TagPage({ params }: { params: Promise<{ name: string }> 
                   </motion.div>
                 )
               })}
+
             </Masonry>
 
-            {hasMore && (
-              <div ref={observerTarget} className="flex justify-center mt-6 md:mt-12 h-10">
-                <div className="flex items-center justify-center gap-3 text-text-muted text-sm font-medium">
-                  {isLoadingMore ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-primary-neutral border-t-transparent rounded-full animate-spin"></div>
-                      Memuat Foto...
-                    </>
-                  ) : (
-                    'Scroll ke bawah untuk memuat lebih banyak'
-                  )}
+            {/* Infinite Scroll Trigger & Loading Indicator */}
+            <div ref={observerTarget} className="mt-6 md:mt-12">
+              {isLoadingMore && (
+                <div className="flex items-center justify-center gap-3 py-8">
+                  <div className="flex gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-primary-neutral animate-bounce [animation-delay:0ms]" />
+                    <span className="w-2 h-2 rounded-full bg-primary-neutral animate-bounce [animation-delay:150ms]" />
+                    <span className="w-2 h-2 rounded-full bg-primary-neutral animate-bounce [animation-delay:300ms]" />
+                  </div>
+                  <span className="text-text-muted text-sm font-medium">Memuat...</span>
                 </div>
-              </div>
-            )}
+              )}
+
+              {!hasMore && posts.length > 0 && (
+                <div className="flex items-center justify-center gap-3 py-8">
+                  <div className="h-px w-12 bg-border/50" />
+                  <span className="text-text-muted/60 text-xs font-medium tracking-wide">Semua telah ditampilkan</span>
+                  <div className="h-px w-12 bg-border/50" />
+                </div>
+              )}
+            </div>
           </>
         )}
       </main>

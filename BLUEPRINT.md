@@ -162,3 +162,8 @@ Untuk mendukung *forkability* dan kemudahan pengaturan:
 2. Data disalurkan ke semua komponen *Client* dan *Server* via `SiteSettingsContext`.
 3. **Fallback Logic:** Jika API eksternal (seperti ZenoFM) dikosongkan di Dasbor Admin, sistem akan otomatis jatuh kembali (membaca) dari variabel *environment* `.env.local` pengguna.
 4. **Keamanan API:** Rahasia API (seperti Cloudinary API Secret) **TIDAK PERNAH** diekspos ke antarmuka CMS untuk mencegah kebocoran saat *hydration* Next.js, dan dipertahankan khusus di `.env.local`.
+
+## 5. Performa & Optimasi (PageSpeed Target 90+)
+- **Deterministik Hydration**: Render sisi server dan client di Next.js menggunakan library fungsi helper seragam (`formatDate`) untuk mencegah Hydration Mismatch Error (Error #418).
+- **LCP (Largest Contentful Paint) Image Preload**: Komponen kartu (contoh `SkeletonCard` & `ProgressiveImage`) memprioritaskan load gambar teratas dengan injeksi prop `priority={true}` agar LCP tidak delay.
+- **Pre-fetch Infinite Scroll**: Trigger pengambilan data baru (`loadMore`) tidak menunggu elemen batas muncul secara penuh, melainkan di-*intercept* 300px sebelum akhir (`rootMargin: '0px 0px 300px 0px'`) agar pengguna scroll tanpa jeda.

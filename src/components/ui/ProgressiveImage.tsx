@@ -11,6 +11,10 @@ interface ProgressiveImageProps {
   width?: number
   watermarkText?: string | null
   enableWatermark?: boolean
+  /**
+   * Jika true, gambar akan di-load duluan tanpa lazy loading. 
+   * Gunakan untuk LCP (Largest Contentful Paint) image.
+   */
   priority?: boolean
   style?: React.CSSProperties
   onClick?: () => void

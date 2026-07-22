@@ -31,3 +31,15 @@ export function formatCreators(creators: string[]): string {
   const rest = creators.slice(0, -1);
   return `${rest.join(', ')} & ${last}`;
 }
+
+export function formatDate(dateString: string, longMonth: boolean = false): string {
+  if (!dateString) return ''
+  const d = new Date(dateString)
+  if (isNaN(d.getTime())) return ''
+  const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+  const longMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+  const day = d.getDate()
+  const month = longMonth ? longMonths[d.getMonth()] : shortMonths[d.getMonth()]
+  const year = d.getFullYear()
+  return `${day} ${month} ${year}`
+}

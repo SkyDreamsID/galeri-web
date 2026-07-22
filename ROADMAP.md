@@ -84,14 +84,14 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 - [x] **Post Analytics (Views, Downloads, Shares)**: Pelacakan statistik per-post dengan sistem RPC Supabase dan Rate-Limiting.
 - [x] **Admin Analytics Dashboard**: Konsolidasi toggle statistik publik (Views, Downloads, & Shares) di panel admin.
 
-### Phase 7: ✨ Polish (In Progress)
+### Phase 7: ✨ Polish (Selesai 100%)
 *Fokus: Memoles dan menstabilkan web pasca-rilis v1.0 (menuju v1.1). Tidak ada penambahan fitur baru.*
-- [ ] Fix bug & Stabilisasi
-- [ ] Animasi & Micro-interactions
-- [ ] Performa & Loading speed
-- [ ] SEO Optimization
-- [ ] Responsive & Layout refinement
-- [ ] Accessibility
+- [x] Fix bug & Stabilisasi (Resolusi React Hydration Error #418 via pembungkus deterministik `formatDate`)
+- [x] Animasi & Micro-interactions (Optimasi pre-fetch Infinite Scroll, loading spinner & hover interaktif)
+- [x] Performa & Loading speed (Optimasi LCP `priority` & Cloudinary responsive sizing)
+- [x] SEO Optimization (Next.js Metadata, Alt Text otomatis & PageSpeed SEO 100/100)
+- [x] Responsive & Layout refinement (Koreksi Masonry Grid, CSS Columns & isolasi layout mobile/tablet)
+- [x] Accessibility (Penguatan kontras warna teks nav/footer & perapian hierarki tag HTML `<h1>` -> `<h2>`)
 
 ---
 

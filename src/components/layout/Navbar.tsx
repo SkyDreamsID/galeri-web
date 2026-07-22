@@ -233,9 +233,9 @@ export function Navbar({
 
           <div className="flex items-center gap-4 relative z-50 shrink-0">
             <nav className="flex items-center gap-6">
-              <Link href="/albums" className="text-sm font-medium text-text-muted hover:text-primary-neutral transition-colors cursor-pointer select-none">Albums</Link>
-              <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-muted hover:text-primary-neutral transition-colors cursor-pointer select-none">Source Code (Free)</a>
-              <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-muted hover:text-primary-neutral transition-colors cursor-pointer select-none">About Me</a>
+              <Link href="/albums" className="text-sm font-medium text-text-main/80 hover:text-primary-neutral transition-colors cursor-pointer select-none">Albums</Link>
+              <a href="https://github.com/SkyDreamsID/galeri-web" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-main/80 hover:text-primary-neutral transition-colors cursor-pointer select-none">Source Code (Free)</a>
+              <a href="https://github.com/SkyDreamsID" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-text-main/80 hover:text-primary-neutral transition-colors cursor-pointer select-none">About Me</a>
             </nav>
             <div className="h-4 w-px bg-border/50 mx-2"></div>
             
