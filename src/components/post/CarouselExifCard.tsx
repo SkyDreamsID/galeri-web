@@ -5,11 +5,16 @@ import type { ExifData } from '@/types/gallery'
 export function CarouselExifCard({ exif, cameraName, isVisible }: { exif?: ExifData, cameraName: string, isVisible: boolean }) {
   if (!isVisible) return null;
 
-  // Jika tidak ada data EXIF sama sekali
-  if (!exif || Object.keys(exif).length === 0) {
+  // Cek apakah data exif benar-benar ada dan berisi nilai yang valid
+  const hasRealData = exif && (
+    exif.camera || exif.lens || exif.iso || exif.aperture || exif.shutter_speed || exif.focal_length
+  );
+
+  // Jika tidak ada data EXIF sama sekali atau isinya kosong/null
+  if (!hasRealData) {
     return (
       <div className="absolute bottom-16 right-4 p-4 rounded-xl shadow-xl border border-[#3A3A3A] bg-[#F4F4F4] dark:bg-[#1F1F1F] text-sm w-64 animate-in fade-in slide-in-from-bottom-4 duration-250 z-50">
-        <p className="text-text-muted text-[12px] text-center py-2">⚠️ Data EXIF tidak tersedia untuk foto ini.</p>
+        <p className="text-text-muted text-[12px] text-center py-2 font-medium">⚠️ Data EXIF tidak tersedia untuk foto ini.</p>
       </div>
     )
   }
