@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const imageUrl = coverPhoto ? getOptimizedImageUrl(coverPhoto.image_url, 1200) : ''
 
   return {
-    title: `${collection.name} | Galeri`,
+    title: collection.name,
     description: collection.description || `Kumpulan foto dalam koleksi ${collection.name}.`,
     openGraph: {
       title: collection.name,

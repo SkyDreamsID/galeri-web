@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   )) as string[]
   const creators = uniqueCopyrights.length > 0 ? formatCreators(uniqueCopyrights) : siteTitle
 
-  const title = `${post.title} • ${siteTitle}`
+  const title = post.title
   const desc = `Jelajahi karya "${post.title}" oleh ${creators} di ${siteTitle}.`
 
   return {

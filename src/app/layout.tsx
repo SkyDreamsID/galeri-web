@@ -28,7 +28,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const siteLogo = settings?.site_logo_url || "/icon.png"
 
   return {
-    title: siteTitle,
+    title: {
+      template: `%s | ${siteTitle}`,
+      default: siteTitle,
+    },
     description: siteDesc,
     icons: {
       icon: siteLogo,

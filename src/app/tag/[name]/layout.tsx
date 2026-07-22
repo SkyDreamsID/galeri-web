@@ -5,10 +5,10 @@ export async function generateMetadata({ params }: { params: Promise<{ name: str
   const decodedName = decodeURIComponent(name)
   
   return {
-    title: `Foto dengan tag #${decodedName} | Galeri`,
+    title: `Foto dengan tag #${decodedName}`,
     description: `Kumpulan foto dengan tag #${decodedName}.`,
     openGraph: {
-      title: `#${decodedName} - Galeri Foto`,
+      title: `#${decodedName} - Foto`,
       description: `Kumpulan foto dengan tag #${decodedName}.`,
     },
     twitter: {

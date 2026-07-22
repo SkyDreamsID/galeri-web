@@ -6,13 +6,13 @@ import { ArrowLeft, Image as ImageIcon } from 'lucide-react'
 export async function generateMetadata() {
   const supabase = await createClient()
   const { data: settings } = await supabase.from('site_settings').select('site_title').limit(1).single()
-  const title = `Albums | ${settings?.site_title || 'Galeri'}`
+  const siteTitle = settings?.site_title || 'Jurnal Visual'
   
   return {
-    title,
+    title: 'Albums',
     description: 'Koleksi foto dan album',
     openGraph: {
-      title,
+      title: 'Albums',
       description: 'Koleksi foto dan album',
     }
   }
