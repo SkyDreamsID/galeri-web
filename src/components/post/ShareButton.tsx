@@ -27,7 +27,6 @@ export function ShareButton({ title, siteTitle = 'Jurnal Visual', creators, post
       if (navigator.share) {
         await navigator.share({
           title: `${title} • ${siteTitle}`,
-          text: `Jelajahi karya "${title}" oleh ${displayCreator} di ${siteTitle}.`,
           url: window.location.href,
         })
       } else {
