@@ -59,6 +59,8 @@ import { Footer } from "@/components/layout/Footer";
 import { SiteSettingsProvider } from "@/contexts/SiteSettingsContext";
 import { Toaster } from "sonner";
 import { ConditionalWrapper } from "@/components/layout/ConditionalWrapper";
+import { GlobalProgressBar } from "@/components/layout/ProgressBar";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export default async function RootLayout({
   children,
@@ -129,6 +131,8 @@ export default async function RootLayout({
               },
             }}
           />
+          <GlobalProgressBar />
+          <SpeedInsights />
           </SiteSettingsProvider>
         </ThemeProvider>
       </body>

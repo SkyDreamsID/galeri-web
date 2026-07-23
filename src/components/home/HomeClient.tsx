@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback, useEffect, useRef, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -52,6 +52,7 @@ export function HomeClient({
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentSort = searchParams.get('sort') || 'newest'
+  const [isPending, startTransition] = useTransition()
 
   const supabase = createClient()
   const [posts, setPosts] = useState<Post[]>(initialPosts)
@@ -69,9 +70,12 @@ export function HomeClient({
   }, [initialPosts, initialHasMore])
 
   const handleSortChange = (val: string, e: React.MouseEvent) => {
-    router.push(`/?sort=${val}`)
     const details = (e.target as Element).closest('details')
     if (details) details.removeAttribute('open')
+    
+    startTransition(() => {
+      router.push(`/?sort=${val}`, { scroll: false })
+    })
   }
 
   const sortOptions = [
@@ -184,6 +188,7 @@ export function HomeClient({
           <div className="flex items-center gap-3 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x flex-1">
             <Link
               href="/"
+              prefetch={true}
               className="shrink-0 snap-start px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-text-main text-background hover:opacity-90 transition-opacity text-xs md:text-sm font-semibold whitespace-nowrap shadow-sm"
             >
               Semua Foto
@@ -193,6 +198,7 @@ export function HomeClient({
               <Link
                 key={`tag-${t.id}`}
                 href={`/tag/${t.name}`}
+                prefetch={true}
                 className="shrink-0 snap-start px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-surface/50 border border-border/20 text-text-main hover:bg-surface/80 hover:border-border/40 transition-all duration-300 text-xs md:text-sm font-medium whitespace-nowrap backdrop-blur-sm"
               >
                 #{t.name}
@@ -251,6 +257,7 @@ export function HomeClient({
               >
                 <Link
                   href={`/post/${post.slug || post.id}`}
+                  prefetch={true}
                   className="block group cursor-pointer relative overflow-hidden rounded-xl md:rounded-2xl bg-surface"
                 >
                   {coverImage ? (

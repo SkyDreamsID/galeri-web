@@ -2,13 +2,16 @@ import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/layout/Navbar'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 import { EmblaCarousel } from '@/components/post/EmblaCarousel'
 import { Metadata } from 'next'
 import { getOptimizedImageUrl, formatCreators, formatDate } from '@/lib/utils'
 import { ViewTracker } from '@/components/post/ViewTracker'
 import { CarouselActions } from '@/components/post/CarouselActions'
+import { CarouselExifCard } from '@/components/post/CarouselExifCard'
 import { ShareButton } from '@/components/post/ShareButton'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
+import { BackButton } from '@/components/ui/BackButton'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Eye, Download } from 'lucide-react'
@@ -210,9 +213,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
             
             {/* ZONA ATAS: Tombol Kembali (Sticky di dalam panel saat desktop, normal di mobile) */}
             <div className="shrink-0 pb-4 border-b border-border/20 mb-6 sticky top-0 z-10 bg-background pt-2 md:pt-0">
-              <Link href="/" className="inline-flex items-center gap-2 text-[10px] md:text-xs font-bold text-text-muted hover:text-text-main transition-colors uppercase tracking-widest group cursor-pointer select-none">
-                <span className="transition-transform group-hover:-translate-x-1">←</span> Kembali ke Galeri
-              </Link>
+              <BackButton />
             </div>
 
             {/* ZONA BAWAH: Konten Utama (Scrollable area saat Desktop, normal saat Mobile) */}
