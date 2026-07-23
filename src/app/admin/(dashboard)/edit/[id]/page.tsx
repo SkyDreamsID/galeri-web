@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2, UploadCloud, X, ArrowLeft, FileText, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { TagInput } from '@/components/admin/TagInput'
+import { CustomSelect } from '@/components/admin/CustomSelect'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
@@ -469,7 +470,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 relative w-full">
         {/* Kolom Kiri: Meta Data Post */}
         <div className="lg:col-span-1 space-y-4 md:space-y-6">
-          <Card className="bg-surface border-border/40 shadow-sm">
+          <Card className="bg-surface border-border/40 shadow-sm overflow-visible">
             <CardHeader className="p-3 md:p-6 md:pb-6 flex flex-row items-center gap-2 md:gap-4 space-y-0 min-w-0">
               <Link href="/admin/gallery" className="p-1 md:p-2 hover:bg-hover-bg rounded-full transition-colors shrink-0">
                 <ArrowLeft size={18} className="text-text-muted hover:text-text-main md:w-5 md:h-5" />
@@ -498,25 +499,26 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
               </div>
               <div className="space-y-1.5 md:space-y-2">
                 <Label className="text-text-muted text-xs md:text-sm">Album / Koleksi</Label>
-                <select 
-                  value={album} onChange={(e) => setAlbum(e.target.value)}
-                  className="w-full rounded-xl md:rounded-md border border-border/50 bg-background px-3 md:px-4 py-2 md:py-2.5 text-[13px] md:text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary-neutral appearance-none cursor-pointer h-9 md:h-auto"
-                >
-                  <option value="">-- Tanpa Koleksi --</option>
-                  {availableCollections.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  value={album}
+                  onChange={setAlbum}
+                  options={[
+                    { value: '', label: '-- Tanpa Koleksi --' },
+                    ...availableCollections.map(c => ({ value: c.id, label: c.name }))
+                  ]}
+                  placeholder="Pilih koleksi..."
+                />
               </div>
               <div className="space-y-1.5 md:space-y-2">
                 <Label className="text-text-muted text-xs md:text-sm">Status Tayang</Label>
-                <select 
-                  value={status} onChange={(e) => setStatus(e.target.value)}
-                  className="w-full rounded-md border border-border/50 bg-background px-3 py-1.5 md:py-2 text-[13px] md:text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral appearance-none h-9 md:h-10"
-                >
-                  <option value="Published">Publik</option>
-                  <option value="Draft">Pribadi / Draft</option>
-                </select>
+                <CustomSelect
+                  value={status}
+                  onChange={setStatus}
+                  options={[
+                    { value: 'Published', label: 'Publik' },
+                    { value: 'Draft', label: 'Pribadi / Draft' }
+                  ]}
+                />
               </div>
               <div className="space-y-1.5 md:space-y-2">
                 <Label className="text-text-muted text-xs md:text-sm">Tags</Label>
@@ -586,36 +588,39 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           {images.length > 0 && (
             <div className="space-y-4">
               {/* Bulk Apply Bar */}
-              <Card className="bg-surface border-border/40 p-4 shadow-sm flex flex-col sm:flex-row items-center gap-4 justify-between">
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="checkbox" 
-                    checked={selectedPhotos.length === images.length && images.length > 0}
-                    onChange={(e) => {
-                      if (e.target.checked) setSelectedPhotos(images.map((_, i) => i))
-                      else setSelectedPhotos([])
-                    }}
-                    className="w-4 h-4 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer"
-                  />
-                  <span className="text-sm text-text-muted font-medium">
-                    Pilih Semua ({selectedPhotos.length}/{images.length})
-                  </span>
+              <Card className="bg-surface border-border/40 p-4 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center gap-4 justify-between overflow-visible">
+                <div className="flex items-center justify-between sm:justify-start gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedPhotos.length === images.length && images.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedPhotos(images.map((_, i) => i))
+                        else setSelectedPhotos([])
+                      }}
+                      className="w-4 h-4 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer"
+                    />
+                    <span className="text-sm text-text-muted font-medium">
+                      Pilih Semua ({selectedPhotos.length}/{images.length})
+                    </span>
+                  </label>
                 </div>
-                <div className="flex items-center gap-1.5 md:gap-2 w-full sm:w-auto mt-2 sm:mt-0 min-w-0">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 w-full sm:w-auto mt-2 sm:mt-0 min-w-0">
                   <Input 
                     value={bulkCopyrightName} 
                     onChange={(e) => setBulkCopyrightName(e.target.value)}
                     placeholder="Masukkan Nama"
-                    className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-8 md:h-9 w-full sm:w-32 text-[11px] md:text-sm px-2 min-w-0"
+                    className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-8 md:h-9 w-full sm:w-40 text-[11px] md:text-sm px-2 min-w-0"
                   />
-                  <select 
+                  <CustomSelect
                     value={bulkLicense}
-                    onChange={(e) => setBulkLicense(e.target.value)}
-                    className="bg-background border border-border/50 text-text-main rounded-md focus:outline-none focus:border-primary-neutral h-8 md:h-9 px-1 md:px-2 w-full sm:w-36 text-[11px] md:text-sm min-w-0"
-                  >
-                    <option value="Copyright">Copyright</option>
-                    <option value="Free Copyright">Free Copyright</option>
-                  </select>
+                    onChange={setBulkLicense}
+                    className="w-full sm:w-56"
+                    options={[
+                      { value: 'Copyright', label: 'Copyright' },
+                      { value: 'Free Copyright', label: 'Free Copyright & Download' }
+                    ]}
+                  />
                   <Button 
                     type="button"
                     disabled={selectedPhotos.length === 0}
@@ -636,7 +641,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 {images.map((img, idx) => (
                   <Card 
                     key={idx} 
-                    className={`bg-surface border-2 overflow-hidden group relative shadow-sm transition-colors cursor-pointer flex flex-col ${
+                    className={`bg-surface border-2 overflow-visible group relative shadow-sm transition-colors cursor-pointer flex flex-col ${
                       selectedPhotos.includes(idx) ? 'border-primary-neutral/60' : 'border-border/40 hover:border-primary-neutral/30'
                     }`}
                     onClick={() => {
@@ -680,16 +685,16 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                       </button>
                     )}
 
-                    <div className="h-32 md:h-48 w-full relative shrink-0 bg-zinc-800">
+                    <div className="h-32 md:h-48 w-full relative shrink-0 bg-zinc-800 overflow-hidden rounded-t-[10px]">
                       {/* Intercept URL Cloudinary biar dapet versi enteng 400px, kalau file lokal baru biarin utuh */}
                       <img 
                         src={img.preview.includes('res.cloudinary.com') ? img.preview.replace('/upload/', '/upload/c_fill,w_400,q_auto,f_auto/') : img.preview} 
                         alt="preview" 
-                        className="absolute inset-0 w-full h-full object-cover" 
+                        className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
                       />
                     </div>
 
-                    <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between min-w-0">
+                    <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between min-w-0 rounded-b-[10px]">
                       <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2 min-w-0">
                         <div className="font-medium text-text-main truncate w-full" title={img.file ? img.file.name : 'Foto Tersimpan'}>
                           {img.file ? img.file.name : 'Foto Tersimpan'}
@@ -699,20 +704,19 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                         </span>
                       </div>
                       
-                      <select
+                      <CustomSelect
                         value={img.license_type}
-                        onChange={(e) => {
-                          e.stopPropagation()
+                        onChange={(val) => {
                           const newImages = [...images]
-                          newImages[idx].license_type = e.target.value
+                          newImages[idx].license_type = val
                           setImages(newImages)
                         }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-background border border-border/50 text-text-main rounded py-1 px-2 text-[10px] md:text-xs focus:outline-none focus:border-primary-neutral min-w-0"
-                      >
-                        <option value="Copyright">Hak Cipta</option>
-                        <option value="Free Copyright">Bebas Unduh</option>
-                      </select>
+                        size="sm"
+                        options={[
+                          { value: 'Copyright', label: 'Copyright' },
+                          { value: 'Free Copyright', label: 'Free Copyright & Download' }
+                        ]}
+                      />
 
                       {/* Checkbox Tampilkan Watermark */}
                       <label

@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { TagInput } from './TagInput'
+import { CustomSelect } from './CustomSelect'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 
 type FileWithExif = {
@@ -234,33 +235,50 @@ export function UploadForm() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ paramsToSign: { timestamp } }),
               signal
+            }).catch(e => {
+              throw new Error(`Koneksi server gagal: ${e.message}`)
             })
             if (!sigRes.ok) throw new Error('Gagal memproses otorisasi upload')
             const { signature, apiKey } = await sigRes.json()
 
-            // Proses Kompresi (Jika diaktifkan) via Web Worker
+            // Proses Kompresi (Jika diaktifkan) via Main Thread (Lebih stabil di HP)
             let fileToUpload = img.file
             if (useCompression && fileToUpload.type.startsWith('image/')) {
               fileToUpload = await new Promise<File>((resolve) => {
-                try {
-                  const worker = new Worker(new URL('../../workers/imageCompressor.worker.ts', import.meta.url))
-                  worker.onmessage = (e) => {
-                    if (e.data.success) {
-                      const newFile = new File([e.data.blob], img.file.name, { type: 'image/jpeg' })
-                      resolve(newFile)
+                const imgElement = document.createElement('img')
+                imgElement.onload = () => {
+                  let width = imgElement.width
+                  let height = imgElement.height
+                  const MAX_WIDTH = 2500
+                  const MAX_HEIGHT = 2500
+
+                  if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                    if (width > height) {
+                      height = Math.round(height * (MAX_WIDTH / width))
+                      width = MAX_WIDTH
+                    } else {
+                      width = Math.round(width * (MAX_HEIGHT / height))
+                      height = MAX_HEIGHT
                     }
-                    else resolve(img.file) // Fallback
-                    worker.terminate()
                   }
-                  worker.onerror = () => {
-                    resolve(img.file) // Fallback
-                    worker.terminate()
-                  }
-                  worker.postMessage({ file: img.file, MAX_WIDTH: 2500, MAX_HEIGHT: 2500 })
-                } catch (workerErr) {
-                  console.warn("Failed to start Web Worker:", workerErr)
-                  resolve(img.file) // Fallback if worker fails
+
+                  const canvas = document.createElement('canvas')
+                  canvas.width = width
+                  canvas.height = height
+                  const ctx = canvas.getContext('2d')
+                  if (!ctx) return resolve(img.file) // Fallback
+
+                  ctx.drawImage(imgElement, 0, 0, width, height)
+                  canvas.toBlob((blob) => {
+                    if (blob) {
+                      resolve(new File([blob], img.file.name, { type: 'image/jpeg' }))
+                    } else {
+                      resolve(img.file)
+                    }
+                  }, 'image/jpeg', 0.85)
                 }
+                imgElement.onerror = () => resolve(img.file)
+                imgElement.src = URL.createObjectURL(img.file)
               })
             }
 
@@ -273,7 +291,9 @@ export function UploadForm() {
             const cloudRes = await fetch(
               `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
               { method: 'POST', body: formData, signal }
-            )
+            ).catch(e => {
+              throw new Error(`Upload Cloudinary timeout/gagal: ${e.message}`)
+            })
             
             if (!cloudRes.ok) {
               const errText = await cloudRes.text()
@@ -306,7 +326,7 @@ export function UploadForm() {
         }
       }
 
-      // Execute worker dengan limit max 3 barengan
+      // Execute worker dengan limit max 2 barengan (biar aman di HP)
       let workerIndex = 0
       const executeNextWorker = async (): Promise<void> => {
         if (workerIndex >= images.length) return
@@ -314,7 +334,7 @@ export function UploadForm() {
         await uploadWorker(images[currentIndex], currentIndex)
         return executeNextWorker()
       }
-      const workers = Array.from({ length: Math.min(3, images.length) }, () => executeNextWorker())
+      const workers = Array.from({ length: Math.min(2, images.length) }, () => executeNextWorker())
       await Promise.all(workers)
       setUploadProgress('Menyimpan data ke database...')
       if (signal.aborted) throw new Error('Dibatalkan oleh pengguna')
@@ -433,7 +453,7 @@ export function UploadForm() {
       <form onSubmit={handleUpload} className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 relative">
         {/* Kolom Kiri: Meta Data Post */}
       <div className="lg:col-span-1 space-y-4 md:space-y-6">
-        <Card className="bg-surface border-border/40 shadow-sm">
+        <Card className="bg-surface border-border/40 shadow-sm overflow-visible">
           <CardHeader className="p-4 pb-0 md:p-6 md:pb-6">
             <CardTitle className="text-text-main font-heading text-xl md:text-2xl">Detail Momen</CardTitle>
           </CardHeader>
@@ -523,26 +543,27 @@ export function UploadForm() {
                   </Button>
                 </div>
               ) : (
-                <select 
-                  value={album} onChange={(e) => setAlbum(e.target.value)}
-                  className="w-full rounded-xl md:rounded-md border border-border/50 bg-background px-3 md:px-4 py-2 md:py-2.5 text-[13px] md:text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary-neutral appearance-none cursor-pointer h-9 md:h-auto"
-                >
-                  <option value="">-- Tanpa Koleksi --</option>
-                  {availableCollections.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  value={album}
+                  onChange={setAlbum}
+                  options={[
+                    { value: '', label: '-- Tanpa Koleksi --' },
+                    ...availableCollections.map(c => ({ value: c.id, label: c.name }))
+                  ]}
+                  placeholder="Pilih koleksi..."
+                />
               )}
             </div>
             <div className="space-y-1.5 md:space-y-2">
               <Label className="text-text-muted text-xs md:text-sm">Status Tayang</Label>
-              <select 
-                value={status} onChange={(e) => setStatus(e.target.value)}
-                className="w-full rounded-md border border-border/50 bg-background px-3 py-1.5 md:py-2 text-[13px] md:text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral appearance-none h-9 md:h-10"
-              >
-                <option value="Published">Publik</option>
-                <option value="Draft">Pribadi / Draft</option>
-              </select>
+              <CustomSelect
+                value={status}
+                onChange={setStatus}
+                options={[
+                  { value: 'Published', label: 'Publik' },
+                  { value: 'Draft', label: 'Pribadi / Draft' }
+                ]}
+              />
             </div>
             <div className="space-y-1.5 md:space-y-2">
               <Label className="text-text-muted text-xs md:text-sm">Tags</Label>
@@ -616,36 +637,39 @@ export function UploadForm() {
         {images.length > 0 && (
           <div className="space-y-4">
             {/* Bulk Apply Bar */}
-            <Card className="bg-surface border-border/40 p-4 shadow-sm flex flex-col sm:flex-row items-center gap-4 justify-between">
-              <div className="flex items-center gap-2">
-                <input 
-                  type="checkbox" 
-                  checked={selectedPhotos.length === images.length && images.length > 0}
-                  onChange={(e) => {
-                    if (e.target.checked) setSelectedPhotos(images.map(img => img.id))
-                    else setSelectedPhotos([])
-                  }}
-                  className="w-4 h-4 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer"
-                />
-                <span className="text-sm text-text-muted font-medium">
-                  Pilih Semua ({selectedPhotos.length}/{images.length})
-                </span>
+            <Card className="bg-surface border-border/40 p-4 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center gap-4 justify-between overflow-visible">
+              <div className="flex items-center justify-between sm:justify-start gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedPhotos.length === images.length && images.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedPhotos(images.map(img => img.id))
+                      else setSelectedPhotos([])
+                    }}
+                    className="w-4 h-4 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer"
+                  />
+                  <span className="text-sm text-text-muted font-medium">
+                    Pilih Semua ({selectedPhotos.length}/{images.length})
+                  </span>
+                </label>
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 w-full sm:w-auto">
                 <Input 
                   value={bulkCopyrightName} 
                   onChange={(e) => setBulkCopyrightName(e.target.value)}
                   placeholder="Masukkan Nama"
-                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-32 text-[13px] md:text-sm"
+                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-40 text-[13px] md:text-sm"
                 />
-                <select 
+                <CustomSelect
                   value={bulkLicense}
-                  onChange={(e) => setBulkLicense(e.target.value)}
-                  className="bg-background border border-border/50 text-text-main rounded-md focus:outline-none focus:border-primary-neutral h-9 px-2 w-full sm:w-36 text-[13px] md:text-sm"
-                >
-                  <option value="Copyright">Copyright</option>
-                  <option value="Free Copyright">Free Copyright</option>
-                </select>
+                  onChange={setBulkLicense}
+                  className="w-full sm:w-56"
+                  options={[
+                    { value: 'Copyright', label: 'Copyright' },
+                    { value: 'Free Copyright', label: 'Free Copyright & Download' }
+                  ]}
+                />
                 <Button 
                   type="button"
                   disabled={selectedPhotos.length === 0}
@@ -671,7 +695,7 @@ export function UploadForm() {
                   onDragEnter={(e) => handleCardDragEnter(e, idx)}
                   onDragEnd={handleCardDragEnd}
                   onDragOver={(e) => e.preventDefault()}
-                  className={`bg-surface border-2 overflow-hidden group relative shadow-sm transition-colors cursor-move flex flex-col ${
+                  className={`bg-surface border-2 overflow-visible group relative shadow-sm transition-colors cursor-move flex flex-col ${
                     selectedPhotos.includes(img.id) ? 'border-primary-neutral/60' : 'border-border/40 hover:border-primary-neutral/30'
                   }`}
                   onClick={() => {
@@ -715,31 +739,29 @@ export function UploadForm() {
                     </button>
                   )}
 
-                  <div className="h-32 md:h-48 w-full relative shrink-0">
+                  <div className="h-32 md:h-48 w-full relative shrink-0 overflow-hidden rounded-t-[10px]">
                     <img src={img.preview} alt="preview" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
                   </div>
-                  <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between">
+                  <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between rounded-b-[10px]">
                     <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2">
                       <div className="font-medium text-text-main truncate w-full" title={img.file.name}>{img.file.name}</div>
                       <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[9px] md:text-[10px] font-medium text-primary-neutral border border-primary-neutral/20">
                         © {img.exif.copyright_name}
                       </span>
                     </div>
-                    
-                    <select
+                    <CustomSelect
                       value={img.license_type}
-                      onChange={(e) => {
-                        e.stopPropagation()
+                      onChange={(val) => {
                         const newImages = [...images]
-                        newImages[idx].license_type = e.target.value
+                        newImages[idx].license_type = val
                         setImages(newImages)
                       }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-full bg-background border border-border/50 text-text-main rounded py-1 px-2 text-[10px] md:text-xs focus:outline-none focus:border-primary-neutral"
-                    >
-                      <option value="Copyright">Hak Cipta</option>
-                      <option value="Free Copyright">Bebas Unduh</option>
-                    </select>
+                      size="sm"
+                      options={[
+                        { value: 'Copyright', label: 'Copyright' },
+                        { value: 'Free Copyright', label: 'Free Copyright & Download' }
+                      ]}
+                    />
 
                     {/* Checkbox Tampilkan Watermark */}
                     <label

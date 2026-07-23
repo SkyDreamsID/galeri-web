@@ -95,9 +95,9 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
               cameraName = cameraName.replace('NIKON CORPORATION ', '')
             }
             
-            // Selalu gunakan versi terkompresi (max 1920px) untuk tampilan frontend web
+            // Selalu gunakan versi terkompresi (max 1080px) untuk tampilan frontend web
             const perPhotoWatermark = photo.show_watermark !== false
-            const displayUrl = getOptimizedImageUrl(photo.image_url, 1920, photo.copyright_name, perPhotoWatermark)
+            const displayUrl = getOptimizedImageUrl(photo.image_url, 1080, photo.copyright_name, perPhotoWatermark)
             
             const isExifVisible = openPopup === `${photo.id}-exif`
             const isCopyrightVisible = openPopup === `${photo.id}-copyright`
@@ -114,7 +114,7 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
                   <ProgressiveImage 
                     src={photo.image_url} 
                     alt="Photo View" 
-                    width={1920}
+                    width={1080}
                     sizes="100vw"
                     style={{ width: 'auto', height: '100%', maxHeight: '100%', maxWidth: '100%' }}
                     className="w-full h-full object-contain cursor-zoom-in" 

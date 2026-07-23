@@ -81,13 +81,15 @@ export function TagInput({ tags, setTags, availableTags = [], placeholder }: Tag
       </div>
 
       {isFocused && filteredTags.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 max-h-48 overflow-y-auto rounded-md border border-border/50 bg-background shadow-lg p-1">
+        <div className="absolute z-50 w-full mt-1 max-h-40 overflow-y-auto overscroll-contain rounded-md border border-border/50 bg-background shadow-lg p-1 touch-pan-y">
           {filteredTags.map(tag => (
             <button
               key={tag}
               type="button"
               className="w-full text-left px-3 py-2 text-sm text-text-main hover:bg-surface rounded-sm transition-colors"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
                 addTag(tag)
                 setIsFocused(false)
               }}
