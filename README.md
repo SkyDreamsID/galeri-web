@@ -1,5 +1,7 @@
 # 📸 Galeri - Premium Visual Journal & CMS
 
+![Version](https://img.shields.io/badge/version-v1.1.0-blue.svg) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Changelog](https://img.shields.io/badge/Changelog-v1.1.0-green.svg)](CHANGELOG.md)
+
 Sebuah platform galeri foto premium dan jurnal visual, dibangun menggunakan teknologi modern untuk fotografer yang ingin memamerkan mahakaryanya dengan elegan.
 
 Proyek ini bukan sekadar *image viewer*, melainkan **Aplikasi Full-Stack dengan CMS (Content Management System) Internal**, ekstraksi data EXIF otomatis, *showcase* perlengkapan (Gear Management), dan integrasi radio streaming interaktif.
