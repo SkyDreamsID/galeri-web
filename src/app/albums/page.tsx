@@ -82,7 +82,7 @@ export default async function AlbumsPage() {
       <main className="container mx-auto px-6 py-12 md:py-20 mt-16 max-w-7xl">
         
         <div className="mb-10 md:mb-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <Link href="/" className="inline-flex items-center gap-2 text-text-muted hover:text-primary-neutral transition-colors mb-6 text-sm font-medium">
+          <Link href="/" prefetch={true} className="inline-flex items-center gap-2 text-text-muted hover:text-primary-neutral transition-colors mb-6 text-sm font-medium">
             <ArrowLeft className="w-4 h-4" />
             Kembali ke Semua Foto
           </Link>
