@@ -4,8 +4,8 @@ import { HomeClient } from '@/components/home/HomeClient'
 
 const POSTS_PER_PAGE = 9
 
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
-  const { sort } = await searchParams
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ sort?: string, tag?: string }> }) {
+  const { sort, tag } = await searchParams
   const supabase = await createClient()
 
   // Tentukan order berdasarkan parameter sort
@@ -24,14 +24,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   }
 
   // Fetch initial page of posts di server (SEO-friendly)
-  const { data: postsData, count } = await supabase
+  let query = supabase
     .from('posts')
     .select(`
       id, title, slug, location, created_at,
       collections (name),
       photos (image_url, is_cover, copyright_name, show_watermark)
+      ${tag ? ', post_tags!inner(tags!inner(name))' : ''}
     `, { count: 'exact' })
     .eq('status', 'Published')
+    
+  if (tag) {
+    query = query.eq('post_tags.tags.name', tag)
+  }
+
+  const { data: postsData, count } = await query
     .order(orderColumn, { ascending: isAscending })
     .range(0, POSTS_PER_PAGE - 1)
 

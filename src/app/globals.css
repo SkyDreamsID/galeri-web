@@ -6,6 +6,10 @@
 @custom-variant dark (&:is(.dark *));
 @custom-variant landscape (@media (orientation: landscape));
 
+html, body {
+  touch-action: manipulation;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);

@@ -482,7 +482,7 @@ export function UploadForm() {
                   const val = e.target.value
                   setImages(prev => prev.map(img => ({
                     ...img,
-                    exif: { ...img.exif, lens: val || img.exif.lens }
+                    exif: { ...img.exif, lens: val }
                   })))
                 }}
                 placeholder="Misal: NIKKOR AF-S 55-300MM (Isi jika EXIF gagal)"
@@ -745,7 +745,7 @@ export function UploadForm() {
                   <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between rounded-b-[10px]">
                     <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2">
                       <div className="font-medium text-text-main truncate w-full" title={img.file.name}>{img.file.name}</div>
-                      <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[9px] md:text-[10px] font-medium text-primary-neutral border border-primary-neutral/20">
+                      <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2.5 py-1 text-[10px] md:text-xs font-medium text-primary-neutral border border-primary-neutral/20">
                         © {img.exif.copyright_name}
                       </span>
                     </div>

@@ -183,9 +183,9 @@ export default function GearManagement() {
     try {
       if (publicId) {
         await fetch('/api/cloudinary/delete', {
-          method: 'DELETE',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ public_id: publicId })
+          body: JSON.stringify({ public_ids: [publicId] })
         }).catch(err => console.warn('Gagal hapus gambar di Cloudinary:', err))
       }
 

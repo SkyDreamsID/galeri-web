@@ -1,9 +1,14 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 export function BackButton() {
   const router = useRouter()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [])
 
   return (
     <button 
@@ -15,7 +20,7 @@ export function BackButton() {
           router.push('/')
         }
       }}
-      className="inline-flex items-center gap-2 text-[10px] md:text-xs font-bold text-text-muted hover:text-text-main transition-colors uppercase tracking-widest group cursor-pointer select-none"
+      className="inline-flex items-center gap-2 px-4 py-2 bg-surface/50 hover:bg-surface border border-border/50 rounded-full text-[10px] md:text-xs font-bold text-text-muted hover:text-text-main transition-all uppercase tracking-widest group cursor-pointer select-none shadow-sm"
     >
       <span className="transition-transform group-hover:-translate-x-1">←</span> Kembali ke Galeri
     </button>

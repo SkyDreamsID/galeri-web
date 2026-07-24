@@ -27,7 +27,7 @@ export function Sidebar() {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
       document.querySelectorAll('details[open]').forEach(details => {
-        if (!details.contains(target) || (target instanceof Element && target.closest('.space-y-0.5'))) {
+        if (!details.contains(target) || (target instanceof Element && target.closest('a, button'))) {
           details.removeAttribute('open');
         }
       });

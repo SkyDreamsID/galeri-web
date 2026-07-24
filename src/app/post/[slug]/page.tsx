@@ -14,7 +14,7 @@ import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 import { BackButton } from '@/components/ui/BackButton'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Eye, Download } from 'lucide-react'
+import { Eye, Download, Folder } from 'lucide-react'
 import type { Photo, PostTag } from '@/types/gallery'
 
 // =========================================================================
@@ -191,7 +191,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   return (
     <>
       <ViewTracker postId={postData.id} />
-      <main className="container mx-auto max-w-7xl px-4 md:px-8 py-10 md:py-16 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
+      <main className="container mx-auto max-w-7xl px-4 md:px-8 py-10 md:py-16 animate-in fade-in duration-500">
         {/* Kontainer Utama: Kolom 1 tumpuk di Mobile Portrait, 2 Kolom di Landscape & Desktop */}
         <div className="flex flex-col max-lg:landscape:grid max-lg:landscape:grid-cols-11 lg:grid lg:grid-cols-11 max-lg:landscape:gap-6 lg:gap-16 items-start">
           
@@ -221,21 +221,16 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
               
               {/* Header Area */}
               <div className="flex flex-col gap-2 md:gap-3">
-                {collectionName && (
+                {collectionId && collectionName && (
                   <div>
-                    {collectionId ? (
-                      <Link 
-                        href={`/collection/${collectionId}`}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-neutral/10 border border-primary-neutral/20 text-[10px] font-bold uppercase tracking-widest text-primary-neutral hover:bg-primary-neutral/20 transition-colors"
-                        title={`Lihat album ${collectionName}`}
-                      >
-                        {collectionName}
-                      </Link>
-                    ) : (
-                      <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-surface border border-border/40 text-[10px] font-bold uppercase tracking-widest text-text-muted">
-                        {collectionName}
-                      </div>
-                    )}
+                    <Link 
+                      href={`/collection/${collectionId}`}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-neutral/10 border border-primary-neutral/20 text-[10px] font-medium tracking-wide text-primary-neutral hover:bg-primary-neutral/20 transition-colors"
+                      title={`Lihat koleksi ${collectionName}`}
+                    >
+                      <Folder className="w-3 h-3 shrink-0" />
+                      <span>Koleksi: <strong className="font-bold">{collectionName}</strong></span>
+                    </Link>
                   </div>
                 )}
                 
@@ -273,7 +268,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
 
                   {/* Share & Stats Action */}
                   <div className="pt-2 flex">
-                    <div className="flex items-stretch bg-surface/50 border border-border/40 rounded-full shadow-sm backdrop-blur-sm overflow-hidden transition-all">
+                    <div className="flex items-stretch bg-surface/50 border border-border/40 rounded-full shadow-sm backdrop-blur-sm overflow-x-auto scrollbar-hide max-w-full transition-all">
                       <ShareButton title={postData.title} siteTitle={settings?.site_title} creators={creatorsFormatted} postId={postData.id} shares={postData.shares} showPublicStats={showPublicStats} />
                       
                       {showPublicStats && (

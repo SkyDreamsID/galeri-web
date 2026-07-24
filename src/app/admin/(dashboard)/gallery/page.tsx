@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,16 +23,29 @@ type Post = {
   post_tags?: { tags: { name: string } }[]
 }
 
+const POSTS_PER_PAGE = 12
+
 export default function GalleryManagement() {
   const supabase = createClient()
   const [posts, setPosts] = useState<Post[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const observerTarget = useRef<HTMLDivElement>(null)
 
-  const fetchPosts = async () => {
+  const fetchPostsBatch = useCallback(async (pageIndex: number, isInitial = false) => {
+    if (!isInitial && (isLoadingMore || !hasMore)) return
+    if (isInitial) setLoading(true)
+    else setIsLoadingMore(true)
+
     try {
-      const { data, error } = await supabase
+      const from = pageIndex * POSTS_PER_PAGE
+      const to = from + POSTS_PER_PAGE - 1
+
+      const { data, error, count } = await supabase
         .from('posts')
         .select(`
           id,
@@ -46,21 +59,55 @@ export default function GalleryManagement() {
           collections (name),
           photos (image_url),
           post_tags ( tags (name) )
-        `)
+        `, { count: 'exact' })
         .order('created_at', { ascending: false })
+        .range(from, to)
 
       if (error) throw error
-      setPosts(data as any)
+      if (data) {
+        if (isInitial) {
+          setPosts(data as any)
+        } else {
+          setPosts(prev => {
+            const existingIds = new Set(prev.map(p => p.id))
+            const newItems = (data as any[]).filter(p => !existingIds.has(p.id))
+            return [...prev, ...newItems]
+          })
+        }
+        const totalFetched = (pageIndex + 1) * POSTS_PER_PAGE
+        if (!count || totalFetched >= count || data.length < POSTS_PER_PAGE) {
+          setHasMore(false)
+        }
+      }
+      setPage(pageIndex + 1)
     } catch (err) {
       console.error('Fetch posts failed:', err)
     } finally {
       setLoading(false)
+      setIsLoadingMore(false)
     }
-  }
+  }, [supabase, isLoadingMore, hasMore])
 
   useEffect(() => {
-    fetchPosts()
+    fetchPostsBatch(0, true)
   }, [])
+
+  useEffect(() => {
+    const el = observerTarget.current
+    if (!el || !hasMore || isLoadingMore || loading) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          fetchPostsBatch(page)
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [observerTarget, hasMore, isLoadingMore, loading, page, fetchPostsBatch])
 
   const handleDelete = async (postId: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus momen ini beserta seluruh fotonya secara permanen dari Cloudinary & Database?')) return
@@ -109,42 +156,26 @@ export default function GalleryManagement() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20 md:pb-12">
-      <div className="flex justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-heading font-bold tracking-tight text-text-main">Kelola Galeri</h2>
-          <p className="text-text-muted mt-1 font-sans">Daftar momen yang telah dipublikasikan di galeri Anda.</p>
-        </div>
+      {/* STICKY HEADER & SEARCH BAR (DESKTOP & MOBILE) */}
+      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl py-3 md:py-4 border-b border-border/40 shadow-sm -mx-4 px-4 sm:-mx-6 sm:px-6 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 max-w-6xl mx-auto">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-text-main">Kelola Galeri</h2>
+            <p className="text-text-muted mt-0.5 sm:mt-1 text-xs sm:text-sm font-sans">Daftar momen yang telah dipublikasikan di galeri Anda.</p>
+          </div>
 
-        {/* Search Bar Desktop (Sembunyi di Mobile) */}
-        <div className="hidden sm:block relative w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted/50 w-4 h-4" />
-          <Input 
-            type="text" 
-            placeholder="Cari judul, tag, atau tanggal..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 bg-background border-border/50 text-text-main focus:border-primary-neutral h-10 w-full"
-          />
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted/50 w-4 h-4" />
+            <Input 
+              type="text" 
+              placeholder="Cari judul, tag, atau tanggal..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 bg-surface/60 backdrop-blur-md border-border/50 text-text-main focus:border-primary-neutral h-10 w-full"
+            />
+          </div>
         </div>
       </div>
-
-      {/* ===== MOBILE STICKY SEARCH START ===== */}
-      {/* Search Bar Mobile (Sembunyi di Desktop).
-          Dikeluarkan dari flex parent agar posisi sticky bisa bekerja melintasi seluruh halaman.
-          top-14 (56px) agar nempel persis di bawah navbar mobile. */}
-      <div className="block sm:hidden sticky top-14 z-20 bg-background/60 backdrop-blur-xl py-3 border-b border-border/40 shadow-sm -mx-4 px-4">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted/50 w-4 h-4" />
-          <Input 
-            type="text" 
-            placeholder="Cari judul, tag, atau tanggal..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 bg-surface/60 backdrop-blur-md border-border/50 text-text-main focus:border-primary-neutral h-10 w-full"
-          />
-        </div>
-      </div>
-      {/* ===== MOBILE STICKY SEARCH END ===== */}
 
       {posts.length === 0 ? (
         <Card className="bg-surface border-border/40 p-8 text-center text-text-muted shadow-sm">
@@ -157,7 +188,7 @@ export default function GalleryManagement() {
       ) : (
         <>
           {/* ===== MOBILE GRID START ===== */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-1.5 md:gap-5">
           {filteredPosts.map((post) => {
             const rawImage = post.photos?.[0]?.image_url;
             // Optimasi Penggunaan kuota internet
@@ -169,6 +200,8 @@ export default function GalleryManagement() {
                     <img 
                       src={coverImage} 
                       alt={post.title} 
+                      loading="lazy"
+                      decoding="async"
                       className="absolute inset-0 w-full h-full object-cover" 
                     />
                   ) : (
@@ -260,6 +293,16 @@ export default function GalleryManagement() {
             )
           })}
           </div>
+          {/* Target untuk Infinite Scroll */}
+          <div ref={observerTarget} className="h-4 w-full" />
+
+          {/* Loading Indicator saat menarik batch berikutnya */}
+          {isLoadingMore && (
+            <div className="flex items-center justify-center py-6 gap-2 text-text-muted text-xs font-medium">
+              <Loader2 className="w-4 h-4 animate-spin text-primary-neutral" />
+              <span>Memuat momen berikutnya...</span>
+            </div>
+          )}
           {/* ===== MOBILE GRID END ===== */}
         </>
       )}

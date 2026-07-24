@@ -699,7 +699,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                         <div className="font-medium text-text-main truncate w-full" title={img.file ? img.file.name : 'Foto Tersimpan'}>
                           {img.file ? img.file.name : 'Foto Tersimpan'}
                         </div>
-                        <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2 py-0.5 text-[9px] md:text-[10px] font-medium text-primary-neutral border border-primary-neutral/20 max-w-full truncate">
+                        <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2.5 py-1 text-[10px] md:text-xs font-medium text-primary-neutral border border-primary-neutral/20 max-w-full truncate">
                           © {img.exif.copyright_name}
                         </span>
                       </div>

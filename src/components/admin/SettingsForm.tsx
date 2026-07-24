@@ -75,7 +75,7 @@ export function SettingsForm() {
   const handleSocialLinkChange = (index: number, field: 'title' | 'url' | 'icon_url', value: string) => {
     setSettings(prev => {
       const newLinks = [...prev.social_links]
-      newLinks[index][field] = value
+      newLinks[index] = { ...newLinks[index], [field]: value } 
       return { ...prev, social_links: newLinks }
     })
   }

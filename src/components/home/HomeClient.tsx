@@ -53,6 +53,7 @@ export function HomeClient({
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const currentSort = searchParams.get('sort') || 'newest'
+  const currentTag = searchParams.get('tag')
   const [isPending, startTransition] = useTransition()
 
   const supabase = createClient()
@@ -75,7 +76,9 @@ export function HomeClient({
     if (details) details.removeAttribute('open')
     
     startTransition(() => {
-      router.push(`/?sort=${val}`, { scroll: false })
+      let newUrl = `/?sort=${val}`
+      if (currentTag) newUrl += `&tag=${currentTag}`
+      router.push(newUrl, { scroll: false })
     })
   }
 
@@ -107,14 +110,21 @@ export function HomeClient({
         isAscending = false
       }
 
-      const { data, error, count } = await supabase
+      let query = supabase
         .from('posts')
         .select(`
           id, title, slug, location, created_at,
           collections (name),
           photos (image_url, is_cover, copyright_name, show_watermark)
+          ${currentTag ? ', post_tags!inner(tags!inner(name))' : ''}
         `, { count: 'exact' })
         .eq('status', 'Published')
+
+      if (currentTag) {
+        query = query.eq('post_tags.tags.name', currentTag)
+      }
+
+      const { data, error, count } = await query
         .order(orderColumn, { ascending: isAscending })
         .range(from, to)
 
@@ -136,7 +146,7 @@ export function HomeClient({
     } finally {
       setIsLoadingMore(false)
     }
-  }, [page, supabase, currentSort, isLoadingMore, hasMore])
+  }, [page, supabase, currentSort, currentTag, isLoadingMore, hasMore])
 
   useEffect(() => {
     const el = observerTarget.current
@@ -165,11 +175,11 @@ export function HomeClient({
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`mx-auto ${LAYOUT_CONFIG.maxWidth} py-6 md:py-20 max-lg:landscape:py-6`}
+        className={`mx-auto ${LAYOUT_CONFIG.maxWidth} pt-6 pb-16 md:py-20 max-lg:landscape:py-6`}
       >
 
         {/* Hero Section */}
-        <div className="mb-6 md:mb-20 max-lg:landscape:mb-6 max-w-3xl">
+        <div className="mt-2 md:mt-0 mb-6 md:mb-20 max-lg:landscape:mb-6 max-w-3xl">
           <motion.h1
             initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className={`${LAYOUT_CONFIG.heroTitle} font-heading font-extrabold text-text-main tracking-tighter mb-4 leading-tight`}
@@ -188,10 +198,11 @@ export function HomeClient({
         <div className="mb-6 md:mb-12 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x flex-1">
             <Link
-              href="/"
+              href={currentSort ? `/?sort=${currentSort}` : `/`}
+              scroll={false}
               className={`shrink-0 snap-start px-3 py-1 md:px-4 md:py-1.5 rounded-full transition-all duration-300 text-xs md:text-sm font-semibold whitespace-nowrap shadow-sm border ${
-                pathname === '/'
-                  ? 'bg-primary-neutral/15 text-primary-neutral border-primary-neutral/40'
+                !currentTag
+                  ? 'bg-primary-neutral text-white border-primary-neutral'
                   : 'bg-surface/50 border-border/20 text-text-main hover:bg-surface/80 hover:border-border/40 backdrop-blur-sm'
               }`}
             >
@@ -199,15 +210,16 @@ export function HomeClient({
             </Link>
 
             {tags.map(t => {
-              const isActive = pathname === `/tag/${t.name}`
+              const isActive = currentTag === t.name
               return (
                 <Link
                   key={`tag-${t.id}`}
-                  href={`/tag/${t.name}`}
+                  href={`/?tag=${t.name}${currentSort ? `&sort=${currentSort}` : ''}`}
+                  scroll={false}
                   prefetch={true}
                   className={`shrink-0 snap-start px-3 py-1 md:px-4 md:py-1.5 rounded-full transition-all duration-300 text-xs md:text-sm font-semibold whitespace-nowrap shadow-sm border ${
                     isActive
-                      ? 'bg-primary-neutral/15 text-primary-neutral border-primary-neutral/40'
+                      ? 'bg-primary-neutral text-white border-primary-neutral'
                       : 'bg-surface/50 border-border/20 text-text-main hover:bg-surface/80 hover:border-border/40 backdrop-blur-sm'
                   }`}
                 >

@@ -32,7 +32,7 @@ export async function Footer() {
                 href={link.url} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="text-[11px] md:text-xs font-bold uppercase tracking-widest text-text-main/80 hover:text-text-main transition-colors flex items-center gap-1.5 group"
+                className="text-[11px] md:text-xs font-bold uppercase tracking-widest text-text-main/80 hover:text-primary-neutral transition-colors flex items-center gap-1.5 group"
               >
                 {link.icon_url ? (
                   <img src={link.icon_url} alt={link.title} className="w-5 h-5 object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
