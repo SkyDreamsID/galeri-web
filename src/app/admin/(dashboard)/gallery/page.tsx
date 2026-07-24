@@ -8,6 +8,7 @@ import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye, DownloadCloud, Search, 
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { getOptimizedImageUrl } from '@/lib/utils'
 
 type Post = {
   id: string
@@ -19,7 +20,7 @@ type Post = {
   shares: number
   status: string
   collections: { name: string } | null
-  photos: { image_url: string }[]
+  photos: { image_url: string; is_cover?: boolean }[]
   post_tags?: { tags: { name: string } }[]
 }
 
@@ -57,7 +58,7 @@ export default function GalleryManagement() {
           shares,
           status,
           collections (name),
-          photos (image_url),
+          photos (image_url, is_cover),
           post_tags ( tags (name) )
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
@@ -191,9 +192,10 @@ export default function GalleryManagement() {
           {/* ===== MOBILE GRID START ===== */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-1.5 md:gap-5">
           {filteredPosts.map((post) => {
-            const rawImage = post.photos?.[0]?.image_url;
+            const coverPhoto = post.photos?.find((p) => p.is_cover) || post.photos?.[0];
+            const rawImage = coverPhoto?.image_url;
             // Optimasi Penggunaan kuota internet
-            const coverImage = rawImage ? rawImage.replace('/upload/', '/upload/c_fill,w_400,q_auto,f_auto/') : null;
+            const coverImage = rawImage ? getOptimizedImageUrl(rawImage, 600, null, false) : null;
             return (
               <Card key={post.id} className="bg-surface border-border/40 overflow-hidden flex flex-col shadow-sm">
                 <div className="h-28 md:h-48 w-full relative bg-background">
