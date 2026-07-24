@@ -384,7 +384,7 @@ export function SettingsForm() {
           Sosial Media & Tautan
         </h2>
         
-        <p className="text-sm text-text-muted mb-6">Tautan ini akan muncul di bagian Footer website. Anda bisa menambahkan tak terbatas.</p>
+        <p className="text-sm text-text-muted mb-6">Tautan muncul di bagian Footer website (Maksimal 6).</p>
 
         <div className="space-y-4">
           {settings.social_links.map((link, idx) => (
@@ -434,13 +434,15 @@ export function SettingsForm() {
             </div>
           ))}
           
-          <button 
-            onClick={handleAddSocialLink}
-            className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-border/50 rounded-xl text-sm font-medium text-text-muted hover:text-primary hover:border-primary/50 transition-all hover:bg-primary/5"
-          >
-            <Plus className="w-4 h-4" />
-            Tambah Tautan Sosial Media
-          </button>
+          {settings.social_links.length < 6 && (
+            <button 
+              onClick={handleAddSocialLink}
+              className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-border/50 rounded-xl text-sm font-medium text-text-muted hover:text-primary hover:border-primary/50 transition-all hover:bg-primary/5"
+            >
+              <Plus className="w-4 h-4" />
+              Tambah Tautan Sosial Media
+            </button>
+          )}
         </div>
       </div>
 

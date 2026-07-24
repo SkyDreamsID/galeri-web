@@ -88,12 +88,12 @@ export function UploadForm() {
   }, [story])
 
   const processFiles = async (files: File[]) => {
-    // Validasi ukuran file sebelum dikirim ke Cloudinary
-    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
-    const oversized = files.filter(f => f.size > MAX_SIZE)
+    // Peringatan ukuran ekstrem (cegah browser hang/memory crash)
+    const MAX_SAFE_SIZE = 50 * 1024 * 1024 // 50MB
+    const oversized = files.filter(f => f.size > MAX_SAFE_SIZE)
     if (oversized.length > 0) {
-      toast.error(`${oversized.length} foto ditolak! Ukuran melebihi 10MB: ${oversized.map(f => f.name).join(', ')}`)
-      files = files.filter(f => f.size <= MAX_SIZE)
+      toast.error(`${oversized.length} media ditolak! Ukuran raw melebihi 50MB: ${oversized.map(f => f.name).join(', ')}`)
+      files = files.filter(f => f.size <= MAX_SAFE_SIZE)
       if (files.length === 0) return
     }
 
@@ -241,9 +241,12 @@ export function UploadForm() {
             if (!sigRes.ok) throw new Error('Gagal memproses otorisasi upload')
             const { signature, apiKey } = await sigRes.json()
 
-            // Proses Kompresi (Jika diaktifkan) via Main Thread (Lebih stabil di HP)
+            // Proses Kompresi Pintar via Main Thread
+            const MAX_UPLOAD_SIZE = 9.5 * 1024 * 1024 // 9.5MB threshold Cloudinary
+            const shouldCompress = useCompression || img.file.size > MAX_UPLOAD_SIZE
+            
             let fileToUpload = img.file
-            if (useCompression && fileToUpload.type.startsWith('image/')) {
+            if (shouldCompress && fileToUpload.type.startsWith('image/')) {
               fileToUpload = await new Promise<File>((resolve) => {
                 const imgElement = document.createElement('img')
                 imgElement.onload = () => {
@@ -626,7 +629,9 @@ export function UploadForm() {
                 <p className="mb-1 md:mb-2 text-xs md:text-sm text-text-muted">
                   <span className="font-semibold text-text-main">Klik untuk upload</span> atau drag and drop
                 </p>
-                <p className="text-[10px] md:text-xs text-text-muted/70 mt-1">JPG, PNG (Bisa multi-upload) • Max 10MB/foto</p>
+                <p className="text-[10px] md:text-xs text-text-muted/70 mt-1">
+                  JPG, PNG (Bisa multi-upload) • Max 10MB (Otomatis dikompres jika lebih)
+                </p>
               </div>
               <input type="file" className="hidden" multiple accept="image/*" onChange={handleFileChange} />
             </label>
