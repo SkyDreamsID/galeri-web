@@ -9,8 +9,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: {
-      template: `%s | Admin ${siteTitle}`,
-      default: `Dashboard Admin | ${siteTitle}`,
+      template: `%s | ${siteTitle}`,
+      default: `Dashboard Admin`,
     }
   }
 }

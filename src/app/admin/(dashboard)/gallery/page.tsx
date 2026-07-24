@@ -155,13 +155,13 @@ export default function GalleryManagement() {
   })
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-20 md:pb-12">
-      {/* STICKY HEADER & SEARCH BAR (DESKTOP & MOBILE) */}
-      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl py-3 md:py-4 border-b border-border/40 shadow-sm -mx-4 px-4 sm:-mx-6 sm:px-6 mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 max-w-6xl mx-auto">
+    <div className="flex flex-col pb-20 md:pb-12">
+      {/* STICKY HEADER & SEARCH BAR - FULL WIDTH, ALIGNED WITH SIDEBAR HEADER */}
+      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/40 shadow-sm -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 md:mb-8 px-4 md:px-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 min-h-[66px] md:min-h-[108px] py-3 md:py-5">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-text-main">Kelola Galeri</h2>
-            <p className="text-text-muted mt-0.5 sm:mt-1 text-xs sm:text-sm font-sans">Daftar momen yang telah dipublikasikan di galeri Anda.</p>
+            <h2 className="text-lg md:text-xl font-heading font-bold tracking-tight text-text-main leading-tight">Kelola Galeri</h2>
+            <p className="text-[10px] md:text-xs text-text-muted mt-0.5 font-sans">Daftar momen yang telah dipublikasikan di galeri Anda</p>
           </div>
 
           <div className="relative w-full sm:w-72">
@@ -171,19 +171,20 @@ export default function GalleryManagement() {
               placeholder="Cari judul, tag, atau tanggal..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 bg-surface/60 backdrop-blur-md border-border/50 text-text-main focus:border-primary-neutral h-10 w-full"
+              className="pl-9 bg-surface/60 backdrop-blur-md border-border/50 text-text-main focus:border-primary-neutral h-9 md:h-10 w-full text-xs md:text-sm"
             />
           </div>
         </div>
       </div>
+      <div className="max-w-6xl mx-auto w-full space-y-6">
 
       {posts.length === 0 ? (
         <Card className="bg-surface border-border/40 p-8 text-center text-text-muted shadow-sm">
-          Belum ada momen yang diunggah. Silakan upload momen baru terlebih dahulu.
+          Belum ada momen yang diunggah. Silakan upload momen baru terlebih dahulu
         </Card>
       ) : filteredPosts.length === 0 ? (
         <Card className="bg-surface border-border/40 p-8 text-center text-text-muted shadow-sm">
-          Pencarian untuk "{searchTerm}" tidak ditemukan.
+          Pencarian untuk "{searchTerm}" tidak ditemukan
         </Card>
       ) : (
         <>
@@ -306,6 +307,7 @@ export default function GalleryManagement() {
           {/* ===== MOBILE GRID END ===== */}
         </>
       )}
+      </div>
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { SettingsForm } from '@/components/admin/SettingsForm'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Pengaturan | Galeri Admin',
+  title: 'Pengaturan Admin',
 }
 
 export default function SettingsPage() {
