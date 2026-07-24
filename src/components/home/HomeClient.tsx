@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef, useTransition } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { getOptimizedImageUrl, formatDate } from '@/lib/utils'
@@ -51,6 +51,7 @@ export function HomeClient({
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
   const currentSort = searchParams.get('sort') || 'newest'
   const [isPending, startTransition] = useTransition()
 
@@ -188,22 +189,32 @@ export function HomeClient({
           <div className="flex items-center gap-3 overflow-x-auto pb-4 md:pb-0 scrollbar-hide snap-x flex-1">
             <Link
               href="/"
-              prefetch={true}
-              className="shrink-0 snap-start px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-text-main text-background hover:opacity-90 transition-opacity text-xs md:text-sm font-semibold whitespace-nowrap shadow-sm"
+              className={`shrink-0 snap-start px-3 py-1 md:px-4 md:py-1.5 rounded-full transition-all duration-300 text-xs md:text-sm font-semibold whitespace-nowrap shadow-sm border ${
+                pathname === '/'
+                  ? 'bg-primary-neutral/15 text-primary-neutral border-primary-neutral/40'
+                  : 'bg-surface/50 border-border/20 text-text-main hover:bg-surface/80 hover:border-border/40 backdrop-blur-sm'
+              }`}
             >
               Semua Foto
             </Link>
 
-            {tags.map(t => (
-              <Link
-                key={`tag-${t.id}`}
-                href={`/tag/${t.name}`}
-                prefetch={true}
-                className="shrink-0 snap-start px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-surface/50 border border-border/20 text-text-main hover:bg-surface/80 hover:border-border/40 transition-all duration-300 text-xs md:text-sm font-medium whitespace-nowrap backdrop-blur-sm"
-              >
-                #{t.name}
-              </Link>
-            ))}
+            {tags.map(t => {
+              const isActive = pathname === `/tag/${t.name}`
+              return (
+                <Link
+                  key={`tag-${t.id}`}
+                  href={`/tag/${t.name}`}
+                  prefetch={true}
+                  className={`shrink-0 snap-start px-3 py-1 md:px-4 md:py-1.5 rounded-full transition-all duration-300 text-xs md:text-sm font-semibold whitespace-nowrap shadow-sm border ${
+                    isActive
+                      ? 'bg-primary-neutral/15 text-primary-neutral border-primary-neutral/40'
+                      : 'bg-surface/50 border-border/20 text-text-main hover:bg-surface/80 hover:border-border/40 backdrop-blur-sm'
+                  }`}
+                >
+                  #{t.name}
+                </Link>
+              )
+            })}
           </div>
 
           <div className="shrink-0 self-end md:self-auto">
@@ -257,7 +268,6 @@ export function HomeClient({
               >
                 <Link
                   href={`/post/${post.slug || post.id}`}
-                  prefetch={true}
                   className="block group cursor-pointer relative overflow-hidden rounded-xl md:rounded-2xl bg-surface"
                 >
                   {coverImage ? (
