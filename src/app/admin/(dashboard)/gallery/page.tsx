@@ -209,7 +209,7 @@ export default function GalleryManagement() {
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-text-muted/50 text-[10px] md:text-xs">
-                      Tidak ada foto
+                      Tanpa Media
                     </div>
                   )}
                   {post.collections?.name && (
@@ -251,7 +251,7 @@ export default function GalleryManagement() {
                 <CardContent className="p-2.5 md:p-4 pt-0 border-t border-border/20 bg-background/30 flex flex-col xl:flex-row justify-between items-start xl:items-center mt-auto gap-2 xl:gap-0">
                   <div className="flex items-center gap-2 md:gap-3">
                     <span className="text-[10px] md:text-xs text-text-muted font-medium">
-                      {post.photos?.length || 0} Foto
+                      {post.photos?.length || 0} Media
                     </span>
                     <span className="text-[10px] md:text-xs text-text-muted font-medium flex items-center gap-0.5 md:gap-1">
                       <Eye className="w-3 h-3 md:w-3.5 md:h-3.5" /> {post.views || 0}

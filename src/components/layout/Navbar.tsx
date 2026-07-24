@@ -16,7 +16,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ 
-  authorName = 'Rifki Eka Putra', 
+  authorName = 'SkyDreamsID', 
   siteLogo = '', 
   socialLinks = [],
   contactEmail = ''

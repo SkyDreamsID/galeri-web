@@ -206,7 +206,7 @@ export function HomeClient({
                   : 'bg-surface/50 border-border/20 text-text-main hover:bg-surface/80 hover:border-border/40 backdrop-blur-sm'
               }`}
             >
-              Semua Foto
+              Semua Media
             </Link>
 
             {tags.map(t => {
@@ -293,7 +293,7 @@ export function HomeClient({
                     />
                   ) : (
                     <div className="w-full aspect-video bg-surface-hover flex items-center justify-center">
-                      <span className="text-text-muted text-sm font-medium">Tanpa Foto</span>
+                      <span className="text-text-muted text-sm font-medium">Tanpa Media</span>
                     </div>
                   )}
                   

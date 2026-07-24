@@ -5,9 +5,9 @@ export async function Footer() {
   const supabase = await createClient()
   const { data: settings } = await supabase.from('site_settings').select('*').limit(1).single()
   
-  const authorName = settings?.author_name || 'Rifki Eka Putra'
+  const authorName = settings?.author_name || 'SkyDreamsID'
   const socialLinks: {title: string, url: string, icon_url?: string}[] = settings?.social_links || []
-  const footerText = settings?.footer_text || 'Ruang digital untuk menyimpan momen, merangkai cerita, dan mendokumentasikan perjalanan melalui lensa.'
+  const footerText = settings?.footer_text || 'Ruang digital untuk menyimpan karya, membagikan cerita, dan mendokumentasikan perjalanan kreatif.'
   return (
     <footer className="border-t border-border/10 bg-background mt-auto relative overflow-hidden">
       {/* Subtle Glow Background */}

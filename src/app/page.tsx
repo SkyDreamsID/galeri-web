@@ -64,7 +64,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         tags={tagsData || []}
         collections={collectionsData || []}
         heroTitle={settings?.hero_title || 'Jurnal Visual'}
-        heroDesc={settings?.hero_description || 'Ruang untuk menyimpan momen, membagikan cerita dan mendokumentasikan perjalanan melalui lensa.'}
+        heroDesc={settings?.hero_description || 'Ruang digital untuk menyimpan karya, membagikan cerita, dan mendokumentasikan perjalanan kreatif.'}
       />
     </>
   )

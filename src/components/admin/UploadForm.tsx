@@ -205,7 +205,7 @@ export function UploadForm() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (images.length === 0) return toast.warning('Pilih foto dulu sebelum publish!')
+    if (images.length === 0) return toast.warning('Pilih media dulu sebelum publish!')
     if (!title.trim()) return toast.warning('Judul momen tidak boleh kosong!')
     
     setUploadState('uploading')
@@ -315,7 +315,7 @@ export function UploadForm() {
             }
             
             completedCount++
-            setUploadProgress(`Mengunggah foto... (${completedCount}/${images.length} selesai)`)
+            setUploadProgress(`Mengunggah media... (${completedCount}/${images.length} selesai)`)
             break // sukses, keluar dari loop retry
           } catch (err: any) {
             attempts++
@@ -482,7 +482,7 @@ export function UploadForm() {
                   const val = e.target.value
                   setImages(prev => prev.map(img => ({
                     ...img,
-                    exif: { ...img.exif, lens: val }
+                    exif: { ...img.exif, lens: val || img.exif.lens }
                   })))
                 }}
                 placeholder="Misal: NIKKOR AF-S 55-300MM (Isi jika EXIF gagal)"

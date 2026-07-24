@@ -120,6 +120,8 @@ Buka `http://localhost:3000` untuk melihat web publik Anda, dan buka `http://loc
 
 ## ⚙️ Menggunakan Web CMS (Pengaturan Admin)
 
+> 💡 **PENTING UNTUK FORKER**: Web ini bersifat dinamis (menggunakan pengaturan dari database). Jika Anda baru pertama kali menjalankan web ini, isi Pengaturan Admin secepatnya agar web tidak menampilkan nilai *default* bawaan (seperti *"SkyDreamsID"*, *"Visual Gallery"*, dll).
+
 Setelah berhasil login ke `/admin`, navigasikan ke menu **Pengaturan**. Di sini Anda bisa:
 - **Kustomisasi Tema**: Ubah warna *Primary*, warna Latar Belakang (Dark & Light) menggunakan kode Hex tanpa perlu membuka editor kode.
 - **Identitas Web**: Mengubah Nama Author, Judul Hero, Teks Footer, Logo Situs.
