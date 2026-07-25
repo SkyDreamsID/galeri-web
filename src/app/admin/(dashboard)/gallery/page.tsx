@@ -35,6 +35,7 @@ export default function GalleryManagement() {
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
   const observerTarget = useRef<HTMLDivElement>(null)
 
   const fetchPostsBatch = useCallback(async (pageIndex: number, isInitial = false) => {
@@ -109,6 +110,22 @@ export default function GalleryManagement() {
     observer.observe(el)
     return () => observer.disconnect()
   }, [observerTarget, hasMore, isLoadingMore, loading, page, fetchPostsBatch])
+
+  const handleToggleStatus = async (postId: string, currentStatus: string) => {
+    try {
+      setUpdatingStatusId(postId)
+      const newStatus = currentStatus === 'Published' ? 'Draft' : 'Published'
+      const { error } = await supabase.from('posts').update({ status: newStatus }).eq('id', postId)
+      if (error) throw error
+      
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: newStatus } : p))
+      toast.success(`Status momen diubah menjadi ${newStatus === 'Published' ? 'Publik' : 'Pribadi'}`)
+    } catch (err: any) {
+      toast.error('Gagal mengubah status: ' + err.message)
+    } finally {
+      setUpdatingStatusId(null)
+    }
+  }
 
   const handleDelete = async (postId: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus momen ini beserta seluruh fotonya secara permanen dari Cloudinary & Database?')) return
@@ -217,13 +234,25 @@ export default function GalleryManagement() {
                       📁 {post.collections.name}
                     </span>
                   )}
-                  <span className={`absolute top-1.5 md:top-2 right-1.5 md:right-2 text-[8px] md:text-[10px] uppercase font-bold tracking-wider px-1.5 md:px-2 py-0.5 md:py-1 rounded md:rounded-md shadow-sm backdrop-blur-md border ${
+                  <button 
+                    onClick={() => handleToggleStatus(post.id, post.status)}
+                    disabled={updatingStatusId === post.id}
+                    className={`absolute top-1.5 md:top-2 right-1.5 md:right-2 text-[8px] md:text-[10px] uppercase font-bold tracking-wider px-1.5 md:px-2 py-0.5 md:py-1 rounded md:rounded-md shadow-sm backdrop-blur-md border transition-all flex items-center gap-1 ${
+                      updatingStatusId === post.id ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'
+                    } ${
                     post.status === 'Published' 
-                      ? 'bg-black/60 text-white border-white/20'
-                      : 'bg-red-500/80 text-white border-red-500/20'
+                      ? 'bg-black/60 text-white border-white/20 hover:bg-black/80'
+                      : 'bg-red-500/80 text-white border-red-500/20 hover:bg-red-500'
                   }`}>
-                    {post.status === 'Published' ? '🌍 Publik' : '🔒 Pribadi'}
-                  </span>
+                    {updatingStatusId === post.id ? (
+                      <>
+                        <Loader2 className="w-2.5 h-2.5 md:w-3 md:h-3 animate-spin" />
+                        Memproses...
+                      </>
+                    ) : (
+                      post.status === 'Published' ? '🌍 Publik' : '🔒 Pribadi'
+                    )}
+                  </button>
                 </div>
 
                 <CardHeader className="p-2.5 md:p-4 flex-1">

@@ -54,6 +54,7 @@ export function UploadForm() {
   const [bulkLicense, setBulkLicense] = useState('Copyright')
   const [availableCollections, setAvailableCollections] = useState<{id: string, name: string}[]>([])
   const [availableTags, setAvailableTags] = useState<string[]>([])
+  const [copyrightHistory, setCopyrightHistory] = useState<string[]>([])
   const [images, setImages] = useState<FileWithExif[]>([])
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([])
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null)
@@ -68,12 +69,17 @@ export function UploadForm() {
   // Fetch collections and tags on mount
   useEffect(() => {
     const fetchData = async () => {
-      const [colsRes, tagsRes] = await Promise.all([
+      const [colsRes, tagsRes, photosRes] = await Promise.all([
         supabase.from('collections').select('id, name').order('name', { ascending: true }),
-        supabase.from('tags').select('name').order('name', { ascending: true })
+        supabase.from('tags').select('name').order('name', { ascending: true }),
+        supabase.from('photos').select('copyright_name').not('copyright_name', 'is', null)
       ])
       if (colsRes.data) setAvailableCollections(colsRes.data)
       if (tagsRes.data) setAvailableTags(tagsRes.data.map(t => t.name))
+      if (photosRes.data) {
+        const uniqueNames = Array.from(new Set(photosRes.data.map(p => p.copyright_name).filter(Boolean)))
+        setCopyrightHistory(uniqueNames as string[])
+      }
     }
     fetchData()
   }, [])
@@ -450,7 +456,7 @@ export function UploadForm() {
             show_watermark: photo.show_watermark !== false,
             is_cover: photo.is_cover,
             sort_order: i,
-            copyright_name: photo.exif.copyright_name || ''
+            copyright_name: photo.exif.copyright_name?.trim() || settings?.author_name || null
           })
           .select('id')
           .single()
@@ -499,8 +505,12 @@ export function UploadForm() {
 
   return (
     <>
-      <form onSubmit={handleUpload} className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 relative">
-        {/* Kolom Kiri: Meta Data Post */}
+      <form onSubmit={handleUpload} className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 min-h-[calc(100vh-10rem)] pb-24 md:pb-0 relative">
+      <datalist id="copyright-history">
+        {copyrightHistory.map((name, i) => <option key={i} value={name} />)}
+      </datalist>
+
+      {/* Kolom Kiri: Detail Momen */}
       <div className="lg:col-span-1 space-y-4 md:space-y-6">
         <Card className="bg-surface border-border/40 shadow-sm overflow-visible">
           <CardHeader className="p-4 pb-0 md:p-6 md:pb-6">
@@ -726,6 +736,7 @@ export function UploadForm() {
                   value={bulkCopyrightName} 
                   onChange={(e) => setBulkCopyrightName(e.target.value)}
                   placeholder="Masukkan Nama"
+                  list="copyright-history"
                   className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-40 text-[13px] md:text-sm"
                 />
                 <CustomSelect
@@ -812,9 +823,20 @@ export function UploadForm() {
                   <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between rounded-b-[10px]">
                     <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2">
                       <div className="font-medium text-text-main truncate w-full" title={img.file.name}>{img.file.name}</div>
-                      <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2.5 py-1 text-[10px] md:text-xs font-medium text-primary-neutral border border-primary-neutral/20">
-                        © {img.exif.copyright_name}
-                      </span>
+                      <div className="shrink-0 w-24 md:w-32">
+                        <Input
+                          value={img.exif.copyright_name || ''}
+                          onChange={(e) => {
+                            const newImages = [...images]
+                            newImages[idx].exif.copyright_name = e.target.value
+                            setImages(newImages)
+                          }}
+                          list="copyright-history"
+                          placeholder="Copyright"
+                          className="h-6 w-full text-[10px] md:text-xs px-2 bg-primary-neutral/10 border-primary-neutral/20 focus:border-primary-neutral text-primary-neutral"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
                     </div>
                     <CustomSelect
                       value={img.license_type}
