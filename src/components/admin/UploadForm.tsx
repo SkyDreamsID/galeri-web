@@ -43,6 +43,7 @@ export function UploadForm() {
   const [uploadErrorMsg, setUploadErrorMsg] = useState('')
   const abortControllerRef = useRef<AbortController | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const isMobile = typeof window !== 'undefined' ? /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) : false
   
   const [title, setTitle] = useState('')
   const [story, setStory] = useState('')
@@ -295,8 +296,6 @@ export function UploadForm() {
 
                   ctx.drawImage(imgElement, 0, 0, width, height)
 
-                  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-                  
                   if (!isMobile && (img.file.type === 'image/jpeg' || img.file.type === 'image/jpg')) {
                     try {
                       // Jalur Desktop (RAM Besar): Ekstrak EXIF dari file asli lalu injeksi ke hasil canvas
@@ -397,7 +396,9 @@ export function UploadForm() {
         }
       }
 
-      // Execute worker dengan limit max 2 barengan (biar aman di HP)
+      // Execute worker dengan limit concurrency
+      // Di HP: Wajib 1-1 (Sequential) biar gak nabrak RAM & bandwidth internet pelan (mencegah timeout Failed to fetch)
+      // Di PC: Bisa 3 barengan (Concurrent)
       let workerIndex = 0
       let uploadError: any = null
 
@@ -412,7 +413,9 @@ export function UploadForm() {
         }
         return executeNextWorker()
       }
-      const workers = Array.from({ length: Math.min(2, images.length) }, () => executeNextWorker())
+      
+      const concurrency = isMobile ? 1 : Math.min(3, images.length)
+      const workers = Array.from({ length: concurrency }, () => executeNextWorker())
       await Promise.all(workers)
       
       if (uploadError) throw uploadError
