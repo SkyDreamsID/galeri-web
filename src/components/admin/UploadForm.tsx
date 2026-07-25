@@ -295,32 +295,48 @@ export function UploadForm() {
 
                   ctx.drawImage(imgElement, 0, 0, width, height)
 
-                  // 1. Coba pake canvas.toBlob() (Native C++, 0MB JS base64 string overhead)
+                  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                  
+                  if (!isMobile && (img.file.type === 'image/jpeg' || img.file.type === 'image/jpg')) {
+                    try {
+                      // Jalur Desktop (RAM Besar): Ekstrak EXIF dari file asli lalu injeksi ke hasil canvas
+                      const reader = new FileReader()
+                      reader.onload = function(e) {
+                        try {
+                          const originalDataUrl = e.target?.result as string
+                          const exifObj = piexif.load(originalDataUrl) // Ekstrak dari file ASLI
+                          const exifBytes = piexif.dump(exifObj)
+                          
+                          if (exifBytes && exifBytes !== 'Exif\x00\x00MM\x00*\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00') {
+                            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88)
+                            const finalDataUrl = piexif.insert(exifBytes, compressedDataUrl)
+                            
+                            fetch(finalDataUrl)
+                              .then(res => res.blob())
+                              .then(b => resolve(new File([b], img.file.name, { type: 'image/jpeg' })))
+                              .catch(() => {
+                                canvas.toBlob((b) => resolve(new File([b!], img.file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.88)
+                              })
+                            return
+                          }
+                        } catch (err) {
+                          console.warn('Gagal injeksi EXIF desktop:', err)
+                        }
+                        
+                        // Fallback klo foto aslinya emang gak ada EXIF
+                        canvas.toBlob((b) => resolve(new File([b!], img.file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.88)
+                      }
+                      reader.readAsDataURL(img.file)
+                      return // Stop eksekusi agar nunggu onload selesai
+                    } catch (err) {
+                      console.warn('Gagal FileReader desktop:', err)
+                    }
+                  }
+
+                  // Jalur Mobile / Fallback: 100% C++ Blob (Bypass Base64, RAM HP dijamin super hemat)
                   canvas.toBlob(
                     (blob) => {
                       if (!blob) return resolve(img.file)
-                      
-                      // Injeksi EXIF biner jika tersedia dan file JPEG
-                      if (img.file.type === 'image/jpeg' || img.file.type === 'image/jpg') {
-                        try {
-                          const dataUrl = canvas.toDataURL('image/jpeg', 0.88)
-                          const exifObj = piexif.load(dataUrl)
-                          if (exifObj) {
-                            const exifBytes = piexif.dump(exifObj)
-                            if (exifBytes && exifBytes !== 'Exif\x00\x00MM\x00*\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00') {
-                              const finalDataUrl = piexif.insert(exifBytes, dataUrl)
-                              fetch(finalDataUrl)
-                                .then(res => res.blob())
-                                .then(b => resolve(new File([b], img.file.name, { type: 'image/jpeg' })))
-                                .catch(() => resolve(new File([blob], img.file.name, { type: 'image/jpeg' })))
-                              return
-                            }
-                          }
-                        } catch (e) {
-                          console.warn('Gagal injeksi biner EXIF, fallback ke blob kompresi biasa:', e)
-                        }
-                      }
-                      
                       resolve(new File([blob], img.file.name, { type: 'image/jpeg' }))
                     },
                     'image/jpeg',
