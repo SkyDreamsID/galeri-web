@@ -296,9 +296,9 @@ export function UploadForm() {
 
                   ctx.drawImage(imgElement, 0, 0, width, height)
 
-                  if (!isMobile && (img.file.type === 'image/jpeg' || img.file.type === 'image/jpg')) {
+                  if (img.file.type === 'image/jpeg' || img.file.type === 'image/jpg') {
                     try {
-                      // Jalur Desktop (RAM Besar): Ekstrak EXIF dari file asli lalu injeksi ke hasil canvas
+                      // Ekstrak EXIF dari file asli lalu injeksi ke hasil canvas
                       const reader = new FileReader()
                       reader.onload = function(e) {
                         try {
@@ -332,7 +332,7 @@ export function UploadForm() {
                     }
                   }
 
-                  // Jalur Mobile / Fallback: 100% C++ Blob (Bypass Base64, RAM HP dijamin super hemat)
+                  // Fallback: 100% C++ Blob (Bypass Base64)
                   canvas.toBlob(
                     (blob) => {
                       if (!blob) return resolve(img.file)
