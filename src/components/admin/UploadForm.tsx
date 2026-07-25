@@ -224,6 +224,8 @@ export function UploadForm() {
     if (images.length === 0) return toast.warning('Pilih media dulu sebelum publish!')
     if (!title.trim()) return toast.warning('Judul momen tidak boleh kosong!')
     
+    if (!cloudName) return toast.error('Cloud Name Cloudinary belum dikonfigurasi di Settings/Env!')
+
     setUploadState('uploading')
     setUploadErrorMsg('')
     abortControllerRef.current = new AbortController()
@@ -257,72 +259,78 @@ export function UploadForm() {
             if (!sigRes.ok) throw new Error('Gagal memproses otorisasi upload')
             const { signature, apiKey } = await sigRes.json()
 
-            // Proses Kompresi Pintar via Main Thread
+            // Proses Kompresi Pintar (Sangat Ringan & Hemat RAM untuk Mobile)
             const MAX_UPLOAD_SIZE = 9.5 * 1024 * 1024 // 9.5MB threshold Cloudinary
             const shouldCompress = useCompression || img.file.size > MAX_UPLOAD_SIZE
             
             let fileToUpload = img.file
             if (shouldCompress && fileToUpload.type.startsWith('image/')) {
               fileToUpload = await new Promise<File>((resolve) => {
-                const reader = new FileReader()
-                reader.onload = (e) => {
-                  const originalDataUrl = e.target?.result as string
-                  let exifBytes: string | null = null
-                  try {
-                    // Ekstrak EXIF biner dari file asli
-                    if (originalDataUrl && originalDataUrl.startsWith('data:image/jpeg')) {
-                      const exifObj = piexif.load(originalDataUrl)
-                      exifBytes = piexif.dump(exifObj)
+                const imgElement = new Image()
+                const objectUrl = URL.createObjectURL(img.file)
+
+                imgElement.onload = () => {
+                  URL.revokeObjectURL(objectUrl)
+                  let width = imgElement.width
+                  let height = imgElement.height
+                  const MAX_WIDTH = 3840
+                  const MAX_HEIGHT = 3840
+
+                  if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                    if (width > height) {
+                      height = Math.round(height * (MAX_WIDTH / width))
+                      width = MAX_WIDTH
+                    } else {
+                      width = Math.round(width * (MAX_HEIGHT / height))
+                      height = MAX_HEIGHT
                     }
-                  } catch (exifErr) {
-                    console.warn('Gagal ekstrak biner EXIF:', exifErr)
                   }
 
-                  const imgElement = document.createElement('img')
-                  imgElement.onload = () => {
-                    let width = imgElement.width
-                    let height = imgElement.height
-                    const MAX_WIDTH = 3840
-                    const MAX_HEIGHT = 3840
+                  const canvas = document.createElement('canvas')
+                  canvas.width = width
+                  canvas.height = height
+                  const ctx = canvas.getContext('2d')
+                  if (!ctx) return resolve(img.file)
 
-                    if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-                      if (width > height) {
-                        height = Math.round(height * (MAX_WIDTH / width))
-                        width = MAX_WIDTH
-                      } else {
-                        width = Math.round(width * (MAX_HEIGHT / height))
-                        height = MAX_HEIGHT
+                  ctx.drawImage(imgElement, 0, 0, width, height)
+
+                  // 1. Coba pake canvas.toBlob() (Native C++, 0MB JS base64 string overhead)
+                  canvas.toBlob(
+                    (blob) => {
+                      if (!blob) return resolve(img.file)
+                      
+                      // Injeksi EXIF biner jika tersedia dan file JPEG
+                      if (img.file.type === 'image/jpeg' || img.file.type === 'image/jpg') {
+                        try {
+                          const dataUrl = canvas.toDataURL('image/jpeg', 0.88)
+                          const exifObj = piexif.load(dataUrl)
+                          if (exifObj) {
+                            const exifBytes = piexif.dump(exifObj)
+                            if (exifBytes && exifBytes !== 'Exif\x00\x00MM\x00*\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00') {
+                              const finalDataUrl = piexif.insert(exifBytes, dataUrl)
+                              fetch(finalDataUrl)
+                                .then(res => res.blob())
+                                .then(b => resolve(new File([b], img.file.name, { type: 'image/jpeg' })))
+                                .catch(() => resolve(new File([blob], img.file.name, { type: 'image/jpeg' })))
+                              return
+                            }
+                          }
+                        } catch (e) {
+                          console.warn('Gagal injeksi biner EXIF, fallback ke blob kompresi biasa:', e)
+                        }
                       }
-                    }
-
-                    const canvas = document.createElement('canvas')
-                    canvas.width = width
-                    canvas.height = height
-                    const ctx = canvas.getContext('2d')
-                    if (!ctx) return resolve(img.file) // Fallback
-
-                    ctx.drawImage(imgElement, 0, 0, width, height)
-                    
-                    let finalDataUrl = canvas.toDataURL('image/jpeg', 0.92)
-                    
-                    if (exifBytes && exifBytes !== 'Exif\x00\x00MM\x00*\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00') {
-                      try {
-                        finalDataUrl = piexif.insert(exifBytes, finalDataUrl)
-                      } catch (injErr) {
-                        console.warn('Gagal injeksi EXIF:', injErr)
-                      }
-                    }
-
-                    fetch(finalDataUrl)
-                      .then(res => res.blob())
-                      .then(blob => resolve(new File([blob], img.file.name, { type: 'image/jpeg' })))
-                      .catch(() => resolve(img.file))
-                  }
-                  imgElement.onerror = () => resolve(img.file)
-                  imgElement.src = originalDataUrl
+                      
+                      resolve(new File([blob], img.file.name, { type: 'image/jpeg' }))
+                    },
+                    'image/jpeg',
+                    0.88
+                  )
                 }
-                reader.onerror = () => resolve(img.file)
-                reader.readAsDataURL(img.file)
+                imgElement.onerror = () => {
+                  URL.revokeObjectURL(objectUrl)
+                  resolve(img.file)
+                }
+                imgElement.src = objectUrl
               })
             }
 
