@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS posts (
   views INTEGER DEFAULT 0,
   downloads INTEGER DEFAULT 0,
   shares INTEGER DEFAULT 0,
+  hide_exif BOOLEAN DEFAULT FALSE,
   collection_id UUID REFERENCES collections(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
