@@ -1,6 +1,6 @@
 # 📸 Galeri - Premium Visual Journal & CMS
 
-![Version](https://img.shields.io/badge/version-v1.2.0-blue.svg) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Changelog](https://img.shields.io/badge/Changelog-v1.2.0-green.svg)](CHANGELOG.md)
+![Version](https://img.shields.io/badge/version-v1.3.0-blue.svg) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Changelog](https://img.shields.io/badge/Changelog-v1.3.0-green.svg)](CHANGELOG.md)
 
 Sebuah platform galeri foto premium dan jurnal visual, dibangun menggunakan teknologi modern untuk fotografer yang ingin memamerkan mahakaryanya dengan elegan.
 
@@ -21,11 +21,11 @@ Segera Hadir..
 
 ## ✨ Fitur Utama
 
-- 🎨 **Kustomisasi Tema Dinamis**: Ubah skema warna web (Primary, Light Bg, Dark Bg) langsung dari Dasbor Admin tanpa menyentuh kode!
+- 🎨 **Kustomisasi Tema & Watermark Dinamis**: Ubah skema warna web serta kustomisasi posisi (9 arah), font (Arial, Montserrat, Noto Sans, Playfair, Monospace, Playpen Sans), ukuran, dan transparansi watermark via Studio Live Preview 4:3!
 - ⚙️ **Web CMS (Pengaturan Dinamis)**: Ubah nama website, teks footer, logo, dan tautan media sosial secara instan.
 - 🖼️ **Masonry Grid & Smart Crop**: Menampilkan foto dalam *grid* rapi dengan pengoptimalan orientasi cerdas (integrasi Cloudinary).
 - 📸 **Auto-EXIF Extraction**: Mengunggah foto secara otomatis mengekstrak metadata kamera (Kamera, Lensa, Focal Length, Aperture, ISO, Shutter Speed).
-- ©️ **Per-Photo Copyright & Watermark Dinamis**: Hak cipta per-foto dinamis. Watermark nama copyright di-*render* langsung via Cloudinary URL (tanpa merusak gambar asli) dan dapat dikontrol per-foto dari Admin.
+- ©️ **Per-Photo Copyright & Watermark On-the-Fly**: Hak cipta per-foto dinamis. Watermark di-*render* langsung via Cloudinary URL (tanpa merusak gambar asli) dan dapat dikontrol per-foto dari Admin.
 - 🎒 **Gear Showcase**: Integrasi komponen yang memamerkan inventaris kamera & lensa yang digunakan.
 - 📻 **Gallery Radio**: Widget pemutar musik *real-time* (mendukung link ZenoFM, Icecast, Shoutcast).
 - ⚡ **Optimasi Kecepatan & SEO**: Skor PageSpeed tinggi (>90 Mobile/Desktop) dengan optimasi LCP, rendering deterministik (bebas Hydration Error), *Pre-fetch Infinite Scroll*, PWA Support, dan Aksesibilitas 100/100.

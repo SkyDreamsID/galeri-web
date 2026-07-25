@@ -6,6 +6,18 @@ Format berdasarkan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/), dan
 
 ---
 
+## [1.3.0] - 2026-07-25
+
+### ✨ New Features & Improvements
+- **Interactive Watermark Customizer**: Pengaturan kustomisasi watermark di Admin Dashboard dengan area *Live Preview 4:3* terintegrasi grid panah 3x3 (9 arah posisi) bergaya aplikasi editing foto profesional.
+- **Font Selector with Native Dropdown Preview**: Menambahkan pilihan font (Arial, Montserrat, Noto Sans, Playfair Display, Monospace/Courier, Playpen Sans) di mana setiap opsi di-render menggunakan bentuk font aslinya langsung di dalam *dropdown*.
+- **Montserrat Cinematic Spacing**: Menerapkan *letter-spacing* tipis (0.5px) khusus font Montserrat untuk memberikan efek estetis dan elegan pada watermark fotografi.
+- **Real-Time Synchronized Watermark Engine**: Pengaturan posisi, font, ukuran, dan transparansi watermark berlaku secara *real-time* ke seluruh foto publik di seluruh halaman (`Home`, `Post Detail`, `Albums`, `Collections`, `Tags`).
+- **Cloudinary Font & Position Translation**: Menyelaraskan nama font dan posisi ke format Cloudinary URL (`g_north`, `g_south`, `g_west`, `g_east`, dll) serta konversi otomatis font `Monospace` ke `Courier` agar tidak *fallback* ke Arial.
+- **Cache-Busting Server Action**: Menambahkan *Server Action* (`actions.ts`) dan pemaksaan *route dynamic* untuk menghapus *cache* Next.js secara instan saat tombol simpan diklik.
+
+---
+
 ## [1.2.0] - 2026-07-25
 
 ### ✨ New Features & Improvements

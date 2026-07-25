@@ -3,7 +3,20 @@
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { Upload, Plus, Trash2, Save, Link as LinkIcon } from 'lucide-react'
+import { Upload, Plus, Trash2, Save, Link as LinkIcon, Type } from 'lucide-react'
+import { CustomSelect } from './CustomSelect'
+import { revalidateSettings } from '@/app/actions'
+
+const getFontFamily = (fontName: string) => {
+  switch(fontName) {
+    case 'Montserrat': return '"Montserrat", sans-serif';
+    case 'Noto Sans': return '"Noto Sans", sans-serif';
+    case 'Playfair Display': return '"Playfair Display", serif';
+    case 'Monospace': return 'monospace';
+    case 'Playpen Sans': return '"Playpen Sans", cursive';
+    default: return 'Arial, sans-serif';
+  }
+}
 
 export function SettingsForm() {
   const [isLoading, setIsLoading] = useState(true)
@@ -24,7 +37,7 @@ export function SettingsForm() {
     cloudinary_cloud_name: '',
     contact_email: '',
     social_links: [] as { title: string, url: string, icon_url?: string }[],
-    theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true, show_public_stats: true }
+    theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true, show_public_stats: true, watermark_position: 'south_east', watermark_font: 'Arial', watermark_size: 'medium', watermark_opacity: 50 }
   })
 
   const supabase = createClient()
@@ -51,7 +64,7 @@ export function SettingsForm() {
         cloudinary_cloud_name: data.cloudinary_cloud_name || '',
         contact_email: data.contact_email || '',
         social_links: data.social_links || [],
-        theme_config: data.theme_config || { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true, show_public_stats: true }
+        theme_config: data.theme_config || { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true, show_public_stats: true, watermark_position: 'south_east', watermark_font: 'Arial', watermark_size: 'medium', watermark_opacity: 50 }
       })
     }
     if (error && error.code !== 'PGRST116') {
@@ -117,7 +130,7 @@ export function SettingsForm() {
     }
   }
 
-  const handleThemeChange = (field: 'dark_bg' | 'light_bg' | 'primary_color' | 'enable_watermark' | 'show_public_stats', value: string | boolean) => {
+  const handleThemeChange = (field: 'dark_bg' | 'light_bg' | 'primary_color' | 'enable_watermark' | 'show_public_stats' | 'watermark_position' | 'watermark_font' | 'watermark_size' | 'watermark_opacity', value: string | boolean | number) => {
     setSettings(prev => ({
       ...prev,
       theme_config: { ...prev.theme_config, [field]: value }
@@ -128,7 +141,7 @@ export function SettingsForm() {
     if (confirm('Yakin ingin mereset tema ke warna bawaan asli (Legendary UI)?')) {
       setSettings(prev => ({
         ...prev,
-        theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true, show_public_stats: true }
+        theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true, show_public_stats: true, watermark_position: 'south_east', watermark_font: 'Arial', watermark_size: 'medium', watermark_opacity: 50 }
       }))
       toast.success('Warna tema dikembalikan ke default')
     }
@@ -234,6 +247,10 @@ export function SettingsForm() {
         if (error) throw error
         if (data) setSettings(prev => ({ ...prev, id: data[0].id }))
       }
+      
+      // Revalidate layout agar home/frontend mendeteksi perubahan seketika
+      await revalidateSettings()
+      
       toast.success('Pengaturan berhasil disimpan')
     } catch (err: any) {
       console.error(err)
@@ -551,10 +568,132 @@ export function SettingsForm() {
         </div>
       </div>
 
-      {/* Pengaturan API & Integrasi */}
+      {/* Kustomisasi Watermark */}
       <div className="bg-surface border border-border/50 rounded-2xl p-6 md:p-8 shadow-sm">
         <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
           <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">5</span>
+          Kustomisasi Watermark
+        </h2>
+        <p className="text-sm text-text-muted mb-6">
+          Atur posisi, font, ukuran, dan transparansi watermark untuk seluruh foto di galeri.
+        </p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Bagian Kiri: Preview & Posisi Terintegrasi */}
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-text-muted">Preview & Posisi Watermark</label>
+              <div 
+                className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-inner border"
+                style={{ backgroundColor: '#A9A9A9', borderColor: '#8F8F8F' }}
+              >
+                {/* 3x3 Grid Overlay untuk Picker */}
+                <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 z-0">
+                  <button type="button" onClick={() => handleThemeChange('watermark_position', 'north_west')} className={`flex items-start justify-start p-6 transition-all ${settings.theme_config.watermark_position === 'north_west' ? 'text-primary drop-shadow-md' : 'text-black/30 hover:text-black/60'}`}><span className="text-2xl md:text-3xl font-bold">↖</span></button>
+                  <button type="button" onClick={() => handleThemeChange('watermark_position', 'north')} className={`flex items-start justify-center p-6 transition-all ${settings.theme_config.watermark_position === 'north' ? 'text-primary drop-shadow-md' : 'text-black/30 hover:text-black/60'}`}><span className="text-2xl md:text-3xl font-bold">↑</span></button>
+                  <button type="button" onClick={() => handleThemeChange('watermark_position', 'north_east')} className={`flex items-start justify-end p-6 transition-all ${settings.theme_config.watermark_position === 'north_east' ? 'text-primary drop-shadow-md' : 'text-black/30 hover:text-black/60'}`}><span className="text-2xl md:text-3xl font-bold">↗</span></button>
+                  
+                  <button type="button" onClick={() => handleThemeChange('watermark_position', 'west')} className={`flex items-center justify-start p-6 transition-all ${settings.theme_config.watermark_position === 'west' ? 'text-primary drop-shadow-md' : 'text-black/30 hover:text-black/60'}`}><span className="text-2xl md:text-3xl font-bold">←</span></button>
+                  <button type="button" onClick={() => handleThemeChange('watermark_position', 'center')} className={`flex items-center justify-center p-6 transition-all ${settings.theme_config.watermark_position === 'center' ? 'text-primary drop-shadow-md' : 'text-black/30 hover:text-black/60'}`}><span className="text-3xl md:text-4xl font-bold">●</span></button>
+                  <button type="button" onClick={() => handleThemeChange('watermark_position', 'east')} className={`flex items-center justify-end p-6 transition-all ${settings.theme_config.watermark_position === 'east' ? 'text-primary drop-shadow-md' : 'text-black/30 hover:text-black/60'}`}><span className="text-2xl md:text-3xl font-bold">→</span></button>
+
+                  <button type="button" onClick={() => handleThemeChange('watermark_position', 'south_west')} className={`flex items-end justify-start p-6 transition-all ${settings.theme_config.watermark_position === 'south_west' ? 'text-primary drop-shadow-md' : 'text-black/30 hover:text-black/60'}`}><span className="text-2xl md:text-3xl font-bold">↙</span></button>
+                  <button type="button" onClick={() => handleThemeChange('watermark_position', 'south')} className={`flex items-end justify-center p-6 transition-all ${settings.theme_config.watermark_position === 'south' ? 'text-primary drop-shadow-md' : 'text-black/30 hover:text-black/60'}`}><span className="text-2xl md:text-3xl font-bold">↓</span></button>
+                  <button type="button" onClick={() => handleThemeChange('watermark_position', 'south_east')} className={`flex items-end justify-end p-6 transition-all ${settings.theme_config.watermark_position === 'south_east' || !settings.theme_config.watermark_position ? 'text-primary drop-shadow-md' : 'text-black/30 hover:text-black/60'}`}><span className="text-2xl md:text-3xl font-bold">↘</span></button>
+                </div>
+
+                {/* Simulated Watermark Text */}
+                <div 
+                  className={`absolute transition-all duration-200 ease-out font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap z-10 pointer-events-none
+                    ${settings.theme_config.watermark_position === 'north_west' ? 'top-2 left-2 md:top-3 md:left-3' : ''}
+                    ${settings.theme_config.watermark_position === 'north' ? 'top-2 left-1/2 -translate-x-1/2 md:top-3' : ''}
+                    ${settings.theme_config.watermark_position === 'north_east' ? 'top-2 right-2 md:top-3 md:right-3' : ''}
+                    
+                    ${settings.theme_config.watermark_position === 'west' ? 'top-1/2 left-2 -translate-y-1/2 md:left-3' : ''}
+                    ${settings.theme_config.watermark_position === 'center' ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : ''}
+                    ${settings.theme_config.watermark_position === 'east' ? 'top-1/2 right-2 -translate-y-1/2 md:right-3' : ''}
+                    
+                    ${settings.theme_config.watermark_position === 'south_west' ? 'bottom-2 left-2 md:bottom-3 md:left-3' : ''}
+                    ${settings.theme_config.watermark_position === 'south' ? 'bottom-2 left-1/2 -translate-x-1/2 md:bottom-3' : ''}
+                    ${settings.theme_config.watermark_position === 'south_east' || !settings.theme_config.watermark_position ? 'bottom-2 right-2 md:bottom-3 md:right-3' : ''}
+                    
+                    ${settings.theme_config.watermark_size === 'small' ? 'text-[8px] md:text-[10px]' : ''}
+                    ${settings.theme_config.watermark_size === 'medium' || !settings.theme_config.watermark_size ? 'text-[10px] md:text-[12px]' : ''}
+                    ${settings.theme_config.watermark_size === 'large' ? 'text-[12px] md:text-sm' : ''}
+                    
+                    ${settings.theme_config.watermark_font === 'Montserrat' ? 'tracking-[0.5px]' : 'tracking-normal'}
+                  `}
+                  style={{
+                    fontFamily: getFontFamily(settings.theme_config.watermark_font),
+                    opacity: (settings.theme_config.watermark_opacity ?? 50) / 100
+                  }}
+                >
+                  © {settings.author_name || 'Rifki Eka Putra'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bagian Kanan: Konfigurasi Font, Size, Opacity */}
+          <div className="space-y-6 lg:border-l lg:border-border/50 lg:pl-10 flex flex-col justify-center">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-muted">Font Watermark</label>
+              <CustomSelect 
+                options={[
+                  { value: 'Arial', label: 'Arial (Default)', style: { fontFamily: 'Arial, sans-serif' } },
+                  { value: 'Montserrat', label: 'Montserrat', style: { fontFamily: '"Montserrat", sans-serif' } },
+                  { value: 'Noto Sans', label: 'Noto Sans', style: { fontFamily: '"Noto Sans", sans-serif' } },
+                  { value: 'Playfair Display', label: 'Playfair Display', style: { fontFamily: '"Playfair Display", serif' } },
+                  { value: 'Monospace', label: 'Monospace', style: { fontFamily: 'monospace' } },
+                  { value: 'Playpen Sans', label: 'Playpen Sans', style: { fontFamily: '"Playpen Sans", cursive' } },
+                ]}
+                value={settings.theme_config.watermark_font || 'Arial'}
+                onChange={(val) => handleThemeChange('watermark_font', val)}
+                placeholder="Pilih Font..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-text-muted">Ukuran Watermark</label>
+              <CustomSelect 
+                options={[
+                  { value: 'small', label: 'Kecil' },
+                  { value: 'medium', label: 'Sedang' },
+                  { value: 'large', label: 'Besar' },
+                ]}
+                value={settings.theme_config.watermark_size || 'medium'}
+                onChange={(val) => handleThemeChange('watermark_size', val)}
+                placeholder="Pilih Ukuran..."
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <label className="text-sm font-medium text-text-muted">Transparansi Watermark</label>
+                <span className="text-sm font-bold text-primary">{settings.theme_config.watermark_opacity || 50}%</span>
+              </div>
+              <input 
+                type="range" 
+                min="10" 
+                max="100" 
+                step="10"
+                value={settings.theme_config.watermark_opacity || 50}
+                onChange={(e) => handleThemeChange('watermark_opacity', parseInt(e.target.value))}
+                className="w-full accent-primary h-2 bg-border rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-text-muted">
+                <span>Lebih Transparan</span>
+                <span>Lebih Pekat</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Pengaturan API & Integrasi */}
+      <div className="bg-surface border border-border/50 rounded-2xl p-6 md:p-8 shadow-sm">
+        <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
+          <span className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">6</span>
           Pengaturan Streaming Radio
         </h2>
         <p className="text-sm text-text-muted mb-6">

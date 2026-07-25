@@ -129,7 +129,8 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 
 ## 4.5 Fitur Perlindungan & Attribution
 - **Watermark Attribution:** Built-in attribution "Designed by SkyDreamsID" yang terpasang pada Footer. Akan otomatis muncul jika nilai `author_name` pada `site_settings` diubah ke nilai selain author asli (Rifki Eka Putra, SkyDreamsID, dll).
-- **Per-Photo Watermark**: Watermark hak cipta dinamis yang diproses oleh Cloudinary on-the-fly. Dapat diaktifkan/dinonaktifkan per-foto dari Admin Panel tanpa menyentuh file asli.
+- **Interactive Watermark Studio**: Panel pengaturan kustomisasi watermark di Admin Dashboard dengan area Live Preview 4:3 terintegrasi grid panah 3x3 (9 arah posisi) bergaya software foto profesional.
+- **Per-Photo & Global Watermark Engine**: Watermark hak cipta dinamis yang diproses oleh Cloudinary on-the-fly. Menggabungkan `author_name` global atau nama copyright individu dengan pilihan font (Arial, Montserrat, Noto Sans, Playfair, Monospace, Playpen Sans), skala ukuran, opacity (0-100%), dan offset posisi presisi (`g_north`, `g_south`, `g_west`, `g_east`, dll) tanpa merusak file asli.
 
 ## 5. Flowchart API & Manajemen Logika
 
@@ -140,10 +141,12 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 4. File diupload langsung dari browser ke Cloudinary.
 5. URL, public_id, dan metadata disimpan ke tabel `photos` di Supabase.
 
-### Alur Watermark Dinamis
+### Alur Watermark Dinamis & Cloudinary Engine
 - Watermark **tidak** mengubah file asli di Cloudinary.
-- URL gambar dimodifikasi secara programatik: `getOptimizedImageUrl(url, width, copyrightName, showWatermark)` menambahkan parameter transformasi Cloudinary (`l_text:Arial_18_bold_opacity_50:...`) jika `show_watermark = true` dan `copyright_name` ada.
-- Nilai `show_watermark` disimpan per-foto di kolom `photos.show_watermark`.
+- URL gambar dimodifikasi secara programatik via `getOptimizedImageUrl(url, width, copyrightName, showWatermark, scale, options)`.
+- Menggunakan skema pemetaan posisi (`posMap` -> `g_north_west`, `g_south`, dll) dan penerjemahan font (misal: `Monospace` -> `Courier` untuk kompatibilitas Cloudinary).
+- Menginjeksi parameter transformasi Cloudinary (`l_text:Font_Size_bold:Text,g_position,x_pad,y_pad,co_white,o_opacity`) secara *real-time*.
+- Cache invalidation di-trigger via Server Action `revalidateSettings()` (`actions.ts`) serta penambahan `export const dynamic = 'force-dynamic'` pada root layout untuk mengeliminasi keterlambatan sinkronisasi data.
 
 ### Alur Tambah / Hapus Gear di Dashboard (`/admin/gear`)
 1. Admin memasukkan nama perlengkapan dan (opsional) mengunggah foto fisik alat.

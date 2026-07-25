@@ -21,6 +21,10 @@ export type SiteSettings = {
     light_bg?: string
     primary_color?: string
     enable_watermark?: boolean
+    watermark_position?: 'north_west' | 'north' | 'north_east' | 'center' | 'south_west' | 'south' | 'south_east'
+    watermark_font?: string
+    watermark_size?: 'small' | 'medium' | 'large'
+    watermark_opacity?: number
     show_public_stats?: boolean
   }
 }

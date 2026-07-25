@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { getOptimizedImageUrl, formatDate } from '@/lib/utils'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
+import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 import Masonry from 'react-masonry-css'
 
 // =========================================================================
@@ -55,6 +56,7 @@ export function HomeClient({
   const currentSort = searchParams.get('sort') || 'newest'
   const currentTag = searchParams.get('tag')
   const [isPending, startTransition] = useTransition()
+  const settings = useSiteSettings()
 
   const supabase = createClient()
   const [posts, setPosts] = useState<Post[]>(initialPosts)
@@ -265,9 +267,14 @@ export function HomeClient({
           {posts.map((post, index) => {
             const coverPhoto = post.photos?.find((p) => p.is_cover) || post.photos?.[0]
             const rawCoverImage = coverPhoto?.image_url
-            const copyrightName = coverPhoto?.copyright_name
-            const showWatermark = coverPhoto?.show_watermark !== false
-            const coverImage = rawCoverImage ? getOptimizedImageUrl(rawCoverImage, 800, copyrightName, showWatermark) : null
+            const copyrightName = coverPhoto?.copyright_name || settings?.author_name
+            const showWatermark = coverPhoto?.show_watermark !== false && settings?.theme_config?.enable_watermark !== false
+            const coverImage = rawCoverImage ? getOptimizedImageUrl(rawCoverImage, 800, copyrightName, showWatermark, 2, {
+              font: settings?.theme_config?.watermark_font,
+              position: settings?.theme_config?.watermark_position,
+              size: settings?.theme_config?.watermark_size,
+              opacity: settings?.theme_config?.watermark_opacity
+            }) : null
 
             return (
               <motion.div
@@ -288,6 +295,7 @@ export function HomeClient({
                       alt={post.title}
                       watermarkText={copyrightName}
                       enableWatermark={showWatermark}
+                      watermarkScale={2.5}
                       priority={index < 2}
                       className="w-full h-auto object-cover transform group-hover:scale-[1.02] transition-transform duration-500 ease-out"
                     />

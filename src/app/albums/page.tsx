@@ -21,7 +21,7 @@ export async function generateMetadata() {
 export default async function AlbumsPage() {
   const supabase = await createClient()
 
-  const { data: settings } = await supabase.from('site_settings').select('theme_config').limit(1).single()
+  const { data: settings } = await supabase.from('site_settings').select('theme_config, author_name').limit(1).single()
   const enableWatermark = settings?.theme_config?.enable_watermark !== false
 
   // Ambil daftar koleksi
@@ -35,10 +35,12 @@ export default async function AlbumsPage() {
     .from('posts')
     .select(`
       collection_id,
+      created_at,
       photos (image_url, is_cover, copyright_name)
     `)
     .eq('status', 'Published')
     .not('collection_id', 'is', null)
+    .order('created_at', { ascending: false })
 
   const collections = collectionsData || []
   const posts = postsData || []
@@ -102,7 +104,13 @@ export default async function AlbumsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
             {sortedAlbums.map((album, idx) => {
-              const displayUrl = album.coverUrl ? getOptimizedImageUrl(album.coverUrl, 600, album.copyrightName, enableWatermark) : ''
+              const copyrightName = album.copyrightName || settings?.author_name
+              const displayUrl = album.coverUrl ? getOptimizedImageUrl(album.coverUrl, 600, copyrightName, enableWatermark, 2.5, {
+                font: settings?.theme_config?.watermark_font,
+                position: settings?.theme_config?.watermark_position,
+                size: settings?.theme_config?.watermark_size,
+                opacity: settings?.theme_config?.watermark_opacity
+              }) : ''
               
               return (
                 <Link 

@@ -100,6 +100,14 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 - [x] **Ultra-Low Memory Pipeline**: Mencegah *crash* dan lonjakan RAM saat unggah banyak file 4K di browser seluler (*Failed to fetch* fix).
 - [x] **Original Filename Preservation**: Memastikan metadata nama asli foto tidak lenyap saat file diproses sebagai Base64 di server Next.js.
 
+### Phase 7.6: Interactive Watermark Studio & Cloudinary Engine (v1.3.0 - Selesai 100%)
+*Fokus: Kustomisasi watermark tingkat lanjut dengan Studio Preview 4:3, Font Selector interaktif, dan penanganan cache server.*
+- [x] **Interactive Watermark Studio (4:3 Preview)**: Penggabungan area preview foto 4:3 dengan grid 3x3 panah navigasi posisi (9 arah) langsung melayang interaktif.
+- [x] **Google Fonts Selector & Native Dropdown Preview**: Penambahan font Arial, Montserrat, Noto Sans, Playfair Display, Monospace, dan Playpen Sans dengan visualisasi font asli di dalam opsi *dropdown*.
+- [x] **Montserrat Letter-Spacing**: Penerapan *letter-spacing* tipis (0.5px) khusus font Montserrat untuk nuansa estetika fotografi profesional.
+- [x] **Cloudinary Font & Position Translation Engine**: Penerjemahan posisi 9 arah (`g_north`, `g_south`, `g_west`, `g_east`, dll) dan pemetaan otomatis `Monospace` -> `Courier` agar Cloudinary URL dirender secara presisi.
+- [x] **Server Cache Invalidator**: Integrasi Server Action `revalidateSettings()` dan `export const dynamic = 'force-dynamic'` pada root layout untuk memastikan seluruh halaman publik menyinkronkan data secara *real-time*.
+
 ---
 
 ## 🚀 Future Expansion Plan (Ide Baru Post v1.0)

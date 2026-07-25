@@ -62,6 +62,8 @@ import { ConditionalWrapper } from "@/components/layout/ConditionalWrapper";
 import { GlobalProgressBar } from "@/components/layout/ProgressBar";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
+export const dynamic = 'force-dynamic'
+
 export default async function RootLayout({
   children,
 }: Readonly<{

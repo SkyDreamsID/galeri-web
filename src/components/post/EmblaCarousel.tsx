@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 
 import { getOptimizedImageUrl } from '@/lib/utils'
+import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage'
 import { CarouselControls } from './CarouselControls'
 import { CarouselPagination } from './CarouselPagination'
@@ -16,6 +17,7 @@ import { CarouselActions } from './CarouselActions'
 import { CarouselExifCard } from './CarouselExifCard'
 
 export function EmblaCarousel({ photos, postId, license, hideExif }: { photos: any[], postId: string, license?: string, hideExif?: boolean }) {
+  const settings = useSiteSettings()
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
   const [openPopup, setOpenPopup] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -96,8 +98,14 @@ export function EmblaCarousel({ photos, postId, license, hideExif }: { photos: a
             }
             
             // Selalu gunakan versi terkompresi (max 1080px) untuk tampilan frontend web
-            const perPhotoWatermark = photo.show_watermark !== false
-            const displayUrl = getOptimizedImageUrl(photo.image_url, 1080, photo.copyright_name, perPhotoWatermark)
+            const perPhotoWatermark = photo.show_watermark !== false && settings?.theme_config?.enable_watermark !== false
+            const copyrightName = photo.copyright_name || settings?.author_name
+            const displayUrl = getOptimizedImageUrl(photo.image_url, 1080, copyrightName, perPhotoWatermark, 2, {
+              font: settings?.theme_config?.watermark_font,
+              position: settings?.theme_config?.watermark_position,
+              size: settings?.theme_config?.watermark_size,
+              opacity: settings?.theme_config?.watermark_opacity
+            })
             
             const isExifVisible = openPopup === `${photo.id}-exif`
             const isCopyrightVisible = openPopup === `${photo.id}-copyright`
@@ -125,6 +133,7 @@ export function EmblaCarousel({ photos, postId, license, hideExif }: { photos: a
                     priority={index === 0}
                     watermarkText={photo.copyright_name}
                     enableWatermark={photo.show_watermark !== false}
+                    watermarkScale={2}
                   />
                   
                   <CarouselActions 

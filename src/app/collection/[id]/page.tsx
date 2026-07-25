@@ -21,6 +21,7 @@ const LAYOUT_CONFIG = {
 
 export default function CollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: collectionId } = use(params)
+  const settings = useSiteSettings()
   const supabase = createClient()
   const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -151,9 +152,14 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
               {posts.map((post: any, index: number) => {
                 const coverPhoto = post.photos?.find((p: any) => p.is_cover) || post.photos?.[0]
                 const rawCoverImage = coverPhoto?.image_url
-                const copyrightName = coverPhoto?.copyright_name
-                const showWatermark = coverPhoto?.show_watermark !== false
-                const coverImage = rawCoverImage ? getOptimizedImageUrl(rawCoverImage, 800, copyrightName, showWatermark) : null
+                const copyrightName = coverPhoto?.copyright_name || settings?.author_name
+                const showWatermark = coverPhoto?.show_watermark !== false && settings?.theme_config?.enable_watermark !== false
+                const coverImage = rawCoverImage ? getOptimizedImageUrl(rawCoverImage, 800, copyrightName, showWatermark, 2, {
+                  font: settings?.theme_config?.watermark_font,
+                  position: settings?.theme_config?.watermark_position,
+                  size: settings?.theme_config?.watermark_size,
+                  opacity: settings?.theme_config?.watermark_opacity
+                }) : null
                 
                 return (
                   <motion.div 
@@ -167,7 +173,7 @@ export default function CollectionPage({ params }: { params: Promise<{ id: strin
                   >
                     <Link href={`/post/${post.slug || post.id}`} className="block group cursor-pointer relative overflow-hidden rounded-xl md:rounded-2xl bg-surface">
                       {coverImage ? (
-                        <ProgressiveImage src={rawCoverImage} alt={post.title} watermarkText={copyrightName} enableWatermark={showWatermark} priority={index < 4} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]" />
+                        <ProgressiveImage src={rawCoverImage} alt={post.title} watermarkText={copyrightName} enableWatermark={showWatermark} watermarkScale={2.5} priority={index < 4} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]" />
                       ) : (
                         <div className="w-full aspect-[4/3] flex items-center justify-center bg-surface text-text-muted">No Photo</div>
                       )}

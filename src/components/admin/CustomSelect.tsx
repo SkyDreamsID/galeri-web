@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react'
 interface Option {
   value: string
   label: string
+  style?: React.CSSProperties
 }
 
 interface CustomSelectProps {
@@ -49,7 +50,7 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Pilih sa
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center justify-between w-full border border-border/50 bg-background focus:outline-none focus:ring-1 focus:ring-primary-neutral transition-colors gap-2 ${sizeClasses}`}
       >
-        <span className={`truncate ${!selectedOption ? 'text-text-muted' : ''}`}>
+        <span className={`truncate ${!selectedOption ? 'text-text-muted' : ''}`} style={selectedOption?.style}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown size={16} className={`shrink-0 text-text-muted transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
@@ -76,6 +77,7 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Pilih sa
                 onChange(opt.value)
                 setIsOpen(false)
               }}
+              style={opt.style}
             >
               {opt.label}
             </button>
