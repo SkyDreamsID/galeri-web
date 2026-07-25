@@ -38,7 +38,7 @@ export function CarouselActions({
           target="_blank"
           rel="noopener noreferrer"
           className="bg-background/80 backdrop-blur border border-border p-2 rounded-full text-text-main hover:bg-surface transition-colors"
-          title="Unduh Resolusi Penuh"
+          title="Unduh file asli"
         >
           <Download size={18} />
         </a>

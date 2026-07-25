@@ -2,8 +2,16 @@ import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { ExifData } from '@/types/gallery'
 
-export function CarouselExifCard({ exif, cameraName, isVisible }: { exif?: ExifData, cameraName: string, isVisible: boolean }) {
+export function CarouselExifCard({ exif, cameraName, isVisible, isExifHidden }: { exif?: ExifData, cameraName: string, isVisible: boolean, isExifHidden?: boolean }) {
   if (!isVisible) return null;
+
+  if (isExifHidden) {
+    return (
+      <div className="absolute bottom-16 right-4 p-4 rounded-xl shadow-xl border border-[#3A3A3A] bg-[#F4F4F4] dark:bg-[#1F1F1F] text-sm w-64 animate-in fade-in slide-in-from-bottom-4 duration-250 z-50">
+        <p className="text-text-muted text-[12px] text-center py-2 font-medium">🔒 Metadata disembunyikan oleh kreator</p>
+      </div>
+    )
+  }
 
   // Cek apakah data exif benar-benar ada dan berisi nilai yang valid
   const hasRealData = exif && (

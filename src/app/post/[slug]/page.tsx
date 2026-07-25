@@ -99,7 +99,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   const { data: post, error } = await supabase
     .from('posts')
     .select(`
-      id, title, story, location, created_at, license_type, slug, status, views, downloads, shares,
+      id, title, story, location, created_at, license_type, slug, status, views, downloads, shares, hide_exif,
       collections (id, name),
       post_tags ( tags (name) ),
       photos (
@@ -116,7 +116,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     const { data: postById, error: errById } = await supabase
       .from('posts')
       .select(`
-        id, title, story, location, created_at, license_type, slug, status, views, downloads, shares,
+        id, title, story, location, created_at, license_type, slug, status, views, downloads, shares, hide_exif,
         collections (id, name),
         post_tags ( tags (name) ),
         photos (
@@ -203,7 +203,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                   <img src={ambientGlowUrl} alt="" className="w-full h-full object-cover rounded-full" />
                 </div>
               )}
-              <EmblaCarousel photos={photos} postId={postData.id} />
+              <EmblaCarousel photos={photos} postId={postData.id} hideExif={postData.hide_exif} />
             </div>
           </div>
 

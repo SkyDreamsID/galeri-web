@@ -46,4 +46,5 @@ export interface Post {
   collections?: CollectionData | CollectionData[] | null
   post_tags?: PostTag[]
   photos?: Photo[]
+  hide_exif?: boolean
 }

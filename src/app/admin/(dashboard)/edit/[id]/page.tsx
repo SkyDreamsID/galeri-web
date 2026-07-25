@@ -58,6 +58,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [useCompression, setUseCompression] = useState(true)
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null)
+  const [hideExif, setHideExif] = useState(false)
 
   // Bulk Edit States
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
@@ -85,7 +86,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         const { data: post, error: postErr } = await supabase
           .from('posts')
           .select(`
-            id, title, story, location, license_type, collection_id, status,
+            id, title, story, location, license_type, collection_id, status, hide_exif,
             photos (
               id, image_url, public_id, sort_order, bytes, format, original_filename, license_type, copyright_name, show_watermark, is_cover,
               exif_data (camera, lens, focal_length, aperture, iso, shutter_speed, date_taken)
@@ -101,6 +102,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         setLocation(post.location || '')
         setAlbum(post.collection_id || '')
         setStatus(post.status || 'Published')
+        setHideExif(post.hide_exif || false)
 
         // Fetch collections
         const { data: cols } = await supabase.from('collections').select('id, name').order('name', { ascending: true })
@@ -355,6 +357,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           location,
           collection_id: collectionId,
           status,
+          hide_exif: hideExif,
         })
         .eq('id', postId)
 
@@ -555,6 +558,22 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                   placeholder="Tulis cerita di balik karya ini..."
                   className="w-full min-h-[90px] md:min-h-[120px] resize-none overflow-hidden rounded-md border border-border/50 bg-background px-3 py-2 text-[13px] md:text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
                 />
+              </div>
+
+              {/* Opsi Privasi EXIF */}
+              <div className="pt-2 border-t border-border/40 mt-4">
+                <label className="flex items-center gap-2 cursor-pointer select-none group w-fit">
+                  <input
+                    type="checkbox"
+                    checked={hideExif}
+                    onChange={(e) => setHideExif(e.target.checked)}
+                    className="w-4 h-4 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer pointer-events-auto"
+                  />
+                  <span className="text-[13px] md:text-sm text-text-muted group-hover:text-text-main transition-colors">Sembunyikan Info Kamera (EXIF)</span>
+                </label>
+                <p className="text-[10px] md:text-[11px] text-text-muted/60 mt-1 pl-6 leading-tight">
+                  Detail teknis foto seperti kamera dan lensa tidak akan ditampilkan ke publik.
+                </p>
               </div>
             </CardContent>
           </Card>

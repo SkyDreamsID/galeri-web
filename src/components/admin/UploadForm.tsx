@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import exifr from 'exifr'
+import * as piexif from 'piexifjs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -56,6 +57,7 @@ export function UploadForm() {
   const [images, setImages] = useState<FileWithExif[]>([])
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([])
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null)
+  const [hideExif, setHideExif] = useState(false)
   const [isCreatingCollection, setIsCreatingCollection] = useState(false)
   const [newCollectionName, setNewCollectionName] = useState('')
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null)
@@ -88,17 +90,25 @@ export function UploadForm() {
   }, [story])
 
   const processFiles = async (files: File[]) => {
+    // Limit maksimal 20 foto per post
+    let filesToProcess = files
+    if (filesToProcess.length + images.length > 20) {
+      toast.error(`Maksimal 20 media per unggahan. ${filesToProcess.length + images.length - 20} file diabaikan.`)
+      filesToProcess = filesToProcess.slice(0, 20 - images.length)
+    }
+    if (filesToProcess.length === 0) return
+
     // Peringatan ukuran ekstrem (cegah browser hang/memory crash)
     const MAX_SAFE_SIZE = 50 * 1024 * 1024 // 50MB
-    const oversized = files.filter(f => f.size > MAX_SAFE_SIZE)
+    const oversized = filesToProcess.filter(f => f.size > MAX_SAFE_SIZE)
     if (oversized.length > 0) {
       toast.error(`${oversized.length} media ditolak! Ukuran raw melebihi 50MB: ${oversized.map(f => f.name).join(', ')}`)
-      files = files.filter(f => f.size <= MAX_SAFE_SIZE)
-      if (files.length === 0) return
+      filesToProcess = filesToProcess.filter(f => f.size <= MAX_SAFE_SIZE)
+      if (filesToProcess.length === 0) return
     }
 
     const newImages = await Promise.all(
-      files.map(async (file) => {
+      filesToProcess.map(async (file) => {
         let exifData: FileWithExif['exif'] = {}
         try {
           const parsed = await exifr.parse(file, { tiff: true, exif: true, makerNote: true, xmp: true, iptc: true })
@@ -248,40 +258,65 @@ export function UploadForm() {
             let fileToUpload = img.file
             if (shouldCompress && fileToUpload.type.startsWith('image/')) {
               fileToUpload = await new Promise<File>((resolve) => {
-                const imgElement = document.createElement('img')
-                imgElement.onload = () => {
-                  let width = imgElement.width
-                  let height = imgElement.height
-                  const MAX_WIDTH = 2500
-                  const MAX_HEIGHT = 2500
-
-                  if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-                    if (width > height) {
-                      height = Math.round(height * (MAX_WIDTH / width))
-                      width = MAX_WIDTH
-                    } else {
-                      width = Math.round(width * (MAX_HEIGHT / height))
-                      height = MAX_HEIGHT
+                const reader = new FileReader()
+                reader.onload = (e) => {
+                  const originalDataUrl = e.target?.result as string
+                  let exifBytes: string | null = null
+                  try {
+                    // Ekstrak EXIF biner dari file asli
+                    if (originalDataUrl && originalDataUrl.startsWith('data:image/jpeg')) {
+                      const exifObj = piexif.load(originalDataUrl)
+                      exifBytes = piexif.dump(exifObj)
                     }
+                  } catch (exifErr) {
+                    console.warn('Gagal ekstrak biner EXIF:', exifErr)
                   }
 
-                  const canvas = document.createElement('canvas')
-                  canvas.width = width
-                  canvas.height = height
-                  const ctx = canvas.getContext('2d')
-                  if (!ctx) return resolve(img.file) // Fallback
+                  const imgElement = document.createElement('img')
+                  imgElement.onload = () => {
+                    let width = imgElement.width
+                    let height = imgElement.height
+                    const MAX_WIDTH = 3840
+                    const MAX_HEIGHT = 3840
 
-                  ctx.drawImage(imgElement, 0, 0, width, height)
-                  canvas.toBlob((blob) => {
-                    if (blob) {
-                      resolve(new File([blob], img.file.name, { type: 'image/jpeg' }))
-                    } else {
-                      resolve(img.file)
+                    if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                      if (width > height) {
+                        height = Math.round(height * (MAX_WIDTH / width))
+                        width = MAX_WIDTH
+                      } else {
+                        width = Math.round(width * (MAX_HEIGHT / height))
+                        height = MAX_HEIGHT
+                      }
                     }
-                  }, 'image/jpeg', 0.85)
+
+                    const canvas = document.createElement('canvas')
+                    canvas.width = width
+                    canvas.height = height
+                    const ctx = canvas.getContext('2d')
+                    if (!ctx) return resolve(img.file) // Fallback
+
+                    ctx.drawImage(imgElement, 0, 0, width, height)
+                    
+                    let finalDataUrl = canvas.toDataURL('image/jpeg', 0.92)
+                    
+                    if (exifBytes && exifBytes !== 'Exif\x00\x00MM\x00*\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00') {
+                      try {
+                        finalDataUrl = piexif.insert(exifBytes, finalDataUrl)
+                      } catch (injErr) {
+                        console.warn('Gagal injeksi EXIF:', injErr)
+                      }
+                    }
+
+                    fetch(finalDataUrl)
+                      .then(res => res.blob())
+                      .then(blob => resolve(new File([blob], img.file.name, { type: 'image/jpeg' })))
+                      .catch(() => resolve(img.file))
+                  }
+                  imgElement.onerror = () => resolve(img.file)
+                  imgElement.src = originalDataUrl
                 }
-                imgElement.onerror = () => resolve(img.file)
-                imgElement.src = URL.createObjectURL(img.file)
+                reader.onerror = () => resolve(img.file)
+                reader.readAsDataURL(img.file)
               })
             }
 
@@ -331,16 +366,26 @@ export function UploadForm() {
 
       // Execute worker dengan limit max 2 barengan (biar aman di HP)
       let workerIndex = 0
+      let uploadError: any = null
+
       const executeNextWorker = async (): Promise<void> => {
-        if (workerIndex >= images.length) return
+        if (workerIndex >= images.length || signal.aborted || uploadError) return
         const currentIndex = workerIndex++
-        await uploadWorker(images[currentIndex], currentIndex)
+        try {
+          await uploadWorker(images[currentIndex], currentIndex)
+        } catch (err) {
+          uploadError = err
+          return // Stop further processing in this chain
+        }
         return executeNextWorker()
       }
       const workers = Array.from({ length: Math.min(2, images.length) }, () => executeNextWorker())
       await Promise.all(workers)
-      setUploadProgress('Menyimpan data ke database...')
+      
+      if (uploadError) throw uploadError
       if (signal.aborted) throw new Error('Dibatalkan oleh pengguna')
+      
+      setUploadProgress('Menyimpan data ke database...')
 
       // 3. Handle Album (Collections) - Langsung pakai ID yang dipilih
       let collectionId = album || null
@@ -355,7 +400,8 @@ export function UploadForm() {
           story,
           location,
           collection_id: collectionId,
-          status
+          status,
+          hide_exif: hideExif
         })
         .select('id')
         .single()
@@ -608,6 +654,22 @@ export function UploadForm() {
                 className="w-full min-h-[90px] md:min-h-[120px] resize-none overflow-hidden rounded-md border border-border/50 bg-background px-3 py-2 text-[13px] md:text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
               />
             </div>
+            
+            {/* Opsi Privasi EXIF */}
+            <div className="pt-2 border-t border-border/40 mt-4">
+              <label className="flex items-center gap-2 cursor-pointer select-none group w-fit">
+                <input
+                  type="checkbox"
+                  checked={hideExif}
+                  onChange={(e) => setHideExif(e.target.checked)}
+                  className="w-4 h-4 rounded border-border/50 bg-background accent-primary-neutral cursor-pointer pointer-events-auto"
+                />
+                <span className="text-[13px] md:text-sm text-text-muted group-hover:text-text-main transition-colors">Sembunyikan Info Kamera (EXIF)</span>
+              </label>
+              <p className="text-[10px] md:text-[11px] text-text-muted/60 mt-1 pl-6 leading-tight">
+                Detail teknis foto seperti kamera dan lensa tidak akan ditampilkan ke publik.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -630,7 +692,7 @@ export function UploadForm() {
                   <span className="font-semibold text-text-main">Klik untuk upload</span> atau drag and drop
                 </p>
                 <p className="text-[10px] md:text-xs text-text-muted/70 mt-1">
-                  JPG, PNG (Bisa multi-upload) • Max 10MB (Otomatis dikompres jika lebih)
+                  JPG, PNG • Max 20 Media (media diatas 10MB akan otomatis dikompres)
                 </p>
               </div>
               <input type="file" className="hidden" multiple accept="image/*" onChange={handleFileChange} />

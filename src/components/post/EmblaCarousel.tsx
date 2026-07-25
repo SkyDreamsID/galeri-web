@@ -15,7 +15,7 @@ import { CarouselPagination } from './CarouselPagination'
 import { CarouselActions } from './CarouselActions'
 import { CarouselExifCard } from './CarouselExifCard'
 
-export function EmblaCarousel({ photos, postId, license }: { photos: any[], postId: string, license?: string }) {
+export function EmblaCarousel({ photos, postId, license, hideExif }: { photos: any[], postId: string, license?: string, hideExif?: boolean }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
   const [openPopup, setOpenPopup] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -132,7 +132,7 @@ export function EmblaCarousel({ photos, postId, license }: { photos: any[], post
                     isCopyrightVisible={isCopyrightVisible} onToggleCopyright={toggleCopyright}
                     onToggleExif={toggleExif}
                   />
-                  <CarouselExifCard exif={exif} cameraName={cameraName} isVisible={isExifVisible} />
+                  <CarouselExifCard exif={exif} cameraName={cameraName} isVisible={isExifVisible} isExifHidden={hideExif} />
                 </div>
 
               </div>
