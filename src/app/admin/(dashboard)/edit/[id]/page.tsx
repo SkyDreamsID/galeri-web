@@ -56,7 +56,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [images, setImages] = useState<FileWithExif[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [useCompression, setUseCompression] = useState(true)
+  const [compressionQuality, setCompressionQuality] = useState('none')
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null)
   const [hideExif, setHideExif] = useState(false)
 
@@ -290,14 +290,29 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           newFiles.map(async (img) => {
             // Proses Kompresi
             let fileToUpload = img.file!
-            if (useCompression && fileToUpload.type.startsWith('image/')) {
+            const MAX_UPLOAD_SIZE = 9.5 * 1024 * 1024
+            const shouldCompress = compressionQuality !== 'none' || fileToUpload.size > MAX_UPLOAD_SIZE
+            
+            if (shouldCompress && fileToUpload.type.startsWith('image/')) {
               fileToUpload = await new Promise<File>((resolve) => {
                 const imageObj = new Image()
                 imageObj.src = URL.createObjectURL(img.file!)
                 imageObj.onload = () => {
                   const canvas = document.createElement('canvas')
-                  const MAX_WIDTH = 3840
-                  const MAX_HEIGHT = 3840
+                  let MAX_WIDTH = 3840
+                  let MAX_HEIGHT = 3840
+                  let jpegQuality = 0.88
+                  
+                  if (compressionQuality === 'small') {
+                    MAX_WIDTH = 1920
+                    MAX_HEIGHT = 1920
+                    jpegQuality = 0.75
+                  } else if (compressionQuality === 'medium') {
+                    MAX_WIDTH = 2560
+                    MAX_HEIGHT = 2560
+                    jpegQuality = 0.82
+                  }
+                  
                   let width = imageObj.width
                   let height = imageObj.height
                   
@@ -318,7 +333,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                   canvas.toBlob((blob) => {
                     if (blob) resolve(new File([blob], img.file!.name, { type: 'image/jpeg' }))
                     else resolve(img.file!)
-                  }, 'image/jpeg', 0.85)
+                  }, 'image/jpeg', jpegQuality)
                 }
                 imageObj.onerror = () => resolve(img.file!)
               })
@@ -800,15 +815,20 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
           <div className="flex flex-col sm:flex-row items-center sm:justify-end gap-4 pt-4 w-full">
             {images.some(img => img.file !== undefined) && (
-              <label className="flex items-center gap-2 cursor-pointer order-2 sm:order-1 bg-surface border border-border/50 px-3 py-2 rounded-lg shadow-sm hover:border-primary-neutral/40 transition-colors w-full sm:w-auto">
-                <input 
-                  type="checkbox" 
-                  checked={useCompression} 
-                  onChange={(e) => setUseCompression(e.target.checked)} 
-                  className="w-4 h-4 rounded border-border/50 accent-primary-neutral shrink-0" 
+              <div className="order-2 sm:order-1 w-full sm:w-auto">
+                <CustomSelect
+                  value={compressionQuality}
+                  onChange={setCompressionQuality}
+                  className="w-full sm:w-64"
+                  placement="top"
+                  options={[
+                    { value: 'none', label: 'Asli (Tanpa Kompresi)' },
+                    { value: 'high', label: 'Kualitas Tinggi (Lambat)' },
+                    { value: 'medium', label: 'Kualitas Sedang (Disarankan)' },
+                    { value: 'small', label: 'Kualitas Rendah (Cepat)' }
+                  ]}
                 />
-                <span className="text-sm text-text-muted font-medium whitespace-nowrap">Kompres Foto Baru (Cepat)</span>
-              </label>
+              </div>
             )}
             <div className="flex flex-col-reverse sm:flex-row gap-3 order-1 sm:order-2 w-full sm:w-auto">
               <Link href="/admin/gallery" className="w-full sm:w-auto">

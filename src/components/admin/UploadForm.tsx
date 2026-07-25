@@ -65,7 +65,7 @@ export function UploadForm() {
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
-  const [useCompression, setUseCompression] = useState(true)
+  const [compressionQuality, setCompressionQuality] = useState('none')
 
   // Fetch collections and tags on mount
   useEffect(() => {
@@ -262,7 +262,7 @@ export function UploadForm() {
 
             // Proses Kompresi Pintar (Sangat Ringan & Hemat RAM untuk Mobile)
             const MAX_UPLOAD_SIZE = 9.5 * 1024 * 1024 // 9.5MB threshold Cloudinary
-            const shouldCompress = useCompression || img.file.size > MAX_UPLOAD_SIZE
+            const shouldCompress = compressionQuality !== 'none' || img.file.size > MAX_UPLOAD_SIZE
             
             let fileToUpload = img.file
             if (shouldCompress && fileToUpload.type.startsWith('image/')) {
@@ -275,8 +275,20 @@ export function UploadForm() {
                   URL.revokeObjectURL(objectUrl)
                   let width = imgElement.width
                   let height = imgElement.height
-                  const MAX_WIDTH = 3840
-                  const MAX_HEIGHT = 3840
+                  
+                  let MAX_WIDTH = 3840
+                  let MAX_HEIGHT = 3840
+                  let jpegQuality = 0.88
+                  
+                  if (compressionQuality === 'small') {
+                    MAX_WIDTH = 1920
+                    MAX_HEIGHT = 1920
+                    jpegQuality = 0.75
+                  } else if (compressionQuality === 'medium') {
+                    MAX_WIDTH = 2560
+                    MAX_HEIGHT = 2560
+                    jpegQuality = 0.82
+                  }
 
                   if (width > MAX_WIDTH || height > MAX_HEIGHT) {
                     if (width > height) {
@@ -307,14 +319,14 @@ export function UploadForm() {
                           const exifBytes = piexif.dump(exifObj)
                           
                           if (exifBytes && exifBytes !== 'Exif\x00\x00MM\x00*\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00') {
-                            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88)
+                            const compressedDataUrl = canvas.toDataURL('image/jpeg', jpegQuality)
                             const finalDataUrl = piexif.insert(exifBytes, compressedDataUrl)
                             
                             fetch(finalDataUrl)
                               .then(res => res.blob())
                               .then(b => resolve(new File([b], img.file.name, { type: 'image/jpeg' })))
                               .catch(() => {
-                                canvas.toBlob((b) => resolve(new File([b!], img.file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.88)
+                                canvas.toBlob((b) => resolve(new File([b!], img.file.name, { type: 'image/jpeg' })), 'image/jpeg', jpegQuality)
                               })
                             return
                           }
@@ -323,7 +335,7 @@ export function UploadForm() {
                         }
                         
                         // Fallback klo foto aslinya emang gak ada EXIF
-                        canvas.toBlob((b) => resolve(new File([b!], img.file.name, { type: 'image/jpeg' })), 'image/jpeg', 0.88)
+                        canvas.toBlob((b) => resolve(new File([b!], img.file.name, { type: 'image/jpeg' })), 'image/jpeg', jpegQuality)
                       }
                       reader.readAsDataURL(img.file)
                       return // Stop eksekusi agar nunggu onload selesai
@@ -339,7 +351,7 @@ export function UploadForm() {
                       resolve(new File([blob], img.file.name, { type: 'image/jpeg' }))
                     },
                     'image/jpeg',
-                    0.88
+                    jpegQuality
                   )
                 }
                 imgElement.onerror = () => {
@@ -920,15 +932,20 @@ export function UploadForm() {
         )}
 
         <div className="flex flex-col sm:flex-row items-center sm:justify-end gap-4 pt-4 pb-12 md:pb-4 w-full">
-          <label className="flex items-center gap-2 cursor-pointer order-2 sm:order-1 bg-surface border border-border/50 px-3 py-2 rounded-lg shadow-sm hover:border-primary-neutral/40 transition-colors w-full sm:w-auto">
-            <input 
-              type="checkbox" 
-              checked={useCompression} 
-              onChange={(e) => setUseCompression(e.target.checked)} 
-              className="w-4 h-4 rounded border-border/50 accent-primary-neutral shrink-0" 
+          <div className="order-2 sm:order-1 w-full sm:w-auto">
+            <CustomSelect
+              value={compressionQuality}
+              onChange={setCompressionQuality}
+              className="w-full sm:w-64"
+              placement="top"
+              options={[
+                { value: 'none', label: 'Asli (Tanpa Kompresi)' },
+                { value: 'high', label: 'Kualitas Tinggi (Lambat)' },
+                { value: 'medium', label: 'Kualitas Sedang (Disarankan)' },
+                { value: 'small', label: 'Kualitas Rendah (Cepat)' }
+              ]}
             />
-            <span className="text-sm text-text-muted font-medium whitespace-nowrap">Kompres Resolusi (upload lebih Cepat)</span>
-          </label>
+          </div>
           <Button 
             type="submit" 
             disabled={uploadState !== 'idle' || images.length === 0} 

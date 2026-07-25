@@ -15,9 +15,10 @@ interface CustomSelectProps {
   placeholder?: string
   className?: string
   size?: 'default' | 'sm'
+  placement?: 'bottom' | 'top'
 }
 
-export function CustomSelect({ value, onChange, options, placeholder = 'Pilih salah satu...', className = '', size = 'default' }: CustomSelectProps) {
+export function CustomSelect({ value, onChange, options, placeholder = 'Pilih salah satu...', className = '', size = 'default', placement = 'bottom' }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -55,7 +56,11 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Pilih sa
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 min-w-full mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-md border border-border/50 bg-background shadow-lg p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className={`absolute z-50 min-w-full max-h-60 overflow-y-auto overscroll-contain rounded-md border border-border/50 bg-background shadow-lg p-1 animate-in fade-in duration-200 ${
+          placement === 'top' 
+            ? 'bottom-full mb-1 slide-in-from-bottom-2' 
+            : 'top-full mt-1 slide-in-from-top-2'
+        }`}>
           {options.map((opt) => (
             <button
               key={opt.value}
