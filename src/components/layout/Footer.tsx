@@ -1,5 +1,6 @@
 import React from 'react'
 import { createClient } from '@/lib/supabase/server'
+import packageJson from '../../../package.json'
 
 export async function Footer() {
   const supabase = await createClient()
@@ -58,6 +59,9 @@ export async function Footer() {
 
           <p className="text-[10px] md:text-[11px] text-text-main/70 leading-relaxed max-w-[250px] md:max-w-none mx-auto">
             Made with <span className="text-primary-neutral animate-pulse mx-0.5 inline-block">♥</span> using Next.js, Tailwind, Supabase, Cloudinary & ZenoFM.
+          </p>
+          <p className="text-[10px] text-text-main/40 mt-1 font-mono tracking-widest">
+            v{packageJson.version}
           </p>
         </div>
 

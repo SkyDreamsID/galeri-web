@@ -7,6 +7,7 @@ import { ImagePlus, Images, LogOut, Settings, Menu, X, Camera, Folder, Tag, Glob
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from 'next-themes'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
+import packageJson from '../../../package.json'
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -116,7 +117,7 @@ export function Sidebar() {
           <span>Keluar</span>
         </button>
         <div className="text-[9px] text-center text-text-muted/40 font-mono mt-1 select-none">
-          v1.0.0
+          v{packageJson.version}
         </div>
       </div>
     </>

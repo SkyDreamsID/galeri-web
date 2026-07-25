@@ -6,6 +6,23 @@ Format berdasarkan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/), dan
 
 ---
 
+## [1.2.0] - 2026-07-25
+
+### ✨ New Features & Improvements
+- **Global EXIF Privacy Toggle**: Menambahkan opsi untuk menyembunyikan metadata EXIF secara global per postingan dari pengunjung publik. Data EXIF tetap tersimpan aman di database admin.
+- **Physical EXIF Injection (`piexifjs`)**: Mengekstrak kode biner EXIF dari foto asli dan menyuntikkannya ke foto hasil kompresi kanvas. Pengunjung yang mengunduh file hasil kompresi akan mendapatkan metadata kamera yang tetap utuh.
+- **Smart Copyright Memory (Autocomplete)**: Input teks "Copyright Name" kini dilengkapi dengan *datalist* yang memberikan saran otomatis berdasarkan nama-nama kreator yang pernah digunakan sebelumnya.
+- **Dynamic Copyright Fallback**: Jika admin sengaja mengosongkan input *Copyright Name* pada form *Upload*, sistem akan otomatis mengambil nama dari pengaturan "Nama Author" sebagai perlindungan (mencegah *Failed to fetch* dari Cloudinary).
+- **Quick Status Toggle**: Status tayang (PUBLIK/PRIBADI) kini bisa diubah secara instan langsung dari halaman daftar galeri tanpa perlu masuk ke form *Edit*.
+- **Enhanced Compression Thresholds**: Resolusi kompresi kanvas dinaikkan dari 2500px menjadi 3840px (4K) dengan kualitas 92% agar hasil *upload* tetap premium dan tajam.
+- **App Version Badge**: Menampilkan versi aplikasi (misal: v1.2.0) di ujung bawah komponen `Footer` halaman publik.
+
+### 🐛 Fixed
+- **Mobile Tag Input Bug**: Memperbaiki masalah pada *keyboard virtual* (HP) di mana menekan *Enter* atau Spasi pada kolom Tag sering kali digabung menjadi satu kalimat. Input tag kini otomatis memisahkan kata berdasarkan Spasi dan Koma menggunakan event `onChange`.
+- **Unhandled Promise Rejection**: Mencegah dan menangkap *error* di konsole saat antrean proses unggah (*worker*) dibatalkan secara manual oleh pengguna (Klik "Batal").
+
+---
+
 ## [1.1.0] - 2026-07-24
 
 ### ⚡ Added & Optimized

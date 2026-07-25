@@ -24,10 +24,9 @@ export function TagInput({ tags, setTags, availableTags = [], placeholder }: Tag
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
+    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
       e.preventDefault()
       addTag()
-      setIsFocused(false)
     }
   }
 
@@ -72,7 +71,14 @@ export function TagInput({ tags, setTags, availableTags = [], placeholder }: Tag
         <input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value
+            if (val.endsWith(',') || val.endsWith(' ')) {
+              addTag(val.slice(0, -1))
+            } else {
+              setInputValue(val)
+            }
+          }}
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           placeholder={tags.length === 0 ? placeholder : 'Ketik tag baru...'}
