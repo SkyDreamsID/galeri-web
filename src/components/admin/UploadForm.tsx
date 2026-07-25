@@ -296,7 +296,7 @@ export function UploadForm() {
 
                   ctx.drawImage(imgElement, 0, 0, width, height)
 
-                  if (img.file.type === 'image/jpeg' || img.file.type === 'image/jpg') {
+                  if (!isMobile && (img.file.type === 'image/jpeg' || img.file.type === 'image/jpg')) {
                     try {
                       // Ekstrak EXIF dari file asli lalu injeksi ke hasil canvas
                       const reader = new FileReader()
@@ -332,7 +332,7 @@ export function UploadForm() {
                     }
                   }
 
-                  // Fallback: 100% C++ Blob (Bypass Base64)
+                  // Jalur Mobile / Fallback: 100% C++ Blob (Bypass Base64, RAM super hemat)
                   canvas.toBlob(
                     (blob) => {
                       if (!blob) return resolve(img.file)
