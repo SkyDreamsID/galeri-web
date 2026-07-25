@@ -93,6 +93,13 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 - [x] Responsive & Layout refinement (Koreksi Masonry Grid, CSS Columns & isolasi layout mobile/tablet)
 - [x] Accessibility (Penguatan kontras warna teks nav/footer & perapian hierarki tag HTML `<h1>` -> `<h2>`)
 
+### Phase 7.5: Post-Launch Patches (v1.2.0)
+*Fokus: Stabilitas unggahan di perangkat seluler (Mobile) dan fitur manajemen kualitas (Compression).*
+- [x] **Serverless API Relay Upload**: Menghindari pemblokiran koneksi API pihak ketiga oleh HP (AdBlock/Private DNS) via rute lokal `/api/cloudinary/upload`.
+- **Multi-Level Compression Options**: Menambahkan *dropdown* pemilihan kualitas (Asli, Tinggi, Sedang, Rendah) untuk mengakomodasi sinyal lemah.
+- [x] **Ultra-Low Memory Pipeline**: Mencegah *crash* dan lonjakan RAM saat unggah banyak file 4K di browser seluler (*Failed to fetch* fix).
+- [x] **Original Filename Preservation**: Memastikan metadata nama asli foto tidak lenyap saat file diproses sebagai Base64 di server Next.js.
+
 ---
 
 ## 🚀 Future Expansion Plan (Ide Baru Post v1.0)

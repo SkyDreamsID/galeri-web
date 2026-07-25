@@ -48,6 +48,12 @@ export async function POST(request: Request) {
       resource_type: 'auto'
     })
 
+    // Kembalikan nama file asli (tanpa ekstensi) karena upload via Base64 menghilangkan metadata nama file
+    if (!result.original_filename) {
+      const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name
+      result.original_filename = nameWithoutExt
+    }
+
     return NextResponse.json(result)
   } catch (error: any) {
     console.error('Relay Upload Error:', error)

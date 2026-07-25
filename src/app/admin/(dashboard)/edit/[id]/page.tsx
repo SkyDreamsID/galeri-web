@@ -351,7 +351,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
               public_id: cloudData.public_id,
               bytes: cloudData.bytes,
               format: cloudData.format,
-              original_filename: cloudData.original_filename,
+              original_filename: cloudData.original_filename || fileToUpload.name.substring(0, fileToUpload.name.lastIndexOf('.')) || fileToUpload.name,
               exif: img.exif
             }
           })

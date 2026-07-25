@@ -375,7 +375,7 @@ export function UploadForm() {
               public_id: cloudData.public_id,
               bytes: cloudData.bytes,
               format: cloudData.format,
-              original_filename: cloudData.original_filename,
+              original_filename: cloudData.original_filename || img.file.name.substring(0, img.file.name.lastIndexOf('.')) || img.file.name,
               license_type: img.license_type,
               exif: img.exif,
               show_watermark: img.show_watermark !== false,

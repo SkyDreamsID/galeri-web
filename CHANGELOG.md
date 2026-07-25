@@ -9,6 +9,9 @@ Format berdasarkan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/), dan
 ## [1.2.0] - 2026-07-25
 
 ### ✨ New Features & Improvements
+- **Serverless API Relay Upload**: Mem-bypass pemblokiran *AdBlocker* / *Private DNS* di browser HP (Mobile CORS Block) dengan merutekan proses unggah Cloudinary via Base64 lewat backend Next.js (`/api/cloudinary/upload`).
+- **Multi-Level Compression Options**: Menambahkan *dropdown* kualitas resolusi foto (Asli, Tinggi, Sedang, Rendah) untuk mengakomodasi koneksi jaringan internet yang lambat.
+- **Original Filename Preservation**: Mempertahankan nama asli foto yang diunggah via API *Base64* ke Cloudinary agar nama file tidak menjadi ID acak saat di-*download* kembali.
 - **Custom Delete Confirmation Modal**: Menggantikan dialog bawaan browser (`confirm()`) saat menghapus momen dengan Modal Dialog custom estetik yang dilengkapi *backdrop blur*, ikon peringatan merah (`AlertTriangle`), serta penegasan nama momen yang dihapus.
 - **Real-Time Compression & Upload Progress**: Menampilkan status teks progres yang informatif saat foto sedang dikompresi (misal: `Mengompres foto "DSC_012.JPG" (1/3)...`) maupun saat diunggah ke Cloudinary.
 - **Ultra-Low Memory Compression Pipeline**: Mengoptimalkan sistem kompresi 4K di perangkat HP menggunakan `URL.createObjectURL` & `canvas.toBlob()` untuk mengeliminasi lonjakan RAM JS dan mencegah error `Failed to fetch`.
@@ -22,7 +25,8 @@ Format berdasarkan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/), dan
 - **App Version Badge**: Menampilkan versi aplikasi (v1.2.0) di ujung bawah komponen `Footer` halaman publik dan Admin Sidebar.
 
 ### 🐛 Fixed & Optimized
-- **Mobile Network Drop (Failed to Fetch)**: Mengatasi terputusnya koneksi unggah ke Cloudinary pada browser HP akibat lonjakan pemakaian memori Base64.
+- **Card Spacing UI Fix**: Merapikan padding dan jarak vertikal (*gap*) ganda yang berlebihan antara *CardHeader* dan *CardContent* pada form *Upload* dan *Edit*.
+- **Mobile Network Drop (Failed to Fetch)**: Mengatasi terputusnya koneksi unggah ke Cloudinary pada browser HP akibat pemblokiran pihak ketiga dan lonjakan pemakaian memori.
 - **Mobile Tag Input Bug**: Memperbaiki masalah pada *keyboard virtual* (HP) di mana menekan *Enter* atau Spasi pada kolom Tag sering kali digabung menjadi satu kalimat.
 - **Unhandled Promise Rejection**: Mencegah dan menangkap *error* di konsole saat antrean proses unggah (*worker*) dibatalkan secara manual oleh pengguna (Klik "Batal").
 
