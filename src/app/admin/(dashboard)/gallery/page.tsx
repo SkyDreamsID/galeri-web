@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye, DownloadCloud, Search, Share2 } from 'lucide-react'
+import { Loader2, MapPin, Calendar, Trash2, Pencil, Eye, DownloadCloud, Search, Share2, AlertTriangle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -36,6 +36,7 @@ export default function GalleryManagement() {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string, title: string } | null>(null)
   const observerTarget = useRef<HTMLDivElement>(null)
 
   const fetchPostsBatch = useCallback(async (pageIndex: number, isInitial = false) => {
@@ -128,8 +129,6 @@ export default function GalleryManagement() {
   }
 
   const handleDelete = async (postId: string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus momen ini beserta seluruh fotonya secara permanen dari Cloudinary & Database?')) return
-
     setDeletingId(postId)
     try {
       const res = await fetch('/api/post/delete', {
@@ -143,6 +142,7 @@ export default function GalleryManagement() {
 
       toast.success('Momen berhasil dihapus!')
       setPosts((prev) => prev.filter((post) => post.id !== postId))
+      setDeleteTarget(null)
     } catch (err: any) {
       console.error(err)
       toast.error(`Gagal menghapus: ${err.message}`)
@@ -307,7 +307,7 @@ export default function GalleryManagement() {
                       variant="destructive"
                       size="sm"
                       disabled={deletingId === post.id}
-                      onClick={() => handleDelete(post.id)}
+                      onClick={() => setDeleteTarget({ id: post.id, title: post.title })}
                       className="flex-1 xl:flex-none h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs bg-red-500/90 hover:bg-red-500 text-white transition-colors"
                     >
                       {deletingId === post.id ? (
@@ -339,6 +339,43 @@ export default function GalleryManagement() {
         </>
       )}
       </div>
+      {/* Modal Konfirmasi Hapus Sleek */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-md bg-surface border-border/50 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <CardContent className="p-6 md:p-8 flex flex-col items-center text-center space-y-4">
+              <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mb-1">
+                <AlertTriangle className="w-7 h-7" />
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-heading font-bold text-text-main mb-2">Hapus Momen Permanen?</h3>
+                <p className="text-xs md:text-sm text-text-muted leading-relaxed">
+                  Apakah Anda yakin ingin menghapus momen <span className="font-semibold text-text-main">"{deleteTarget.title}"</span> beserta seluruh fotonya secara permanen dari Cloudinary & Database?
+                </p>
+              </div>
+              <div className="flex items-center gap-3 w-full pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={deletingId !== null}
+                  onClick={() => setDeleteTarget(null)}
+                  className="flex-1 h-10 text-xs md:text-sm border border-border/50 text-text-main hover:bg-border/30"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="button"
+                  disabled={deletingId !== null}
+                  onClick={() => handleDelete(deleteTarget.id)}
+                  className="flex-1 h-10 text-xs md:text-sm bg-red-500 hover:bg-red-600 text-white font-medium shadow-md shadow-red-500/20"
+                >
+                  {deletingId ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Hapus Permanen'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

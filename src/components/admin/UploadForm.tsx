@@ -265,6 +265,7 @@ export function UploadForm() {
             
             let fileToUpload = img.file
             if (shouldCompress && fileToUpload.type.startsWith('image/')) {
+              setUploadProgress(`Mengompres foto "${img.file.name}" (${index + 1}/${images.length})...`)
               fileToUpload = await new Promise<File>((resolve) => {
                 const imgElement = new Image()
                 const objectUrl = URL.createObjectURL(img.file)
@@ -333,6 +334,8 @@ export function UploadForm() {
                 imgElement.src = objectUrl
               })
             }
+
+            setUploadProgress(`Mengunggah foto "${img.file.name}" (${index + 1}/${images.length})...`)
 
             const formData = new FormData()
             formData.append('file', fileToUpload)
@@ -741,11 +744,10 @@ export function UploadForm() {
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 w-full sm:w-auto">
                 <div className="relative flex items-center w-full sm:w-44">
-                  <span className="absolute left-2.5 text-xs font-bold text-text-muted select-none pointer-events-none">©</span>
                   <Input 
                     value={bulkCopyrightName} 
                     onChange={(e) => setBulkCopyrightName(e.target.value)}
-                    placeholder={settings?.author_name || "Masukkan Nama"}
+                    placeholder="Masukkan Nama"
                     list="copyright-history"
                     className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 pl-6 pr-2 w-full text-[13px] md:text-sm"
                   />
@@ -832,10 +834,10 @@ export function UploadForm() {
                     <img src={img.preview} alt="preview" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
                   </div>
                   <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between rounded-b-[10px]">
-                    <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2">
+                    <div className="flex flex-col gap-1.5 w-full">
                       <div className="font-medium text-text-main truncate w-full" title={img.file.name}>{img.file.name}</div>
-                      <div className="relative flex items-center shrink-0 w-28 md:w-36">
-                        <span className="absolute left-2 text-[10px] md:text-xs font-bold text-primary-neutral select-none pointer-events-none">©</span>
+                      <div className="relative flex items-center w-full">
+                        <span className="absolute left-2.5 text-[10px] md:text-xs font-bold text-primary-neutral select-none pointer-events-none">©</span>
                         <Input
                           value={img.exif.copyright_name ?? (settings?.author_name || '')}
                           onChange={(e) => {
@@ -845,7 +847,7 @@ export function UploadForm() {
                           }}
                           list="copyright-history"
                           placeholder={settings?.author_name || "Copyright"}
-                          className="h-6 w-full text-[10px] md:text-xs pl-5 pr-2 bg-primary-neutral/10 border-primary-neutral/20 focus:border-primary-neutral text-primary-neutral font-medium rounded-full truncate"
+                          className="h-7 w-full text-[10px] md:text-xs pl-6 pr-2 bg-primary-neutral/10 border-primary-neutral/20 focus:border-primary-neutral text-primary-neutral font-medium rounded-full truncate"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>

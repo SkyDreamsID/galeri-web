@@ -64,6 +64,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
   const [bulkCopyrightName, setBulkCopyrightName] = useState('')
   const [bulkLicense, setBulkLicense] = useState('Copyright')
+  const [copyrightHistory, setCopyrightHistory] = useState<string[]>([])
 
   // Track deleted existing photos
   const [deletedPhotos, setDeletedPhotos] = useState<{ id: string; public_id: string }[]>([])
@@ -125,6 +126,13 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           setAllTags(allTagsData.map(t => t.name))
         }
 
+        // Fetch copyright history
+        const { data: photosData } = await supabase.from('photos').select('copyright_name').not('copyright_name', 'is', null)
+        if (photosData) {
+          const uniqueNames = Array.from(new Set(photosData.map(p => p.copyright_name).filter(Boolean)))
+          setCopyrightHistory(uniqueNames as string[])
+        }
+
         // 3. Map Photos
         if (post.photos) {
           const sortedPhotos = [...post.photos].sort((a, b) => a.sort_order - b.sort_order)
@@ -146,7 +154,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 iso: exif.iso || undefined,
                 shutter_speed: exif.shutter_speed || undefined,
                 date_taken: exif.date_taken || undefined,
-                copyright_name: p.copyright_name || ''
+                copyright_name: p.copyright_name || settings?.author_name || ''
               }
             }
           })
@@ -201,7 +209,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
           console.warn('Could not parse EXIF for', file.name)
         }
 
-        return { id: `new-${Math.random().toString(36).substring(7)}`, file, preview: URL.createObjectURL(file), license_type: 'Copyright', show_watermark: true, exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
+        return { id: `new-${Math.random().toString(36).substring(7)}`, file, preview: URL.createObjectURL(file), license_type: 'Copyright', show_watermark: true, exif: { ...exifData, copyright_name: exifData.copyright_name || settings?.author_name || '' } }
       })
     )
     setImages((prev) => [...prev, ...newImages])
@@ -288,8 +296,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 imageObj.src = URL.createObjectURL(img.file!)
                 imageObj.onload = () => {
                   const canvas = document.createElement('canvas')
-                  const MAX_WIDTH = 2500
-                  const MAX_HEIGHT = 2500
+                  const MAX_WIDTH = 3840
+                  const MAX_HEIGHT = 3840
                   let width = imageObj.width
                   let height = imageObj.height
                   
@@ -470,6 +478,9 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12 w-full overflow-x-hidden md:overflow-visible">
+      <datalist id="copyright-history">
+        {copyrightHistory.map((name, i) => <option key={i} value={name} />)}
+      </datalist>
       <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 relative w-full">
         {/* Kolom Kiri: Meta Data Post */}
         <div className="lg:col-span-1 space-y-4 md:space-y-6">
@@ -625,12 +636,16 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                   </label>
                 </div>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 w-full sm:w-auto mt-2 sm:mt-0 min-w-0">
+                <div className="relative flex items-center w-full sm:w-44">
+                  <span className="absolute left-2.5 text-xs font-bold text-text-muted select-none pointer-events-none">©</span>
                   <Input 
                     value={bulkCopyrightName} 
                     onChange={(e) => setBulkCopyrightName(e.target.value)}
                     placeholder="Masukkan Nama"
-                    className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-8 md:h-9 w-full sm:w-40 text-[11px] md:text-sm px-2 min-w-0"
+                    list="copyright-history"
+                    className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-8 md:h-9 pl-6 pr-2 w-full text-[11px] md:text-sm min-w-0"
                   />
+                </div>
                   <CustomSelect
                     value={bulkLicense}
                     onChange={setBulkLicense}
@@ -645,7 +660,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                     disabled={selectedPhotos.length === 0}
                     onClick={() => {
                       setImages(prev => prev.map((img, i) => 
-                        selectedPhotos.includes(i) ? { ...img, license_type: bulkLicense, exif: { ...img.exif, copyright_name: bulkCopyrightName || img.exif.copyright_name } } : img
+                        selectedPhotos.includes(i) ? { ...img, license_type: bulkLicense, exif: { ...img.exif, copyright_name: bulkCopyrightName.trim() || img.exif.copyright_name || settings?.author_name || '' } } : img
                       ))
                       setSelectedPhotos([])
                     }}
@@ -714,13 +729,25 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                     </div>
 
                     <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between min-w-0 rounded-b-[10px]">
-                      <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2 min-w-0">
+                      <div className="flex flex-col gap-1.5 w-full min-w-0">
                         <div className="font-medium text-text-main truncate w-full" title={img.file ? img.file.name : 'Foto Tersimpan'}>
                           {img.file ? img.file.name : 'Foto Tersimpan'}
                         </div>
-                        <span className="shrink-0 inline-flex items-center rounded-full bg-primary-neutral/10 px-2.5 py-1 text-[10px] md:text-xs font-medium text-primary-neutral border border-primary-neutral/20 max-w-full truncate">
-                          © {img.exif.copyright_name}
-                        </span>
+                        <div className="relative flex items-center w-full">
+                          <span className="absolute left-2.5 text-[10px] md:text-xs font-bold text-primary-neutral select-none pointer-events-none">©</span>
+                          <Input
+                            value={img.exif.copyright_name ?? (settings?.author_name || '')}
+                            onChange={(e) => {
+                              const newImages = [...images]
+                              newImages[idx].exif.copyright_name = e.target.value
+                              setImages(newImages)
+                            }}
+                            list="copyright-history"
+                            placeholder={settings?.author_name || "Copyright"}
+                            className="h-7 w-full text-[10px] md:text-xs pl-6 pr-2 bg-primary-neutral/10 border-primary-neutral/20 focus:border-primary-neutral text-primary-neutral font-medium rounded-full truncate"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
                       </div>
                       
                       <CustomSelect

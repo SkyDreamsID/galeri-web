@@ -9,16 +9,21 @@ Format berdasarkan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/), dan
 ## [1.2.0] - 2026-07-25
 
 ### ✨ New Features & Improvements
-- **Global EXIF Privacy Toggle**: Menambahkan opsi untuk menyembunyikan metadata EXIF secara global per postingan dari pengunjung publik. Data EXIF tetap tersimpan aman di database admin.
-- **Physical EXIF Injection (`piexifjs`)**: Mengekstrak kode biner EXIF dari foto asli dan menyuntikkannya ke foto hasil kompresi kanvas. Pengunjung yang mengunduh file hasil kompresi akan mendapatkan metadata kamera yang tetap utuh.
-- **Smart Copyright Memory (Autocomplete)**: Input teks "Copyright Name" kini dilengkapi dengan *datalist* yang memberikan saran otomatis berdasarkan nama-nama kreator yang pernah digunakan sebelumnya.
-- **Dynamic Copyright Fallback**: Jika admin sengaja mengosongkan input *Copyright Name* pada form *Upload*, sistem akan otomatis mengambil nama dari pengaturan "Nama Author" sebagai perlindungan (mencegah *Failed to fetch* dari Cloudinary).
+- **Custom Delete Confirmation Modal**: Menggantikan dialog bawaan browser (`confirm()`) saat menghapus momen dengan Modal Dialog custom estetik yang dilengkapi *backdrop blur*, ikon peringatan merah (`AlertTriangle`), serta penegasan nama momen yang dihapus.
+- **Real-Time Compression & Upload Progress**: Menampilkan status teks progres yang informatif saat foto sedang dikompresi (misal: `Mengompres foto "DSC_012.JPG" (1/3)...`) maupun saat diunggah ke Cloudinary.
+- **Ultra-Low Memory Compression Pipeline**: Mengoptimalkan sistem kompresi 4K di perangkat HP menggunakan `URL.createObjectURL` & `canvas.toBlob()` untuk mengeliminasi lonjakan RAM JS dan mencegah error `Failed to fetch`.
+- **Downscale-Only 4K Threshold**: Memastikan foto dengan resolusi tinggi disesuaikan ke maksimal 3840px (4K), sementara foto beresolusi di bawah 4K tetap pada ukuran aslinya tanpa di-upscale/merusak kualitas.
+- **Redesigned Copyright Pill Input**: Menyempurnakan tata letak input copyright pada kartu foto (Upload & Edit form) dengan format vertikal, prefiks ikon `©`, dan *fallback* nama author otomatis jika dikosongkan.
+- **Global EXIF Privacy Toggle**: Menambahkan opsi untuk menyembunyikan metadata EXIF secara global per postingan dari pengunjung publik.
+- **Physical EXIF Injection (`piexifjs`)**: Mengekstrak kode biner EXIF dari foto asli dan menyuntikkannya ke foto hasil kompresi kanvas agar metadata tetap utuh saat diunduh.
+- **Smart Copyright Memory (Autocomplete)**: Input teks "Copyright Name" kini dilengkapi dengan *datalist* yang memberikan saran otomatis dari histori nama kreator sebelumnya.
 - **Quick Status Toggle**: Status tayang (PUBLIK/PRIBADI) kini bisa diubah secara instan langsung dari halaman daftar galeri tanpa perlu masuk ke form *Edit*.
-- **Enhanced Compression Thresholds**: Resolusi kompresi kanvas dinaikkan dari 2500px menjadi 3840px (4K) dengan kualitas 92% agar hasil *upload* tetap premium dan tajam.
-- **App Version Badge**: Menampilkan versi aplikasi (misal: v1.2.0) di ujung bawah komponen `Footer` halaman publik.
+- **Admin Navigation Scroll Reset**: Memaksa posisi scroll me-reset ke paling atas `(0,0)` saat masuk atau berpindah antar halaman di Admin Dashboard.
+- **App Version Badge**: Menampilkan versi aplikasi (v1.2.0) di ujung bawah komponen `Footer` halaman publik dan Admin Sidebar.
 
-### 🐛 Fixed
-- **Mobile Tag Input Bug**: Memperbaiki masalah pada *keyboard virtual* (HP) di mana menekan *Enter* atau Spasi pada kolom Tag sering kali digabung menjadi satu kalimat. Input tag kini otomatis memisahkan kata berdasarkan Spasi dan Koma menggunakan event `onChange`.
+### 🐛 Fixed & Optimized
+- **Mobile Network Drop (Failed to Fetch)**: Mengatasi terputusnya koneksi unggah ke Cloudinary pada browser HP akibat lonjakan pemakaian memori Base64.
+- **Mobile Tag Input Bug**: Memperbaiki masalah pada *keyboard virtual* (HP) di mana menekan *Enter* atau Spasi pada kolom Tag sering kali digabung menjadi satu kalimat.
 - **Unhandled Promise Rejection**: Mencegah dan menangkap *error* di konsole saat antrean proses unggah (*worker*) dibatalkan secara manual oleh pengguna (Klik "Batal").
 
 ---
