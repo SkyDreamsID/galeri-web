@@ -24,6 +24,9 @@ export function Sidebar() {
   useEffect(() => {
     setIsMounted(true)
 
+    // Force scroll to top when navigating into or within the admin dashboard
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+
     // Handle click outside to close details menus
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -36,7 +39,7 @@ export function Sidebar() {
     
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [])
+  }, [pathname])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
