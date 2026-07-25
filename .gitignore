@@ -37,8 +37,10 @@ yarn-error.log*
 # temporary files
 temp_header.md
 generate_report.js
+generate_report_v2.js
 VIDEO_DEMO_SCRIPT.md
 ngrok.exe
+laporan_koding.md
 
 # vercel
 .vercel
