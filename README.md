@@ -2,14 +2,14 @@
 
 ![Version](https://img.shields.io/badge/version-v1.3.0-blue.svg) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Changelog](https://img.shields.io/badge/Changelog-v1.3.0-green.svg)](CHANGELOG.md)
 
-Sebuah platform galeri foto premium dan jurnal visual, dibangun menggunakan teknologi modern untuk fotografer yang ingin memamerkan mahakaryanya dengan elegan.
+Sebuah aplikasi web galeri personal dan jurnal visual, dibangun menggunakan teknologi modern untuk fotografer, seniman digital, dan kreator visual yang ingin memamerkan mahakaryanya dengan elegan.
 
 Proyek ini bukan sekadar *image viewer*, melainkan **Aplikasi Full-Stack dengan CMS (Content Management System) Internal**, ekstraksi data EXIF otomatis, *showcase* perlengkapan (Gear Management), dan integrasi radio streaming interaktif.
 
 > 🌐 **Web Preview:** [jurnalvisual.vercel.app](https://jurnalvisual.vercel.app)
 
 ## 💡 Mengapa Jurnal Visual?
-Dibuat untuk fotografer dan seniman visual yang ingin memiliki kontrol penuh atas *branding*, metadata SEO, dan koleksi karyanya sendiri tanpa batasan platform pihak ketiga (sosial media atau galeri publik). Repositori ini memberikan Anda kemerdekaan teknis 100%.
+Dibuat untuk fotografer, seniman digital, desainer, dan kreator visual yang ingin memiliki kontrol penuh atas *branding*, metadata SEO, dan portofolio karya ciptanya tanpa batasan platform pihak ketiga (sosial media atau galeri publik). Repositori ini memberikan Anda kemerdekaan teknis 100%.
 
 <details>
 <summary><b>📸 Preview Jurnal Visual (Klik untuk memperluas)</b></summary>
@@ -22,17 +22,17 @@ Segera Hadir..
 ## ✨ Fitur Utama
 
 - 🎨 **Kustomisasi Tema & Watermark Dinamis**: Ubah skema warna web serta kustomisasi posisi (9 arah), font (Arial, Montserrat, Noto Sans, Playfair, Monospace, Playpen Sans), ukuran, dan transparansi watermark via Studio Live Preview 4:3!
-- ⚙️ **Web CMS (Pengaturan Dinamis)**: Ubah nama website, teks footer, logo, dan tautan media sosial secara instan.
-- 🖼️ **Masonry Grid & Smart Crop**: Menampilkan foto dalam *grid* rapi dengan pengoptimalan orientasi cerdas (integrasi Cloudinary).
-- 📸 **Auto-EXIF Extraction**: Mengunggah foto secara otomatis mengekstrak metadata kamera (Kamera, Lensa, Focal Length, Aperture, ISO, Shutter Speed).
-- ©️ **Per-Photo Copyright & Watermark On-the-Fly**: Hak cipta per-foto dinamis. Watermark di-*render* langsung via Cloudinary URL (tanpa merusak gambar asli) dan dapat dikontrol per-foto dari Admin.
-- 🎒 **Gear Showcase**: Integrasi komponen yang memamerkan inventaris kamera & lensa yang digunakan.
+- ⚙️ **Web CMS (Pengaturan Dinamis)**: Ubah nama website, teks footer, logo, tautan media sosial, serta **Kustomisasi Watermark** dengan mudah.
+- 🖼️ **Masonry Grid & Smart Crop**: Menampilkan karya foto dan media visual dalam *grid* rapi dengan pengoptimalan orientasi cerdas (integrasi Cloudinary).
+- 📸 **Auto-EXIF Extraction**: Mengunggah foto fotografi secara otomatis mengekstrak metadata kamera (Kamera, Lensa, Focal Length, Aperture, ISO, Shutter Speed). Metadata ini dapat disembunyikan secara global jika mengunggah karya seni digital.
+- ©️ **Per-Photo Copyright & Watermark On-the-Fly**: Hak cipta per-foto dinamis. Watermark di-*render* langsung via Cloudinary URL (tanpa merusak gambar asli) dan dapat dikontrol per-karya dari Admin.
+- 🎒 **Gear Showcase**: Integrasi komponen yang memamerkan inventaris alat (kamera, lensa, maupun perangkat kerja digital) yang digunakan.
 - 📻 **Gallery Radio**: Widget pemutar musik *real-time* (mendukung link ZenoFM, Icecast, Shoutcast).
 - ⚡ **Optimasi Kecepatan & SEO**: Skor PageSpeed tinggi (>90 Mobile/Desktop) dengan optimasi LCP, rendering deterministik (bebas Hydration Error), *Pre-fetch Infinite Scroll*, PWA Support, dan Aksesibilitas 100/100.
-- 👥 **Collaborative Identity / Multi-Creator**: Mendukung karya kolaborasi di mana setiap foto dapat memiliki kreator berbeda, dan metadata SEO otomatis menyesuaikan nama kreator (e.g., A, B & C).
+- 👥 **Collaborative Identity / Multi-Creator**: Mendukung karya kolaborasi di mana setiap media dapat memiliki kreator berbeda, dan metadata SEO otomatis menyesuaikan nama kreator (e.g., A, B & C).
 - 📊 **Post Analytics (Views, Downloads, Shares)**: Pelacakan interaksi pengunjung pada setiap rilis yang dilengkapi dengan proteksi *rate-limiting*. Dapat disembunyikan kapan saja secara dinamis melalui Admin Panel.
 - 📱 **Fluid Responsive & Pixel-Perfect**: Tata letak yang dioptimalkan untuk segala skenario orientasi perangkat lengkap dengan *Custom Components*.
-- 🔒 **Admin Dashboard**: Panel kontrol terisolasi yang dilindungi Middleware untuk mengunggah foto, manajemen galeri, dan pengaturan situs (Mobile Friendly!).
+- 🔒 **Admin Dashboard**: Panel kontrol terisolasi yang dilindungi Middleware untuk mengunggah media, manajemen galeri, dan pengaturan situs (Mobile Friendly!).
 
 ---
 
@@ -124,13 +124,14 @@ Buka `http://localhost:3000` untuk melihat web publik Anda, dan buka `http://loc
 
 Setelah berhasil login ke `/admin`, navigasikan ke menu **Pengaturan**. Di sini Anda bisa:
 - **Kustomisasi Tema**: Ubah warna *Primary*, warna Latar Belakang (Dark & Light) menggunakan kode Hex tanpa perlu membuka editor kode.
+- **Kustomisasi Watermark Studio**: Atur posisi watermark (9 arah), pilihan font (Arial, Montserrat, Noto Sans, Playfair, Monospace, Playpen Sans), ukuran, dan tingkat transparansi secara *real-time* via *Studio Live Preview 4:3*.
 - **Identitas Web**: Mengubah Nama Author, Judul Hero, Teks Footer, Logo Situs.
 - **Logo Media Sosial**: Anda dapat mengunggah ikon logo (gambar PNG/SVG) kustom untuk setiap tautan media sosial yang ditambahkan.
 - **Widget Radio Streaming**: Masukkan URL *streaming* langsung (contoh: Icecast URL atau ZenoFM URL) untuk memunculkan pemutar musik *chill/lo-fi* di web Anda.
 - **Pengaturan Cloudinary**: Masukkan Cloud Name dari akun Cloudinary Anda (alternatif dari `.env.local`).
 
-### Mengelola Watermark Per-Foto
-Saat upload atau mengedit foto, tersedia checkbox **"Tampilkan watermark"** di bawah opsi lisensi tiap foto. Jika dicentang, nama copyright akan ditampilkan sebagai watermark transparan di pojok kanan bawah foto (diproses via Cloudinary, tanpa merusak file asli).
+### Mengelola Watermark Per-Karya
+Saat upload atau mengedit karya, tersedia checkbox **"Tampilkan watermark"** di bawah opsi lisensi tiap media. Jika dicentang, watermark akan di-render secara dinamis via Cloudinary URL sesuai konfigurasi studio tanpa merusak file asli.
 
 ---
 
