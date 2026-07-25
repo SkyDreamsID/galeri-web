@@ -541,10 +541,10 @@ export function UploadForm() {
       {/* Kolom Kiri: Detail Momen */}
       <div className="lg:col-span-1 space-y-4 md:space-y-6">
         <Card className="bg-surface border-border/40 shadow-sm overflow-visible">
-          <CardHeader className="p-4 pb-0 md:p-6 md:pb-6">
+          <CardHeader className="p-4 pb-2 md:p-6 md:pb-4">
             <CardTitle className="text-text-main font-heading text-xl md:text-2xl">Detail Momen</CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-4 md:p-6 space-y-3 md:space-y-4">
+          <CardContent className="p-4 pt-2 md:p-6 md:pt-0 space-y-3 md:space-y-4">
             <div className="space-y-1.5 md:space-y-2">
               <Label className="text-text-muted">Judul Momen</Label>
               <Input 

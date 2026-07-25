@@ -490,7 +490,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
         {/* Kolom Kiri: Meta Data Post */}
         <div className="lg:col-span-1 space-y-4 md:space-y-6">
           <Card className="bg-surface border-border/40 shadow-sm overflow-visible">
-            <CardHeader className="p-3 md:p-6 md:pb-6 flex flex-row items-center gap-2 md:gap-4 space-y-0 min-w-0">
+            <CardHeader className="p-3 pb-2 md:p-6 md:pb-4 flex flex-row items-center gap-2 md:gap-4 space-y-0 min-w-0">
               <Link href="/admin/gallery" className="p-1 md:p-2 hover:bg-hover-bg rounded-full transition-colors shrink-0">
                 <ArrowLeft size={18} className="text-text-muted hover:text-text-main md:w-5 md:h-5" />
               </Link>
@@ -499,7 +499,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 <p className="text-[10px] md:text-sm text-text-muted mt-0.5 md:mt-1 truncate">Ubah cerita, lokasi, tag, atau foto pada momen ini.</p>
               </div>
             </CardHeader>
-            <CardContent className="p-4 pt-4 md:p-6 space-y-3 md:space-y-4">
+            <CardContent className="p-4 pt-2 md:p-6 md:pt-0 space-y-3 md:space-y-4">
               <div className="space-y-1.5 md:space-y-2">
                 <Label className="text-text-muted text-xs md:text-sm">Judul Momen</Label>
                 <Input 
