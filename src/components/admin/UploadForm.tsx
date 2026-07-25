@@ -140,7 +140,7 @@ export function UploadForm() {
           console.warn('Could not parse EXIF for', file.name)
         }
 
-        return { id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36), file, preview: URL.createObjectURL(file), license_type: 'Copyright', show_watermark: true, exif: { ...exifData, copyright_name: exifData.copyright_name || '' } }
+        return { id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36), file, preview: URL.createObjectURL(file), license_type: 'Copyright', show_watermark: true, exif: { ...exifData, copyright_name: exifData.copyright_name || settings?.author_name || '' } }
       })
     )
     setImages((prev) => {
@@ -740,13 +740,16 @@ export function UploadForm() {
                 </label>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 w-full sm:w-auto">
-                <Input 
-                  value={bulkCopyrightName} 
-                  onChange={(e) => setBulkCopyrightName(e.target.value)}
-                  placeholder="Masukkan Nama"
-                  list="copyright-history"
-                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 w-full sm:w-40 text-[13px] md:text-sm"
-                />
+                <div className="relative flex items-center w-full sm:w-44">
+                  <span className="absolute left-2.5 text-xs font-bold text-text-muted select-none pointer-events-none">©</span>
+                  <Input 
+                    value={bulkCopyrightName} 
+                    onChange={(e) => setBulkCopyrightName(e.target.value)}
+                    placeholder={settings?.author_name || "Masukkan Nama"}
+                    list="copyright-history"
+                    className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 pl-6 pr-2 w-full text-[13px] md:text-sm"
+                  />
+                </div>
                 <CustomSelect
                   value={bulkLicense}
                   onChange={setBulkLicense}
@@ -761,7 +764,7 @@ export function UploadForm() {
                   disabled={selectedPhotos.length === 0}
                   onClick={() => {
                     setImages(prev => prev.map(img => 
-                      selectedPhotos.includes(img.id) ? { ...img, license_type: bulkLicense, exif: { ...img.exif, copyright_name: bulkCopyrightName || img.exif.copyright_name } } : img
+                      selectedPhotos.includes(img.id) ? { ...img, license_type: bulkLicense, exif: { ...img.exif, copyright_name: bulkCopyrightName.trim() || img.exif.copyright_name || settings?.author_name || '' } } : img
                     ))
                     setSelectedPhotos([])
                   }}
@@ -831,17 +834,18 @@ export function UploadForm() {
                   <div className="p-3 md:p-4 bg-surface text-xs text-text-muted space-y-2 border-t border-border/40 flex-1 flex flex-col justify-between rounded-b-[10px]">
                     <div className="flex flex-col xl:flex-row xl:justify-between items-start gap-1 md:gap-2">
                       <div className="font-medium text-text-main truncate w-full" title={img.file.name}>{img.file.name}</div>
-                      <div className="shrink-0 w-24 md:w-32">
+                      <div className="relative flex items-center shrink-0 w-28 md:w-36">
+                        <span className="absolute left-2 text-[10px] md:text-xs font-bold text-primary-neutral select-none pointer-events-none">©</span>
                         <Input
-                          value={img.exif.copyright_name || ''}
+                          value={img.exif.copyright_name ?? (settings?.author_name || '')}
                           onChange={(e) => {
                             const newImages = [...images]
                             newImages[idx].exif.copyright_name = e.target.value
                             setImages(newImages)
                           }}
                           list="copyright-history"
-                          placeholder="Copyright"
-                          className="h-6 w-full text-[10px] md:text-xs px-2 bg-primary-neutral/10 border-primary-neutral/20 focus:border-primary-neutral text-primary-neutral"
+                          placeholder={settings?.author_name || "Copyright"}
+                          className="h-6 w-full text-[10px] md:text-xs pl-5 pr-2 bg-primary-neutral/10 border-primary-neutral/20 focus:border-primary-neutral text-primary-neutral font-medium rounded-full truncate"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
