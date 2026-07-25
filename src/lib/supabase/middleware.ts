@@ -27,9 +27,24 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data, error } = await supabase.auth.getUser()
+    if (error) {
+      // Jika refresh token kadaluarsa atau tidak ditemukan, hapus cookie auth stale agar tidak spam error di terminal
+      if (error.code === 'refresh_token_not_found' || error.status === 400 || error.message?.includes('Refresh Token')) {
+        request.cookies.getAll().forEach((c) => {
+          if (c.name.includes('auth-token') || c.name.startsWith('sb-')) {
+            supabaseResponse.cookies.delete(c.name)
+          }
+        })
+      }
+    } else {
+      user = data.user
+    }
+  } catch {
+    user = null
+  }
 
   // Protect all /admin routes
   if (request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin/login')) {

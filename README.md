@@ -1,6 +1,6 @@
 # 📸 Galeri - Premium Visual Journal & CMS
 
-![Version](https://img.shields.io/badge/version-v1.3.0-blue.svg) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Changelog](https://img.shields.io/badge/Changelog-v1.3.0-green.svg)](CHANGELOG.md)
+![Version](https://img.shields.io/badge/version-v1.3.2-blue.svg) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Changelog](https://img.shields.io/badge/Changelog-v1.3.2-green.svg)](CHANGELOG.md)
 
 Sebuah aplikasi web galeri personal dan jurnal visual, dibangun menggunakan teknologi modern untuk fotografer, seniman digital, dan kreator visual yang ingin memamerkan mahakaryanya dengan elegan.
 

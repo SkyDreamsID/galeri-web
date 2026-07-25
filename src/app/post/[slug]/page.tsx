@@ -70,7 +70,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const creators = uniqueCopyrights.length > 0 ? formatCreators(uniqueCopyrights) : siteTitle
 
   const title = post.title
-  const desc = `Jelajahi karya "${post.title}" oleh ${creators} di ${siteTitle}.`
+  const baseDesc = `Jelajahi karya "${post.title}" oleh ${creators} di ${siteTitle}.`
+  
+  let desc = baseDesc
+  if (post.story) {
+    // Hilangkan tag HTML/Markdown secara sederhana untuk plain text
+    const plainStory = post.story.replace(/<[^>]*>?/gm, '').replace(/[*_~`>#]/g, '').replace(/\n/g, ' ').trim()
+    desc = `${baseDesc} ${plainStory}`
+  }
+
+  // Potong maksimal ~160 karakter agar optimal 2-3 baris di WhatsApp/SEO
+  if (desc.length > 160) {
+    desc = desc.substring(0, 157) + '...'
+  }
 
   return {
     title: title,

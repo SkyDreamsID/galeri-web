@@ -26,9 +26,30 @@ export function getOptimizedImageUrl(
     let transformation = `q_auto,f_auto,w_${width},c_limit`
     
     if (watermarkText && enableWatermark) {
-      // Konfigurasi dinamis
-      let font = options?.font ? options.font.replace(/ /g, '_') : 'Arial'
-      if (font === 'Monospace') font = 'Courier'
+      // Konfigurasi dinamis font & posisi yang 100% didukung Cloudinary (Arial, Roboto, Courier, Georgia, Verdana, Times)
+      const fontMap: Record<string, string> = {
+        'Arial': 'Arial',
+        'Roboto': 'Roboto',
+        'Georgia': 'Georgia',
+        'Times': 'Times',
+        'Verdana': 'Verdana',
+        'Monospace': 'Courier',
+        'Courier': 'Courier',
+        'Impact': 'Arial',
+        'Trebuchet': 'Verdana',
+        'Comic Sans': 'Verdana',
+        'Comic_Sans': 'Verdana',
+        'Montserrat': 'Roboto',
+        'Noto Sans': 'Roboto',
+        'Noto_Sans': 'Roboto',
+        'Playfair Display': 'Georgia',
+        'Playfair_Display': 'Georgia',
+        'Playpen Sans': 'Verdana',
+        'Playpen_Sans': 'Verdana'
+      }
+
+      const reqFont = options?.font || 'Arial'
+      const font = fontMap[reqFont] || 'Arial'
       
       const posMap: Record<string, string> = {
         north_west: 'g_north_west',
@@ -61,8 +82,13 @@ export function getOptimizedImageUrl(
         padStr = `,x_${padding}`
       }
 
+      let fontSpec = `${font}_${fontSize}_bold`
+      if (font === 'Impact') {
+        fontSpec = `${font}_${fontSize}`
+      }
+
       const encodedText = encodeURIComponent(watermarkText)
-      transformation += `/l_text:${font}_${fontSize}_bold:${encodedText},${position}${padStr},co_white,o_${opacity}`
+      transformation += `/l_text:${fontSpec}:${encodedText},${position}${padStr},co_white,o_${opacity}`
     }
     
     // Sisipkan parameter transformasi sebelum /upload/

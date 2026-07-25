@@ -6,6 +6,29 @@ Format berdasarkan [Keep a Changelog](https://keepachangelog.com/id/1.0.0/), dan
 
 ---
 
+## [1.3.2] - 2026-07-26
+
+### ✨ New Features & Improvements
+- **SEO & Open Graph Enhancements**: Menyempurnakan deskripsi meta Open Graph pada halaman detail karya dengan mengambil ekstrak teks murni (plain text) dari kolom cerita, memungkinkan _preview link_ di platform sosial (WhatsApp, dll.) tampil 2-3 baris secara penuh (~160 karakter).
+- **Modern Reset Theme Modal**: Menggantikan pop-up *native browser* (`window.confirm`) dengan komponen *modal dialog* kustom bergaya modern yang konsisten dengan sistem UI aplikasi pada menu Kustomisasi Tema.
+
+---
+
+## [1.3.1] - 2026-07-25
+
+### ✨ New Features & Improvements
+- **Multi-Level Compression Selector**: Menambahkan pilihan kualitas kompresi foto (Asli, Kualitas Tinggi, Kualitas Sedang, Kualitas Rendah) pada form Upload & Edit dengan *default* `Asli (Tanpa Kompresi)`.
+- **Smart CustomSelect Dropup Placement**: Komponen `CustomSelect` kini mendukung opsi `placement="top"` untuk mekar ke atas agar tidak terpotong di bagian bawah layar.
+- **Safe Cloudinary Font Mapping**: Memetakan semua pilihan font ke daftar font resmi Cloudinary (`Arial`, `Roboto`, `Courier`, `Georgia`, `Verdana`, `Times`) untuk menjamin gambar tidak pernah mengalami HTTP 400 Bad Request.
+
+### 🐛 Fixed
+- **Cloudinary Overlay Syntax & Opacity Fix**: Mengoreksi sintaks overlay `l_text` Cloudinary dan memindahkan parameter transparansi ke `,o_${opacity}` serta menyempurnakan offset posisi (`g_north`, `g_south`, `g_center`, dll).
+- **React Context Settings Destructuring**: Memperbaiki kekeliruan destructuring `useSiteSettings()` di komponen `ProgressiveImage`, `HomeClient`, `EmblaCarousel`, `CollectionPage`, dan `TagPage` agar konfigurasi watermark dari Admin Panel terbaca secara presisi.
+- **Isolated Theme Color Reset**: Tombol "Reset ke Default" pada Kustomisasi Tema kini khusus mereset warna latar dan aksen tanpa menghapus konfigurasi watermark atau toggle statistik publik.
+- **Stale Auth Cookie Cleanup**: Menangkap error `refresh_token_not_found` pada Next.js Middleware dan secara otomatis menghapus cookie sesi kadaluarsa dari browser untuk menghilangkan log error di terminal.
+
+---
+
 ## [1.3.0] - 2026-07-25
 
 ### ✨ New Features & Improvements

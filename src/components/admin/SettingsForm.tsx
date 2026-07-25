@@ -9,11 +9,11 @@ import { revalidateSettings } from '@/app/actions'
 
 const getFontFamily = (fontName: string) => {
   switch(fontName) {
-    case 'Montserrat': return '"Montserrat", sans-serif';
-    case 'Noto Sans': return '"Noto Sans", sans-serif';
-    case 'Playfair Display': return '"Playfair Display", serif';
-    case 'Monospace': return 'monospace';
-    case 'Playpen Sans': return '"Playpen Sans", cursive';
+    case 'Monospace': case 'Courier': return 'monospace';
+    case 'Roboto': case 'Montserrat': case 'Noto Sans': return 'Roboto, sans-serif';
+    case 'Georgia': case 'Playfair Display': return 'Georgia, serif';
+    case 'Times': return '"Times New Roman", serif';
+    case 'Verdana': case 'Trebuchet': case 'Comic Sans': case 'Playpen Sans': case 'Impact': return 'Verdana, sans-serif';
     default: return 'Arial, sans-serif';
   }
 }
@@ -22,6 +22,7 @@ export function SettingsForm() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false)
 
   const [settings, setSettings] = useState({
     id: '',
@@ -137,14 +138,22 @@ export function SettingsForm() {
     }))
   }
 
+  const confirmResetTheme = () => {
+    setSettings(prev => ({
+      ...prev,
+      theme_config: {
+        ...prev.theme_config,
+        dark_bg: '',
+        light_bg: '',
+        primary_color: ''
+      }
+    }))
+    setIsResetModalOpen(false)
+    toast.success('Warna tema dikembalikan ke default')
+  }
+
   const resetTheme = () => {
-    if (confirm('Yakin ingin mereset tema ke warna bawaan asli (Legendary UI)?')) {
-      setSettings(prev => ({
-        ...prev,
-        theme_config: { dark_bg: '', light_bg: '', primary_color: '', enable_watermark: true, show_public_stats: true, watermark_position: 'south_east', watermark_font: 'Arial', watermark_size: 'medium', watermark_opacity: 50 }
-      }))
-      toast.success('Warna tema dikembalikan ke default')
-    }
+    setIsResetModalOpen(true)
   }
 
   const isLightColor = (hex: string) => {
@@ -640,12 +649,12 @@ export function SettingsForm() {
               <label className="text-sm font-medium text-text-muted">Font Watermark</label>
               <CustomSelect 
                 options={[
-                  { value: 'Arial', label: 'Arial (Default)', style: { fontFamily: 'Arial, sans-serif' } },
-                  { value: 'Montserrat', label: 'Montserrat', style: { fontFamily: '"Montserrat", sans-serif' } },
-                  { value: 'Noto Sans', label: 'Noto Sans', style: { fontFamily: '"Noto Sans", sans-serif' } },
-                  { value: 'Playfair Display', label: 'Playfair Display', style: { fontFamily: '"Playfair Display", serif' } },
-                  { value: 'Monospace', label: 'Monospace', style: { fontFamily: 'monospace' } },
-                  { value: 'Playpen Sans', label: 'Playpen Sans', style: { fontFamily: '"Playpen Sans", cursive' } },
+                  { value: 'Arial', label: 'Arial (Sans-Serif)', style: { fontFamily: 'Arial, sans-serif' } },
+                  { value: 'Roboto', label: 'Roboto (Clean Sans)', style: { fontFamily: 'Roboto, sans-serif' } },
+                  { value: 'Georgia', label: 'Georgia (Serif)', style: { fontFamily: 'Georgia, serif' } },
+                  { value: 'Monospace', label: 'Monospace (Courier)', style: { fontFamily: 'monospace' } },
+                  { value: 'Verdana', label: 'Verdana (Legible)', style: { fontFamily: 'Verdana, sans-serif' } },
+                  { value: 'Times', label: 'Times New Roman', style: { fontFamily: '"Times New Roman", serif' } },
                 ]}
                 value={settings.theme_config.watermark_font || 'Arial'}
                 onChange={(val) => handleThemeChange('watermark_font', val)}
@@ -734,6 +743,29 @@ export function SettingsForm() {
           )}
         </button>
       </div>
+
+      {isResetModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-surface border border-border/50 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-text-main mb-2">Reset Tema</h3>
+            <p className="text-sm text-text-muted mb-6">Yakin ingin mereset tema ke warna bawaan asli (Legendary UI)?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsResetModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-main bg-background hover:bg-border/30 border border-border/50 rounded-lg transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmResetTheme}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors shadow-sm shadow-red-500/20"
+              >
+                Ya, Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

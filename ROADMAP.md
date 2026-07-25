@@ -96,7 +96,7 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 ### Phase 7.5: Post-Launch Patches (v1.2.0)
 *Fokus: Stabilitas unggahan di perangkat seluler (Mobile) dan fitur manajemen kualitas (Compression).*
 - [x] **Serverless API Relay Upload**: Menghindari pemblokiran koneksi API pihak ketiga oleh HP (AdBlock/Private DNS) via rute lokal `/api/cloudinary/upload`.
-- **Multi-Level Compression Options**: Menambahkan *dropdown* pemilihan kualitas (Asli, Tinggi, Sedang, Rendah) untuk mengakomodasi sinyal lemah.
+- [x] **Multi-Level Compression Options**: Menambahkan *dropdown* pemilihan kualitas (Asli, Tinggi, Sedang, Rendah) untuk mengakomodasi sinyal lemah.
 - [x] **Ultra-Low Memory Pipeline**: Mencegah *crash* dan lonjakan RAM saat unggah banyak file 4K di browser seluler (*Failed to fetch* fix).
 - [x] **Original Filename Preservation**: Memastikan metadata nama asli foto tidak lenyap saat file diproses sebagai Base64 di server Next.js.
 
@@ -107,6 +107,21 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 - [x] **Montserrat Letter-Spacing**: Penerapan *letter-spacing* tipis (0.5px) khusus font Montserrat untuk nuansa estetika fotografi profesional.
 - [x] **Cloudinary Font & Position Translation Engine**: Penerjemahan posisi 9 arah (`g_north`, `g_south`, `g_west`, `g_east`, dll) dan pemetaan otomatis `Monospace` -> `Courier` agar Cloudinary URL dirender secara presisi.
 - [x] **Server Cache Invalidator**: Integrasi Server Action `revalidateSettings()` dan `export const dynamic = 'force-dynamic'` pada root layout untuk memastikan seluruh halaman publik menyinkronkan data secara *real-time*.
+
+### Phase 7.7: Watermark Engine Robustness & Context Fixes (v1.3.1 - Selesai 100%)
+- [x] Kustomisasi *Dropup* & *Safe Font Mapping* untuk sinkronisasi kompatibilitas dengan layanan Cloudinary.
+- [x] Perbaikan posisi overlay dan opacity level Watermark.
+- [x] Isolasi tombol *Reset Theme* pada dasbor yang bebas intervensi pengaturan lain.
+- [x] **Guaranteed Cloudinary Fonts**: Pemetaan font aman ke 6 font bawaan Cloudinary (`Arial`, `Roboto`, `Courier`, `Georgia`, `Verdana`, `Times`) untuk mengeliminasi error HTTP 400 Bad Request.
+- [x] **Cloudinary Overlay Syntax & Opacity Fix**: Pemisahan transparansi ke parameter `,o_${opacity}` serta penataan ulang offset posisi (`g_north`, `g_south`, `g_center`, dll).
+- [x] **React Context Hook Fix**: Memperbaiki destructuring `useSiteSettings()` di seluruh komponen frontend publik sehingga tema & watermark tersinkronkan 100%.
+- [x] **CustomSelect Dropup Placement**: Menambahkan opsi `placement="top"` pada `CustomSelect` untuk dropdown yang berada di dasar halaman.
+- [x] **Isolated Theme Color Reset**: Memastikan tombol "Reset ke Default" hanya mengembalikan warna latar/aksen tanpa mempengaruhi watermark atau statistik publik.
+- [x] **Stale Auth Cookie Cleanup**: Menghapus otomatis cookie auth kadaluarsa di Next.js Middleware untuk menghilangkan spaming error di console terminal.
+
+### Phase 7.8: SEO & UI Polishing (v1.3.2 - Selesai 100%)
+- [x] Peningkatan kualitas SEO Open Graph untuk menampilkan deskripsi dinamis (2-3 baris) langsung dari ekstraksi teks cerita foto.
+- [x] Migrasi `window.confirm` bawaan *browser* ke *Modern Modal Dialog* di dasbor Admin demi konsistensi *user experience*.
 
 ---
 
