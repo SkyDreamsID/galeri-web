@@ -38,6 +38,7 @@ yarn-error.log*
 temp_header.md
 generate_report.js
 VIDEO_DEMO_SCRIPT.md
+ngrok.exe
 
 # vercel
 .vercel
