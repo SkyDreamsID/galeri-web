@@ -278,13 +278,6 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
       let uploadedPhotos: any[] = []
 
       if (newFiles.length > 0) {
-        const timestamp = Math.round(new Date().getTime() / 1000)
-        const sigRes = await fetch('/api/cloudinary/sign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ paramsToSign: { timestamp } })
-        })
-        const { signature, apiKey } = await sigRes.json()
 
         uploadedPhotos = await Promise.all(
           newFiles.map(async (img) => {
@@ -341,12 +334,9 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
 
             const formData = new FormData()
             formData.append('file', fileToUpload)
-            formData.append('api_key', apiKey)
-            formData.append('timestamp', timestamp.toString())
-            formData.append('signature', signature)
 
             const cloudRes = await fetch(
-              `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+              '/api/cloudinary/upload',
               { method: 'POST', body: formData }
             )
             

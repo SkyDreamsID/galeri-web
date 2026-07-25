@@ -247,18 +247,7 @@ export function UploadForm() {
           try {
             if (signal.aborted) throw new Error('Dibatalkan oleh pengguna')
             
-            // Generate signature BARU untuk setiap foto biar ga keburu expired
-            const timestamp = Math.round(new Date().getTime() / 1000)
-            const sigRes = await fetch('/api/cloudinary/sign', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ paramsToSign: { timestamp } }),
-              signal
-            }).catch(e => {
-              throw new Error(`Koneksi server gagal: ${e.message}`)
-            })
-            if (!sigRes.ok) throw new Error('Gagal memproses otorisasi upload')
-            const { signature, apiKey } = await sigRes.json()
+            if (signal.aborted) throw new Error('Dibatalkan oleh pengguna')
 
             // Proses Kompresi Pintar (Sangat Ringan & Hemat RAM untuk Mobile)
             const MAX_UPLOAD_SIZE = 9.5 * 1024 * 1024 // 9.5MB threshold Cloudinary
@@ -366,12 +355,9 @@ export function UploadForm() {
 
             const formData = new FormData()
             formData.append('file', fileToUpload)
-            formData.append('api_key', apiKey)
-            formData.append('timestamp', timestamp.toString())
-            formData.append('signature', signature)
 
             const cloudRes = await fetch(
-              `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+              '/api/cloudinary/upload',
               { method: 'POST', body: formData, signal }
             ).catch(e => {
               throw new Error(`Upload Cloudinary timeout/gagal: ${e.message}`)
