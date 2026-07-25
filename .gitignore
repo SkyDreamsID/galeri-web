@@ -37,6 +37,7 @@ yarn-error.log*
 # temporary files
 temp_header.md
 generate_report.js
+VIDEO_DEMO_SCRIPT.md
 
 # vercel
 .vercel
