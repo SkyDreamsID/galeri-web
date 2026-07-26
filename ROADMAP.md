@@ -72,7 +72,7 @@ Dokumen ini mendefinisikan fase pengembangan proyek Jurnal Visual dengan framewo
 - [x] **PWA Support** (Progressive Web App) agar web bisa diinstal selayaknya aplikasi.
 - [x] **Fluid Responsive UI**: Optimasi *grid* khusus *mobile landscape* (rasio 45:55), modifikasi Custom Dropdown (menggantikan elemen native OS), dan Custom 404 Page *Dark Mode*.
 - [x] **Admin Mobile Optimization**: Penyempurnaan UX *Sticky Search Bar* dengan efek *glassmorphism* dan pemadatan *grid* kelola galeri khusus *mobile* tanpa memecah *layout desktop*.
-- [x] **Legal & Attribution**: Sistem Watermark Attribution otomatis di footer (jika author diganti) & penerapan lisensi MIT with Attribution.
+- [x] **Legal & Attribution**: Sistem Watermark Attribution di footer (opsional sebagai identitas asli proyek) & penerapan lisensi MIT License.
 - [x] Deployment Frontend + Admin ke Vercel/Netlify.
 - [x] Peluncuran Versi 1.0 (Live).
 

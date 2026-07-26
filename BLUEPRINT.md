@@ -127,8 +127,8 @@ Untuk mencegah orang lain mengacak-acak database via endpoint publik, kita mengu
 - **Glassmorphism UI**: Memanfaatkan *backdrop-blur* dan warna tembus pandang (`bg-background/60`) pada *header* pencarian agar layar tidak terkesan sempit saat di-scroll.
 - **Scroll Container Architecture**: Menghindari penggunaan `overflow-y-auto` pada container anak (`<main>`) yang sering kali menjebak CSS *position: sticky*. *Scrolling* diserahkan langsung pada root window browser.
 
-## 4.5 Fitur Perlindungan & Attribution
-- **Watermark Attribution:** Built-in attribution "Designed by SkyDreamsID" yang terpasang pada Footer. Akan otomatis muncul jika nilai `author_name` pada `site_settings` diubah ke nilai selain author asli (Rifki Eka Putra, SkyDreamsID, dll).
+## 4.5 Fitur Perlindungan & Identitas
+- **Footer Branding:** Terdapat teks "Designed by SkyDreamsID" pada Footer. Fitur ini berfungsi sebagai identitas asli proyek dan bentuk apresiasi (bukan kewajiban hukum lisensi).
 - **Interactive Watermark Studio**: Panel pengaturan kustomisasi watermark di Admin Dashboard dengan area Live Preview 4:3 terintegrasi grid panah 3x3 (9 arah posisi) bergaya software foto profesional.
 - **Per-Photo & Global Watermark Engine**: Watermark hak cipta dinamis yang diproses oleh Cloudinary on-the-fly. Menggabungkan `author_name` global atau nama copyright individu dengan pilihan font (Arial, Montserrat, Noto Sans, Playfair, Monospace, Playpen Sans), skala ukuran, opacity (0-100%), dan offset posisi presisi (`g_north`, `g_south`, `g_west`, `g_east`, dll) tanpa merusak file asli.
 

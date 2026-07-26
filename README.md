@@ -144,8 +144,23 @@ Saat upload atau mengedit karya, tersedia checkbox **"Tampilkan watermark"** di 
 
 ---
 
-## 📄 Lisensi
-Proyek ini dilisensikan di bawah [MIT License](LICENSE). Anda bebas menggunakan dan memodifikasinya, **dengan syarat tetap mencantumkan kredit ke repositori asal** ([galeri-web](https://github.com/SkyDreamsID/galeri-web)) dan tidak menghapus atribusi *"Designed by SkyDreamsID"* yang muncul secara otomatis di footer jika Anda mengganti nama author.
+## 🤝 Atribusi
+
+Jika proyek ini membantu Anda dalam membangun galeri atau proyek serupa, saya akan sangat menghargai apabila Anda tetap mencantumkan kredit kepada proyek ini.
+
+Bila memungkinkan, pertahankan footer **"Designed by SkyDreamsID"** serta tautan menuju repositori asli sebagai bentuk apresiasi terhadap proyek ini.
+
+Terima kasih telah mendukung dunia open source! ❤️
+
+---
+
+## 🖼 Lisensi Aset
+
+Repository ini menggunakan lisensi **MIT** untuk source code.
+
+Namun seluruh foto, ilustrasi, karya seni, logo, dan aset visual lainnya **tidak otomatis mengikuti lisensi MIT**, kecuali dinyatakan secara eksplisit.
+
+Mohon hormati hak cipta setiap kreator.
 
 ---
 *Built with logic, passion, and AI assistance by a Tech Enthusiast.*
