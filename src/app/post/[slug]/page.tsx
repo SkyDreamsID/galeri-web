@@ -70,16 +70,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const creators = uniqueCopyrights.length > 0 ? formatCreators(uniqueCopyrights) : siteTitle
 
   const title = post.title
-  const baseDesc = `Jelajahi karya "${post.title}" oleh ${creators} di ${siteTitle}.`
   
-  let desc = baseDesc
+  let desc = ''
   if (post.story) {
     // Hilangkan tag HTML/Markdown secara sederhana untuk plain text
-    const plainStory = post.story.replace(/<[^>]*>?/gm, '').replace(/[*_~`>#]/g, '').replace(/\n/g, ' ').trim()
-    desc = `${baseDesc} ${plainStory}`
+    const plainStory = post.story.replace(/<[^>]*>?/gm, '').replace(/[*_~`>#]/g, '').trim()
+    const truncatedStory = plainStory.length > 110 ? plainStory.substring(0, 107) + '...' : plainStory
+    
+    // Gunakan newline (\n) agar WhatsApp merender menjadi beberapa baris
+    desc = `${truncatedStory}\n\nKarya oleh: ${creators}`
+  } else {
+    // Jika tidak ada story, buat 2 baris agar WhatsApp tidak memotong di baris pertama
+    desc = `Album visual oleh: ${creators}\nDipublikasikan di: ${siteTitle}`
   }
 
-  // Potong maksimal ~160 karakter agar optimal 2-3 baris di WhatsApp/SEO
+  // Fallback safety (maksimal ~160 karakter untuk SEO Meta standar)
   if (desc.length > 160) {
     desc = desc.substring(0, 157) + '...'
   }
