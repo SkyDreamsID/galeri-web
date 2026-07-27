@@ -16,7 +16,7 @@ import { CarouselPagination } from './CarouselPagination'
 import { CarouselActions } from './CarouselActions'
 import { CarouselExifCard } from './CarouselExifCard'
 
-export function EmblaCarousel({ photos, postId, license, hideExif }: { photos: any[], postId: string, license?: string, hideExif?: boolean }) {
+export function EmblaCarousel({ photos, postId, license, hideExif, postTitle }: { photos: any[], postId: string, license?: string, hideExif?: boolean, postTitle?: string }) {
   const settings = useSiteSettings()
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
   const [openPopup, setOpenPopup] = useState<string | null>(null)
@@ -137,7 +137,7 @@ export function EmblaCarousel({ photos, postId, license, hideExif }: { photos: a
                   />
                   
                   <CarouselActions 
-                    photo={photo} postId={postId} license={photo.license_type} copyrightName={photo.copyright_name} 
+                    photo={photo} postId={postId} postTitle={postTitle} license={photo.license_type} copyrightName={photo.copyright_name}
                     isCopyrightVisible={isCopyrightVisible} onToggleCopyright={toggleCopyright}
                     onToggleExif={toggleExif}
                   />
