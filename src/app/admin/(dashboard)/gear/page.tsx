@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,6 +8,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Loader2, UploadCloud, X, Camera, Trash2, CheckCircle2, AlertCircle, Edit } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { toast } from 'sonner'
+import { CustomSelect } from '@/components/admin/CustomSelect'
 
 type Gear = {
   id: string
@@ -27,7 +31,7 @@ export default function GearManagement() {
   const [gears, setGears] = useState<Gear[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
-  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null)
+  
   
   // Form State
   const [name, setName] = useState('')
@@ -39,21 +43,28 @@ export default function GearManagement() {
   const [editingGearId, setEditingGearId] = useState<string | null>(null)
   const [editingPublicId, setEditingPublicId] = useState<string | null>(null)
 
+  // Pop up dan markdown
+  const [deleteTarget, setDeleteTarget] = useState<{id: string, publicId?: string, name: string} | null>(null)
+  const [previewMode, setPreviewMode] = useState(false)
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Autoresize kolom deskripsi
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+      }
+    }, 10)
+    return () => clearTimeout(timer)
+  }, [description, previewMode])
+
   useEffect(() => {
     fetchGears()
   }, [])
 
-  // Auto hide toast
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [toast])
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type })
-  }
 
   const fetchGears = async () => {
     setIsLoading(true)
@@ -105,7 +116,7 @@ export default function GearManagement() {
 
   const handleAddGear = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) return showToast('Nama gear harus diisi!', 'error')
+    if (!name.trim()) return toast.error('Nama gear harus diisi!')
     
     setIsUploading(true)
     try {
@@ -152,7 +163,7 @@ export default function GearManagement() {
           })
           .eq('id', editingGearId)
         if (error) throw error
-        showToast('Berhasil mengedit gear!', 'success')
+        toast.success('Berhasil mengedit gear!')
       } else {
         const { error } = await supabase
           .from('gears')
@@ -164,60 +175,49 @@ export default function GearManagement() {
             public_id: publicId
           })
         if (error) throw error
-        showToast('Berhasil menambahkan gear!', 'success')
+        toast.success('Berhasil menambahkan gear!')
       }
 
       cancelEditing()
       fetchGears()
     } catch (err) {
       console.error(err)
-      showToast('Gagal menyimpan gear.', 'error')
+      toast.error('Gagal menyimpan gear.')
     } finally {
       setIsUploading(false)
     }
   }
 
-  const handleDelete = async (id: string, publicId?: string) => {
-    if (!confirm('Yakin ingin menghapus gear ini?')) return
-
+  const executeDelete = async () => {
+    if (!deleteTarget) return
     try {
-      if (publicId) {
+      if (deleteTarget.publicId) {
         await fetch('/api/cloudinary/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ public_ids: [publicId] })
+          body: JSON.stringify({ public_ids: [deleteTarget.publicId] })
         }).catch(err => console.warn('Gagal hapus gambar di Cloudinary:', err))
       }
 
-      const { error } = await supabase.from('gears').delete().eq('id', id)
+      const { error } = await supabase.from('gears').delete().eq('id', deleteTarget.id)
       if (error) throw error
 
-      showToast('Gear berhasil dihapus!', 'success')
+      toast.success('Gear berhasil dihapus!')
       fetchGears()
     } catch (err) {
       console.error(err)
-      showToast('Gagal menghapus gear.', 'error')
+      toast.error('Gagal menghapus gear.')
+    } finally {
+      setDeleteTarget(null)
     }
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20 md:pb-12 relative">
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border animate-in slide-in-from-bottom-5 fade-in duration-300 ${
-          toast.type === 'success' 
-            ? 'bg-[#E8F5E9] border-[#A5D6A7] text-[#2E7D32] dark:bg-[#1B5E20]/20 dark:border-[#2E7D32] dark:text-[#A5D6A7]' 
-            : 'bg-[#FFEBEE] border-[#FFCDD2] text-[#C62828] dark:bg-[#B71C1C]/20 dark:border-[#C62828] dark:text-[#FFCDD2]'
-        }`}>
-          {toast.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
-          <p className="text-sm font-semibold">{toast.message}</p>
-        </div>
-      )}
-
       <div>
         <h2 className="text-3xl font-heading font-bold tracking-tight text-text-main">Kelola Gear & Peralatan</h2>
         <p className="text-text-muted mt-1 font-sans">
-          Tambahkan kamera, lensa, atau perlengkapan tempur lu ke dalam etalase.
+          Tambahkan kamera, lensa, atau perlengkapan tempur untuk ditampilkan.
         </p>
       </div>
 
@@ -244,24 +244,27 @@ export default function GearManagement() {
                 
                 <div className="space-y-2">
                   <Label className="text-text-muted">Kategori</Label>
-                  <select 
-                    value={type} onChange={(e) => setType(e.target.value)}
-                    className="w-full rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary-neutral"
-                  >
-                    <option value="Kamera">Kamera</option>
-                    <option value="Lensa">Lensa</option>
-                    <option value="Drone">Drone</option>
-                    <option value="Aksesoris">Aksesoris</option>
-                    <option value="Lainnya">Lainnya</option>
-                  </select>
+                  <CustomSelect
+                    value={type}
+                    onChange={setType}
+                    options={[
+                      { value: 'Kamera', label: 'Kamera' },
+                      { value: 'Lensa', label: 'Lensa' },
+                      { value: 'Drone', label: 'Drone' },
+                      { value: 'Aksesoris', label: 'Aksesoris' },
+                      { value: 'Lainnya', label: 'Lainnya' }
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label className="text-text-muted">Deskripsi Singkat (Opsional)</Label>
                   <textarea 
-                    value={description} onChange={(e) => setDescription(e.target.value)}
+                    ref={textareaRef}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     placeholder="Misal: Lensa andalan buat foto bokeh..."
-                    className="w-full min-h-[80px] rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral"
+                    className="w-full min-h-[80px] rounded-md border border-border/50 bg-background px-3 py-2 text-sm text-text-main placeholder:text-text-muted/50 focus:outline-none focus:ring-1 focus:ring-primary-neutral resize-none scrollbar-none"
                   />
                 </div>
 
@@ -336,7 +339,7 @@ export default function GearManagement() {
                 <div key={gear.id} className="bg-surface border border-border/40 rounded-xl overflow-hidden shadow-sm flex flex-col group">
                   <div className="h-40 w-full relative bg-background/50 flex items-center justify-center border-b border-border/40">
                     {gear.image_url ? (
-                      <img src={gear.image_url} alt={gear.name} className="w-full h-full object-contain p-2 drop-shadow-md" />
+                      <img src={gear.image_url.replace('/upload/', '/upload/f_auto,q_auto,fl_progressive/')} alt={gear.name} className="w-full h-full object-contain p-2 drop-shadow-md" />
                     ) : (
                       <Camera className="w-10 h-10 text-text-muted/30" />
                     )}
@@ -349,7 +352,7 @@ export default function GearManagement() {
                         <Edit size={16} />
                       </button>
                       <button 
-                        onClick={() => handleDelete(gear.id, gear.public_id)}
+                        onClick={() => setDeleteTarget({ id: gear.id, publicId: gear.public_id, name: gear.name })}
                         className="bg-red-500/90 backdrop-blur-sm text-white p-2 rounded-lg hover:bg-red-500 shadow-sm"
                         title="Hapus Gear"
                       >
@@ -372,6 +375,26 @@ export default function GearManagement() {
           )}
         </div>
       </div>
+
+   {/* POPUP HAPUS GEAR */}
+    {deleteTarget && (
+      <div className="fixed inset-0 z-[7] flex items-center justify-center bg-background/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+        <Card className="w-full max-w-sm bg-surface border-border/50 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <CardContent className="p-6 text-center">
+            <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mx-auto mb-4">
+              <AlertCircle className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-heading font-bold text-text-main mb-2">Hapus Gear {deleteTarget.name}?</h3>
+            <p className="text-sm text-text-muted mb-6">Tindakan ini tidak bisa dibatalkan.</p>
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1 bg-surface border border-border/50 text-text-main hover:bg-hover-bg">Batal</Button>
+              <Button type="button" onClick={executeDelete} className="flex-1 bg-red-500 hover:bg-red-600 text-white">Hapus</Button>
+            </div>
+          </CardContent>
+        </Card>
+        </div>
+    )}
+
     </div>
   )
 }

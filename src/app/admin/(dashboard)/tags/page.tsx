@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Plus, Trash2, Edit } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit, AlertCircle } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 type Tag = {
@@ -16,6 +18,7 @@ export default function TagsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({ name: '' })
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{id: string, name: string} | null>(null)
 
   const supabase = createClient()
 
@@ -76,12 +79,12 @@ export default function TagsPage() {
     setEditingId(t.id)
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus tag ini? Semua foto yang menggunakan tag ini akan kehilangan tagnya.')) return
-    
-    const { error } = await supabase.from('tags').delete().eq('id', id)
+  const executeDelete = async () => {
+    if (!deleteTarget) return    
+    const { error } = await supabase.from('tags').delete().eq('id', deleteTarget.id)
     if (error) toast.error('Gagal hapus tag')
     else { toast.success('Tag berhasil dihapus!'); fetchTags() }
+    setDeleteTarget(null)
   }
 
   if (loading) {
@@ -151,7 +154,7 @@ export default function TagsPage() {
                     <Edit className="w-3.5 h-3.5" />
                   </button>
                   <button 
-                    onClick={() => handleDelete(t.id)} 
+                    onClick={() => setDeleteTarget({id: t.id, name: t.name})} 
                     className="p-1.5 text-text-muted hover:text-red-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -159,6 +162,25 @@ export default function TagsPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* POPUP TAG */}
+        {deleteTarget && (
+          <div className="fixed inset-0 z-[9] flex items-center justify-center bg-background/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+            <Card className="w-full max-w-sm bg-surface border-border/50 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mx-auto mb-4">
+                  <AlertCircle className="w-7 h-7" />
+                </div>
+                <h3 className="text-lg font-heading font-bold text-text-main mb-2 leading-tight">Yakin ingin menghapus tag "{deleteTarget.name}"?</h3>
+                <p className="text-sm text-text-muted mb-6">Semua foto yang menggunakan tag ini akan kehilangan tagnya.</p>
+                <div className="flex items-center gap-3">
+                  <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1 bg-surface border border-border/50 text-text-main hover:bg-hover-bg">Batal</Button>
+                  <Button type="button" onClick={executeDelete} className="flex-1 bg-red-500 hover:bg-red-600 text-white">Hapus</Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>

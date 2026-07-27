@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Plus, Trash2, Edit, ImageIcon } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit, ImageIcon, AlertCircle } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { ManageCollectionPhotosModal } from '@/components/admin/ManageCollectionPhotosModal'
 
@@ -19,6 +21,7 @@ export default function CollectionsPage() {
   const [formData, setFormData] = useState({ name: '', description: '' })
   const [editingId, setEditingId] = useState<string | null>(null)
   const [managingCollection, setManagingCollection] = useState<Collection | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{id: string, name: string} | null>(null)
 
   const supabase = createClient()
 
@@ -76,12 +79,14 @@ export default function CollectionsPage() {
     setEditingId(c.id)
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus koleksi ini? (Postingan dengan koleksi ini tidak akan terhapus, hanya kehilangan label koleksinya)')) return
+  const executeDelete = async () => {
+    if (!deleteTarget) return
     
-    const { error } = await supabase.from('collections').delete().eq('id', id)
+    const { error } = await supabase.from('collections').delete().eq('id', deleteTarget.id)
     if (error) toast.error('Gagal hapus koleksi')
     else { toast.success('Koleksi berhasil dihapus!'); fetchCollections() }
+    
+    setDeleteTarget(null)
   }
 
   if (loading) {
@@ -168,7 +173,7 @@ export default function CollectionsPage() {
                     <button onClick={() => handleEdit(c)} className="p-2 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 rounded-lg transition-colors" title="Edit Koleksi">
                       <Edit className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(c.id)} className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors" title="Hapus Koleksi">
+                    <button onClick={() => setDeleteTarget({id: c.id, name: c.name})} className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors" title="Hapus Koleksi">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
@@ -185,6 +190,24 @@ export default function CollectionsPage() {
           collectionName={managingCollection.name}
           onClose={() => setManagingCollection(null)}
         />
+      )}
+
+      {/* POPUP ALBUM/KOLEKSI */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[5] flex items-center justify-center bg-background/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-sm bg-surface border-border/50 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <CardContent className="p-6 text-center">
+              <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 mx-auto mb-4">
+                <AlertCircle className="w-7 h-7" />
+              </div>
+              <h3 className="text-lg font-heading font-bold text-text-main mb-2 leading-tight">Yakin ingin menghapus Koleksi {deleteTarget.name}?</h3>
+              <div className="flex items-center gap-3 mt-6">
+                <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1 bg-surface border border-border/50 text-text-main hover:bg-hover-bg">Batal</Button>
+                <Button type="button" onClick={executeDelete} className="flex-1 bg-red-500 hover:bg-red-600 text-white">Hapus</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   )
