@@ -16,11 +16,13 @@ interface NavbarProps {
 }
 
 export function Navbar({ 
-  authorName = 'SkyDreamsID', 
+  authorName, 
   siteLogo = '', 
   socialLinks = [],
   contactEmail = ''
 }: NavbarProps) {
+  const displayAuthorName = authorName || 'SkyDreamsID'
+  
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -80,9 +82,9 @@ export function Navbar({
             <span className="font-heading text-xl font-bold tracking-tight">
               <Link href="/" className="flex items-center gap-2">
                 {siteLogo ? (
-                  <img src={siteLogo} alt={authorName} className="w-7 h-7 rounded-full object-cover" />
+                  <img src={siteLogo} alt={displayAuthorName} className="w-7 h-7 rounded-full object-cover" />
                 ) : null}
-                {authorName}
+                {displayAuthorName}
               </Link>
             </span>
           </div>
@@ -172,9 +174,9 @@ export function Navbar({
             <span className="font-heading text-lg font-bold tracking-tight">
               <Link href="/" className="flex items-center gap-2">
                 {siteLogo ? (
-                  <img src={siteLogo} alt={authorName} className="w-7 h-7 rounded-full object-cover" />
+                  <img src={siteLogo} alt={displayAuthorName} className="w-7 h-7 rounded-full object-cover" />
                 ) : null}
-                {authorName}
+                {displayAuthorName}
               </Link>
             </span>
           </div>
@@ -264,9 +266,9 @@ export function Navbar({
             <span className="font-heading text-xl font-bold tracking-tight">
               <Link href="/" className="flex items-center gap-2">
                 {siteLogo ? (
-                  <img src={siteLogo} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
+                  <img src={siteLogo} alt={displayAuthorName} className="w-8 h-8 rounded-full object-cover" />
                 ) : null}
-                {authorName}
+                {displayAuthorName}
               </Link>
             </span>
           </div>
