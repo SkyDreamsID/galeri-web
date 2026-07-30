@@ -15,7 +15,7 @@ Dibuat untuk fotografer, seniman digital, desainer, dan kreator visual yang ingi
 <summary><b>📸 Preview Jurnal Visual (Klik untuk memperluas)</b></summary>
 <br>
 
-Segera Hadir..
+https://youtu.be/UWfLgjKAK5Q?si=NZ7_iMht5QDbdq0u
 
 </details>
 
