@@ -119,21 +119,15 @@ export function EmblaCarousel({ photos, postId, license, hideExif, postTitle }: 
                 {/* 📸 KONTENER FOTO RESPONSIVE 📸 */}
                 {/* ======================================================= */}
                 <div className="flex w-full items-center justify-center aspect-square md:aspect-auto max-lg:landscape:aspect-[4/3] md:h-[65vh] max-lg:landscape:h-auto lg:h-[80vh] lg:landscape:h-[80vh]">
-                  <ProgressiveImage 
-                    src={photo.image_url} 
-                    alt="Photo View" 
-                    width={1080}
-                    sizes="100vw"
-                    style={{ width: 'auto', height: '100%', maxHeight: '100%', maxWidth: '100%' }}
-                    className="w-full h-full object-contain cursor-zoom-in" 
+                  <img 
+                    src={displayUrl} 
+                    alt={postTitle || "Photo View"} 
+                    className="w-full h-full object-contain cursor-zoom-in select-none" 
                     onClick={() => {
                         if (openPopup) setOpenPopup(null);
                         else openZoom(displayUrl);
                     }}
-                    priority={index === 0}
-                    watermarkText={photo.copyright_name}
-                    enableWatermark={photo.show_watermark !== false}
-                    watermarkScale={2}
+                    loading={index === 0 ? "eager" : "lazy"}
                   />
                   
                   <CarouselActions 
