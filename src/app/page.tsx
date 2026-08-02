@@ -5,7 +5,8 @@ import { HomeClient } from '@/components/home/HomeClient'
 const POSTS_PER_PAGE = 9
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ sort?: string, tag?: string }> }) {
-  const { sort, tag } = await searchParams
+  const resolvedParams = (await searchParams) || {}
+  const { sort, tag } = resolvedParams
   const supabase = await createClient()
 
   // Tentukan order berdasarkan parameter sort
@@ -46,7 +47,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const [{ data: rawTags }, { data: rawCollections }, { data: settings }] = await Promise.all([
     supabase.from('tags').select('id, name, post_tags!inner(posts!inner(status))').eq('post_tags.posts.status', 'Published').order('name'),
     supabase.from('collections').select('id, name, posts!inner(status)').eq('posts.status', 'Published').order('name'),
-    supabase.from('site_settings').select('hero_title, hero_description').limit(1).single()
+    supabase.from('site_settings').select('hero_title, hero_description').limit(1).maybeSingle()
   ])
 
   // Mapping to clean format (remove the relational inner objects)

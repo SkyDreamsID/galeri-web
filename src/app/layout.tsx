@@ -21,7 +21,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createClient()
-  const { data: settings } = await supabase.from('site_settings').select('*').limit(1).single()
+  const { data: settings } = await supabase.from('site_settings').select('*').limit(1).maybeSingle()
   
   const siteTitle = settings?.site_title || "Jurnal Visual"
   const siteDesc = settings?.hero_description || "Ruang digital untuk menyimpan karya, membagikan cerita, dan mendokumentasikan perjalanan kreatif."
@@ -70,7 +70,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const supabase = await createClient()
-  const { data: settings } = await supabase.from('site_settings').select('*').limit(1).single()
+  const { data: settings } = await supabase.from('site_settings').select('*').limit(1).maybeSingle()
 
   return (
     <html
