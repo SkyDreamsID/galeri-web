@@ -809,6 +809,19 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                         <span className="text-[11px] text-text-muted group-hover:text-text-main transition-colors truncate">Tampilkan watermark</span>
                       </label>
 
+                      <div className="relative flex items-center w-full mt-1" onClick={(e) => e.stopPropagation()}>
+                        <LensInput
+                          value={img.exif.lens || ''}
+                          onChange={(val) => {
+                            const newImages = [...images]
+                            newImages[idx].exif = { ...newImages[idx].exif, lens: val }
+                            setImages(newImages)
+                          }}
+                          placeholder="Override Lensa Foto Ini..."
+                          className="h-7 w-full text-[10px] md:text-xs bg-background/50 border-border/40 focus:border-primary-neutral text-text-main rounded-md truncate px-2"
+                        />
+                      </div>
+
                       <div className="pt-1 space-y-0.5 md:space-y-1 text-[9px] md:text-[10px] leading-tight min-w-0">
                         {img.exif.camera && <p className="truncate">📷 {img.exif.camera} {img.exif.lens}</p>}
                         {img.exif.aperture && (
