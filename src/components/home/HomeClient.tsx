@@ -192,7 +192,16 @@ export function HomeClient({
             initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             className={`${LAYOUT_CONFIG.heroDesc} text-text-muted font-sans leading-relaxed`}
           >
-            {heroDesc}
+            {heroDesc ? (
+              heroDesc
+            ) : (
+              <>
+                Ruang digital untuk menyimpan karya, membagikan cerita, dan mendokumentasikan perjalanan kreatif.{' '}
+                <Link href="/admin/gallery" className="text-primary-neutral font-medium hover:underline inline-flex items-center gap-1 transition-colors">
+                  Setup Admin (untuk kelola web & konten) <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                </Link>
+              </>
+            )}
           </motion.p>
         </div>
 
