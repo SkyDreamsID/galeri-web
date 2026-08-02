@@ -86,8 +86,8 @@ export function EmblaCarousel({ photos, postId, license, hideExif, postTitle }: 
   return (
     <>
     <div className="relative group">
-      <div className="overflow-hidden rounded-[16px] bg-surface/50 border border-border backdrop-blur-sm" ref={emblaRef}>
-        <div className="flex">
+      <div className="overflow-hidden rounded-[16px] bg-surface/90 border border-border" ref={emblaRef}>
+        <div className="flex touch-pan-y [backface-visibility:hidden]">
           {photos.map((photo, index) => {
             const exif = photo.exif_data?.[0]
             let cameraName = exif?.camera || 'Unknown Camera'
@@ -113,7 +113,7 @@ export function EmblaCarousel({ photos, postId, license, hideExif, postTitle }: 
             const toggleCopyright = () => setOpenPopup(prev => prev === `${photo.id}-copyright` ? null : `${photo.id}-copyright`)
 
             return (
-              <div key={photo.id} className="relative flex-[0_0_100%] min-w-0">
+              <div key={photo.id} className="relative flex-[0_0_100%] min-w-0 touch-pan-y transform-gpu">
                 
                 {/* ======================================================= */}
                 {/* 📸 KONTENER FOTO RESPONSIVE 📸 */}
