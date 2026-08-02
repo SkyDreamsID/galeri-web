@@ -11,6 +11,7 @@ import { Loader2, UploadCloud, X, ArrowLeft, FileText, Star } from 'lucide-react
 import { createClient } from '@/lib/supabase/client'
 import { TagInput } from '@/components/admin/TagInput'
 import { CustomSelect } from '@/components/admin/CustomSelect'
+import { LensInput, saveLensToHistory } from '@/components/admin/LensInput'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
@@ -48,6 +49,7 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
   const [title, setTitle] = useState('')
   const [story, setStory] = useState('')
   const [location, setLocation] = useState('')
+  const [overrideLens, setOverrideLens] = useState('')
   const [album, setAlbum] = useState('')
   const [status, setStatus] = useState('Published')
   const [tags, setTags] = useState<string[]>([])
@@ -458,7 +460,10 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             await supabase.from('exif_data').insert({ photo_id: img.id, ...exifToInsert })
           }
         }
-      }
+      if (overrideLens) saveLensToHistory(overrideLens)
+      images.forEach(img => {
+        if (img.exif?.lens) saveLensToHistory(img.exif.lens)
+      })
 
       toast.success('Momen berhasil diperbarui! ✅')
       router.push('/admin/gallery')
@@ -513,6 +518,21 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
                 <Input 
                   value={location} onChange={(e) => setLocation(e.target.value)}
                   placeholder="Yogyakarta"
+                  className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 md:h-10 text-[13px] md:text-sm"
+                />
+              </div>
+              <div className="space-y-1.5 md:space-y-2">
+                <Label className="text-text-muted text-xs md:text-sm">Override Lensa (Opsional)</Label>
+                <LensInput 
+                  value={overrideLens}
+                  onChange={(val) => {
+                    setOverrideLens(val)
+                    setImages(prev => prev.map(img => ({
+                      ...img,
+                      exif: { ...img.exif, lens: val || img.exif.lens }
+                    })))
+                  }}
+                  placeholder="Misal: NIKKOR AF-S 55-300MM (Isi jika EXIF gagal)"
                   className="bg-background border-border/50 text-text-main focus:border-primary-neutral h-9 md:h-10 text-[13px] md:text-sm"
                 />
               </div>

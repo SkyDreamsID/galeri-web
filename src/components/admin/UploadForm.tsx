@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { TagInput } from './TagInput'
 import { CustomSelect } from './CustomSelect'
 import { useSiteSettings } from '@/contexts/SiteSettingsContext'
+import { LensInput, saveLensToHistory } from './LensInput'
 
 type FileWithExif = {
   id: string
@@ -48,6 +49,7 @@ export function UploadForm() {
   const [title, setTitle] = useState('')
   const [story, setStory] = useState('')
   const [location, setLocation] = useState('')
+  const [overrideLens, setOverrideLens] = useState('')
   const [album, setAlbum] = useState('')
   const [status, setStatus] = useState('Published')
   const [tags, setTags] = useState<string[]>([])
@@ -499,7 +501,10 @@ export function UploadForm() {
             ...exifToInsert
           })
         }
-      }
+      if (overrideLens) saveLensToHistory(overrideLens)
+      uploadedPhotos.forEach(p => {
+        if (p.exif?.lens) saveLensToHistory(p.exif.lens)
+      })
 
       setUploadState('success')
     } catch (err: any) {
@@ -563,10 +568,10 @@ export function UploadForm() {
             </div>
             <div className="space-y-1.5 md:space-y-2">
               <Label className="text-text-muted text-xs md:text-sm">Override Lensa (Opsional)</Label>
-              <Input 
-                onChange={(e) => {
-                  // Jika diisi, override semua foto di preview
-                  const val = e.target.value
+              <LensInput 
+                value={overrideLens}
+                onChange={(val) => {
+                  setOverrideLens(val)
                   setImages(prev => prev.map(img => ({
                     ...img,
                     exif: { ...img.exif, lens: val || img.exif.lens }
