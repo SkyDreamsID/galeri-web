@@ -299,9 +299,10 @@ export function UploadForm() {
 
                   ctx.drawImage(imgElement, 0, 0, width, height)
 
-                  if (!isMobile && (img.file.type === 'image/jpeg' || img.file.type === 'image/jpg')) {
+                  if (img.file.type === 'image/jpeg' || img.file.type === 'image/jpg') {
                     try {
                       // Ekstrak EXIF dari file asli lalu injeksi ke hasil canvas
+                      // Berlaku untuk Desktop DAN Mobile — fallback otomatis jika RAM tidak cukup
                       const reader = new FileReader()
                       reader.onload = function(e) {
                         try {
@@ -322,16 +323,16 @@ export function UploadForm() {
                             return
                           }
                         } catch (err) {
-                          console.warn('Gagal injeksi EXIF desktop:', err)
+                          console.warn('Gagal injeksi EXIF:', err)
                         }
                         
-                        // Fallback klo foto aslinya emang gak ada EXIF
+                        // Fallback klo foto aslinya emang gak ada EXIF atau gagal inject
                         canvas.toBlob((b) => resolve(new File([b!], img.file.name, { type: 'image/jpeg' })), 'image/jpeg', jpegQuality)
                       }
                       reader.readAsDataURL(img.file)
                       return // Stop eksekusi agar nunggu onload selesai
                     } catch (err) {
-                      console.warn('Gagal FileReader desktop:', err)
+                      console.warn('Gagal FileReader:', err)
                     }
                   }
 
@@ -501,6 +502,8 @@ export function UploadForm() {
             ...exifToInsert
           })
         }
+      } // ← tutup for (let i < uploadedPhotos.length)
+
       if (overrideLens) saveLensToHistory(overrideLens)
       uploadedPhotos.forEach(p => {
         if (p.exif?.lens) saveLensToHistory(p.exif.lens)

@@ -460,6 +460,8 @@ export default function EditPostPage({ params }: { params: Promise<{ id: string 
             await supabase.from('exif_data').insert({ photo_id: img.id, ...exifToInsert })
           }
         }
+      }
+
       if (overrideLens) saveLensToHistory(overrideLens)
       images.forEach(img => {
         if (img.exif?.lens) saveLensToHistory(img.exif.lens)

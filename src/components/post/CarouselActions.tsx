@@ -33,19 +33,33 @@ export function CarouselActions({
     }).catch(console.error)
   }
 
-  // 🔥 FILTER ANTI ERROR 400 CLOUDINARY 🔥
-  // Ubah spasi & karakter aneh di judul post jadi underscore "_" [1]
+  // 🔥 BUILD URL DOWNLOAD CLOUDINARY YANG BENAR 🔥
+  // Ambil nama file: prioritas original_filename, fallback ke judul post
   const safeTitle = (postTitle || 'JurnalVisual_Image').replace(/[^a-zA-Z0-9_-]/g, '_')
-  const finalName = photo.original_filename 
-    ? encodeURIComponent(photo.original_filename) 
+  const rawName = photo.original_filename 
+    ? photo.original_filename.replace(/[^a-zA-Z0-9_\-. ]/g, '_') // Sanitasi, tapi jangan encode
     : safeTitle
+  const finalName = rawName.replace(/\s+/g, '_') // Spasi → underscore (aman di Cloudinary URL)
+
+  // Sisipkan fl_attachment TEPAT setelah "/upload/" dan SEBELUM transformasi/versi/public_id
+  // Contoh benar: https://res.cloudinary.com/demo/image/upload/fl_attachment:nama/v1/sample.jpg
+  const buildDownloadUrl = (imageUrl: string): string => {
+    const uploadMarker = '/upload/'
+    const idx = imageUrl.indexOf(uploadMarker)
+    if (idx === -1) return imageUrl // fallback: URL tidak ada /upload/
+    const base = imageUrl.substring(0, idx + uploadMarker.length)
+    const rest = imageUrl.substring(idx + uploadMarker.length)
+    return `${base}fl_attachment:${finalName}/${rest}`
+  }
+
+  const downloadUrl = buildDownloadUrl(photo.image_url)
 
   return (
     <div className="absolute bottom-4 right-4 flex items-center gap-2">
       {/* Download Button */}
       {license === 'Free Copyright' && (
         <a 
-          href={photo.image_url.replace('/upload/', `/upload/fl_attachment:${finalName}/`)}
+          href={downloadUrl}
           onClick={handleDownload}
           target="_blank"
           rel="noopener noreferrer"

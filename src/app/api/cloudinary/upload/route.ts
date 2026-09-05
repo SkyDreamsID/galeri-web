@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
 import { createClient } from '@/lib/supabase/server'
 
+// Tambahkan maxDuration agar tidak timeout saat upload file besar dari HP
+export const maxDuration = 60 // detik
+
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -28,12 +31,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Tidak ada file yang dikirim' }, { status: 400 })
     }
 
-    // 3. Convert File ke Buffer lalu ke Base64 (paling stabil untuk serverless)
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const base64Data = `data:${file.type || 'image/jpeg'};base64,${buffer.toString('base64')}`
-
-    // 4. Konfigurasi ulang Cloudinary dari Settings Database (jika .env kosong)
+    // 3. Konfigurasi ulang Cloudinary dari Settings Database (jika .env kosong)
     const { data: settings } = await supabase.from('site_settings').select('*').limit(1).single()
     if (settings?.cloudinary_cloud_name && settings?.cloudinary_api_key && settings?.cloudinary_api_secret) {
       cloudinary.config({
@@ -44,13 +42,27 @@ export async function POST(request: Request) {
       })
     }
 
-    const result = await cloudinary.uploader.upload(base64Data, {
-      resource_type: 'auto'
+    // 4. Simpan nama file asli sebelum upload
+    const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name
+
+    // 5. Convert ke Buffer → upload via stream ke Cloudinary
+    // Lebih ringan dari base64 (+33% ukuran) dan tidak perlu simpan ke disk
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    const result = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { resource_type: 'auto' },
+        (error, result) => {
+          if (error) return reject(error)
+          resolve(result)
+        }
+      )
+      uploadStream.end(buffer)
     })
 
-    // Kembalikan nama file asli (tanpa ekstensi) karena upload via Base64 menghilangkan metadata nama file
+    // 6. Pastikan original_filename terisi dari nama file asli
     if (!result.original_filename) {
-      const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name
       result.original_filename = nameWithoutExt
     }
 
