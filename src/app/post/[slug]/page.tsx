@@ -117,7 +117,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
   const { data: post, error } = await supabase
     .from('posts')
     .select(`
-      id, title, story, location, created_at, license_type, slug, status, views, downloads, shares, hide_exif,
+      id, title, story, location, created_at, license_type, slug, status, views, downloads, shares, hide_exif, uploaded_device,
       collections (id, name),
       post_tags ( tags (name) ),
       photos (
@@ -134,7 +134,7 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
     const { data: postById, error: errById } = await supabase
       .from('posts')
       .select(`
-        id, title, story, location, created_at, license_type, slug, status, views, downloads, shares, hide_exif,
+        id, title, story, location, created_at, license_type, slug, status, views, downloads, shares, hide_exif, uploaded_device,
         collections (id, name),
         post_tags ( tags (name) ),
         photos (
@@ -280,6 +280,12 @@ export default async function PostDetail({ params }: { params: Promise<{ slug: s
                       <>
                         <span className="pr-3 whitespace-nowrap">📍 Lokasi</span>
                         <span className="text-text-main"><span className="text-text-muted mr-2">:</span>{postData.location}</span>
+                      </>
+                    )}
+                    {postData.uploaded_device && (
+                      <>
+                        <span className="pr-3 whitespace-nowrap">📱 Device</span>
+                        <span className="text-text-main"><span className="text-text-muted mr-2">:</span>{postData.uploaded_device}</span>
                       </>
                     )}
                   </div>

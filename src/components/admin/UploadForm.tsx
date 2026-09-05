@@ -67,7 +67,7 @@ export function UploadForm() {
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
-  const [compressionQuality, setCompressionQuality] = useState('none')
+  const [compressionQuality, setCompressionQuality] = useState(isMobile ? 'medium' : 'none')
 
   // Fetch collections and tags on mount
   useEffect(() => {
@@ -314,12 +314,21 @@ export function UploadForm() {
                             const compressedDataUrl = canvas.toDataURL('image/jpeg', jpegQuality)
                             const finalDataUrl = piexif.insert(exifBytes, compressedDataUrl)
                             
-                            fetch(finalDataUrl)
-                              .then(res => res.blob())
-                              .then(b => resolve(new File([b], img.file.name, { type: 'image/jpeg' })))
-                              .catch(() => {
-                                canvas.toBlob((b) => resolve(new File([b!], img.file.name, { type: 'image/jpeg' })), 'image/jpeg', jpegQuality)
-                              })
+                            try {
+                              // Konversi DataURL ke Blob secara sinkron & hemat memory (menghindari fetch API yg rawan crash di HP)
+                              const arr = finalDataUrl.split(',')
+                              const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg'
+                              const bstr = atob(arr[1])
+                              let n = bstr.length
+                              const u8arr = new Uint8Array(n)
+                              while(n--) {
+                                u8arr[n] = bstr.charCodeAt(n)
+                              }
+                              const blob = new Blob([u8arr], { type: mime })
+                              resolve(new File([blob], img.file.name, { type: 'image/jpeg' }))
+                            } catch (e) {
+                              canvas.toBlob((b) => resolve(new File([b!], img.file.name, { type: 'image/jpeg' })), 'image/jpeg', jpegQuality)
+                            }
                             return
                           }
                         } catch (err) {
@@ -438,7 +447,8 @@ export function UploadForm() {
           location,
           collection_id: collectionId,
           status,
-          hide_exif: hideExif
+          hide_exif: hideExif,
+          uploaded_device: isMobile ? 'Mobile' : 'Desktop'
         })
         .select('id')
         .single()
