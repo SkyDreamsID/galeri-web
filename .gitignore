@@ -64,3 +64,5 @@ supabase_schema.sql
 
 ngrok.exegenerate_report.js
 
+# private folder
+private/
